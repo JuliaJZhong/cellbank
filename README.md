@@ -1,4 +1,6 @@
-# CellTracker 🧬
+\*made with Claude Pro. shoutout to my sister Roseann for that <3
+
+#  welcome 2 my bank 🧬
 
 A local web app for tracking clonal B cell lines, LN₂ tank inventory, and passage history. All data is stored as JSON files, version-controlled with git.
 
