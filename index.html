@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CellTracker — LN₂ Tank Log</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f12;
+    --surface: #141720;
+    --surface2: #1c2030;
+    --border: #252a3a;
+    --border-bright: #3a4260;
+    --accent: #4af0b0;
+    --accent-dim: #1a5a44;
+    --accent2: #7eb8ff;
+    --accent2-dim: #1a3060;
+    --warn: #ffb347;
+    --warn-dim: #4a3010;
+    --danger: #ff6b6b;
+    --text: #d4dae8;
+    --text-dim: #7a8299;
+    --text-bright: #eef2ff;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+    --radius: 6px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    min-height: 100vh;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    grid-template-columns: 260px 1fr;
+    grid-template-areas: "header header" "sidebar main";
+  }
+
+  /* HEADER */
+  header {
+    grid-area: header;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .logo {
+    font-family: var(--mono);
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: -0.5px;
+  }
+  .logo span { color: var(--text-dim); font-weight: 400; }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .commit-btn {
+    font-family: var(--mono);
+    font-size: 12px;
+    background: var(--accent-dim);
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 6px 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .commit-btn:hover { background: var(--accent); color: var(--bg); }
+
+  .status-pill {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 99px;
+    padding: 4px 10px;
+  }
+  .status-pill.ok { color: var(--accent); border-color: var(--accent-dim); }
+  .status-pill.err { color: var(--danger); }
+
+  /* SIDEBAR */
+  aside {
+    grid-area: sidebar;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 20px 0;
+    overflow-y: auto;
+  }
+
+  .nav-section {
+    padding: 0 16px 8px;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-dim);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-top: 16px;
+  }
+  .nav-section:first-child { margin-top: 0; }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    cursor: pointer;
+    color: var(--text-dim);
+    font-size: 13px;
+    transition: all 0.1s;
+    border-left: 2px solid transparent;
+  }
+  .nav-item:hover { color: var(--text); background: var(--surface2); }
+  .nav-item.active { color: var(--accent); border-left-color: var(--accent); background: rgba(74,240,176,0.06); }
+  .nav-item .icon { font-size: 15px; }
+
+  /* MAIN */
+  main {
+    grid-area: main;
+    overflow-y: auto;
+    padding: 28px;
+  }
+
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* PAGE TITLE */
+  .page-title {
+    font-family: var(--mono);
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-bright);
+    margin-bottom: 4px;
+  }
+  .page-sub {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-bottom: 24px;
+  }
+
+  /* CARDS */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .card-title {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* FORM ELEMENTS */
+  .form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .form-group.full { grid-column: 1 / -1; }
+
+  label {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  input, select, textarea {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 8px 10px;
+    outline: none;
+    transition: border 0.15s;
+    width: 100%;
+  }
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--accent);
+  }
+  select option { background: var(--surface2); }
+  textarea { resize: vertical; min-height: 60px; }
+
+  .btn {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 9px 18px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    border: 1px solid;
+    transition: all 0.15s;
+  }
+  .btn-primary { background: var(--accent-dim); color: var(--accent); border-color: var(--accent); }
+  .btn-primary:hover { background: var(--accent); color: var(--bg); }
+  .btn-secondary { background: transparent; color: var(--text-dim); border-color: var(--border); }
+  .btn-secondary:hover { border-color: var(--border-bright); color: var(--text); }
+  .btn-warn { background: var(--warn-dim); color: var(--warn); border-color: var(--warn); }
+  .btn-danger { background: transparent; color: var(--danger); border-color: var(--danger); }
+  .btn-sm { padding: 5px 10px; font-size: 11px; }
+
+  .btn-row { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+
+  /* TANK GRID */
+  .tank-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .stat-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+  }
+  .stat-val {
+    font-family: var(--mono);
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .stat-label { font-size: 12px; color: var(--text-dim); }
+
+  /* VIAL TABLE */
+  .table-wrap { overflow-x: auto; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+  th {
+    text-align: left;
+    padding: 8px 12px;
+    color: var(--text-dim);
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+    font-size: 10px;
+  }
+  td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--surface2); }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 99px;
+    font-size: 10px;
+    font-family: var(--mono);
+    font-weight: 600;
+  }
+  .badge-f2 { background: var(--accent2-dim); color: var(--accent2); }
+  .badge-f5 { background: var(--accent-dim); color: var(--accent); }
+  .badge-other { background: var(--surface2); color: var(--text-dim); border: 1px solid var(--border); }
+
+  .passage-tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--warn);
+    background: var(--warn-dim);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+
+  /* EVENT LOG */
+  .event-list { display: flex; flex-direction: column; gap: 8px; }
+  .event-item {
+    display: grid;
+    grid-template-columns: 100px 80px 1fr auto;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 12px;
+    font-family: var(--mono);
+  }
+  .event-date { color: var(--text-dim); }
+  .event-type-badge {
+    padding: 2px 8px;
+    border-radius: 99px;
+    font-size: 10px;
+    font-weight: 600;
+    text-align: center;
+  }
+  .type-freeze { background: var(--accent2-dim); color: var(--accent2); }
+  .type-thaw { background: #3a1a1a; color: #ff8888; }
+  .type-passage { background: var(--warn-dim); color: var(--warn); }
+  .event-detail { color: var(--text); }
+  .event-note { color: var(--text-dim); font-size: 11px; }
+
+  /* CLONE VIEW */
+  .clone-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+  }
+  .clone-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .clone-card:hover { border-color: var(--border-bright); }
+  .clone-id {
+    font-family: var(--mono);
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-bright);
+    margin-bottom: 8px;
+  }
+  .clone-meta { font-size: 12px; color: var(--text-dim); line-height: 1.7; }
+  .clone-passage { font-family: var(--mono); color: var(--warn); font-size: 13px; }
+
+  /* TOAST */
+  #toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--surface2);
+    border: 1px solid var(--border-bright);
+    border-radius: var(--radius);
+    padding: 12px 18px;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text-bright);
+    z-index: 1000;
+    transition: opacity 0.3s;
+    opacity: 0;
+    pointer-events: none;
+  }
+  #toast.show { opacity: 1; }
+  #toast.success { border-color: var(--accent); color: var(--accent); }
+  #toast.error { border-color: var(--danger); color: var(--danger); }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 500;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border-bright);
+    border-radius: 10px;
+    padding: 28px;
+    max-width: 480px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .modal-title {
+    font-family: var(--mono);
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-bright);
+    margin-bottom: 16px;
+  }
+
+  /* MISC */
+  .empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 13px;
+  }
+  .divider { height: 1px; background: var(--border); margin: 20px 0; }
+  .filter-row { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .filter-chip {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 4px 12px;
+    border-radius: 99px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.1s;
+  }
+  .filter-chip:hover, .filter-chip.active { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+
+  h3 { font-family: var(--mono); font-size: 14px; color: var(--text-bright); margin-bottom: 10px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Cell<span>Tracker</span> <span style="color:var(--text-dim);font-size:12px;margin-left:8px;">LN₂ Tank Log</span></div>
+  <div class="header-right">
+    <span class="status-pill" id="server-status">checking server…</span>
+    <button class="commit-btn" onclick="openCommitModal()">↑ git commit</button>
+  </div>
+</header>
+
+<aside>
+  <div class="nav-section">Views</div>
+  <div class="nav-item active" onclick="navigate('tank')" id="nav-tank">
+    <span class="icon">🧊</span> LN₂ Tank
+  </div>
+  <div class="nav-item" onclick="navigate('clones')" id="nav-clones">
+    <span class="icon">🔬</span> Clone Lines
+  </div>
+  <div class="nav-item" onclick="navigate('log')" id="nav-log">
+    <span class="icon">📋</span> Event Log
+  </div>
+
+  <div class="nav-section">Log Event</div>
+  <div class="nav-item" onclick="navigate('add-freeze')" id="nav-add-freeze">
+    <span class="icon">❄️</span> Freeze Down
+  </div>
+  <div class="nav-item" onclick="navigate('add-thaw')" id="nav-add-thaw">
+    <span class="icon">🌡️</span> Thaw
+  </div>
+  <div class="nav-item" onclick="navigate('add-passage')" id="nav-add-passage">
+    <span class="icon">⬆️</span> Passage
+  </div>
+
+  <div class="nav-section">Setup</div>
+  <div class="nav-item" onclick="navigate('import')" id="nav-import">
+    <span class="icon">📦</span> Import Vials
+  </div>
+</aside>
+
+<main>
+
+  <!-- ═══ TANK VIEW ═══ -->
+  <div class="view active" id="view-tank">
+    <div class="page-title">LN₂ Tank</div>
+    <div class="page-sub">Current snapshot of all cryopreserved vials</div>
+
+    <div class="tank-stats" id="tank-stats"></div>
+
+    <div class="card">
+      <div class="card-title">Vials in Tank</div>
+      <div class="filter-row" id="tank-filters">
+        <button class="filter-chip active" onclick="setTankFilter('all', this)">All</button>
+        <button class="filter-chip" onclick="setTankFilter('F2', this)">Donor F2</button>
+        <button class="filter-chip" onclick="setTankFilter('F5', this)">Donor F5</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Clone ID</th>
+              <th>Donor</th>
+              <th>Freeze Date</th>
+              <th>Vials</th>
+              <th>Passage</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody id="tank-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ CLONE VIEW ═══ -->
+  <div class="view" id="view-clones">
+    <div class="page-title">Clone Lines</div>
+    <div class="page-sub">History and passage tracking per clonal B cell line</div>
+    <div class="clone-grid" id="clone-grid"></div>
+  </div>
+
+  <!-- ═══ EVENT LOG ═══ -->
+  <div class="view" id="view-log">
+    <div class="page-title">Event Log</div>
+    <div class="page-sub">Append-only record of all freeze, thaw, and passage events</div>
+    <div class="filter-row">
+      <button class="filter-chip active" onclick="setLogFilter('all', this)">All</button>
+      <button class="filter-chip" onclick="setLogFilter('freeze', this)">❄️ Freeze</button>
+      <button class="filter-chip" onclick="setLogFilter('thaw', this)">🌡️ Thaw</button>
+      <button class="filter-chip" onclick="setLogFilter('passage', this)">⬆️ Passage</button>
+    </div>
+    <div class="event-list" id="event-list"></div>
+  </div>
+
+  <!-- ═══ FREEZE DOWN ═══ -->
+  <div class="view" id="view-add-freeze">
+    <div class="page-title">Log Freeze Down</div>
+    <div class="page-sub">Record new vials added to the LN₂ tank</div>
+    <div class="card">
+      <div class="card-title">Freeze Event</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" id="freeze-date">
+        </div>
+        <div class="form-group">
+          <label>Donor</label>
+          <select id="freeze-donor">
+            <option value="F2">F2</option>
+            <option value="F5">F5</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Clone #</label>
+          <input type="text" id="freeze-clone" placeholder="e.g. 17">
+        </div>
+        <div class="form-group">
+          <label>Number of Vials</label>
+          <input type="number" id="freeze-count" min="1" value="1">
+        </div>
+        <div class="form-group">
+          <label>Passage # (if known)</label>
+          <input type="number" id="freeze-passage" min="0" placeholder="optional">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group full">
+          <label>Notes</label>
+          <textarea id="freeze-notes" placeholder="cell density, viability, media, any relevant observations…"></textarea>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="logFreeze()">Log Freeze Event</button>
+        <button class="btn btn-secondary" onclick="navigate('tank')">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ THAW ═══ -->
+  <div class="view" id="view-add-thaw">
+    <div class="page-title">Log Thaw</div>
+    <div class="page-sub">Record a vial being removed from the tank</div>
+    <div class="card">
+      <div class="card-title">Thaw Event</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" id="thaw-date">
+        </div>
+        <div class="form-group">
+          <label>Clone ID</label>
+          <select id="thaw-clone"></select>
+        </div>
+        <div class="form-group">
+          <label>Vials Removed</label>
+          <input type="number" id="thaw-count" min="1" value="1">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Freeze date of thawed vial (if known)</label>
+          <input type="date" id="thaw-vial-date" placeholder="optional">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group full">
+          <label>Notes</label>
+          <textarea id="thaw-notes" placeholder="recovery viability, purpose, observations…"></textarea>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="logThaw()">Log Thaw Event</button>
+        <button class="btn btn-secondary" onclick="navigate('tank')">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ PASSAGE ═══ -->
+  <div class="view" id="view-add-passage">
+    <div class="page-title">Log Passage</div>
+    <div class="page-sub">Record a passage event (increments passage counter)</div>
+    <div class="card">
+      <div class="card-title">Passage Event</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" id="passage-date">
+        </div>
+        <div class="form-group">
+          <label>Clone ID</label>
+          <select id="passage-clone" onchange="updatePassagePreview()"></select>
+        </div>
+        <div class="form-group">
+          <label>Resulting Passage #</label>
+          <input type="number" id="passage-num" min="0" placeholder="will auto-calculate">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group full">
+          <label>Notes</label>
+          <textarea id="passage-notes" placeholder="split ratio, cell count, flask type, observations…"></textarea>
+        </div>
+      </div>
+      <div id="passage-preview" style="margin-top:8px; font-family:var(--mono); font-size:12px; color:var(--text-dim);"></div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="logPassage()">Log Passage</button>
+        <button class="btn btn-secondary" onclick="navigate('clones')">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ IMPORT ═══ -->
+  <div class="view" id="view-import">
+    <div class="page-title">Import / Bulk Add Vials</div>
+    <div class="page-sub">Use this to do the one-time setup — paste your current inventory from the lab notebook</div>
+
+    <div class="card">
+      <div class="card-title">Add Single Vial Group</div>
+      <p style="font-size:12px;color:var(--text-dim);margin-bottom:14px;">
+        Use this to reconstruct your historical inventory. Each entry represents vials from one freeze-down event.
+      </p>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Donor</label>
+          <select id="imp-donor">
+            <option value="F2">F2</option>
+            <option value="F5">F5</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Clone #</label>
+          <input type="text" id="imp-clone" placeholder="e.g. 17">
+        </div>
+        <div class="form-group">
+          <label>Freeze Date</label>
+          <input type="date" id="imp-date">
+        </div>
+        <div class="form-group">
+          <label>Vial Count</label>
+          <input type="number" id="imp-count" min="1" value="3">
+        </div>
+        <div class="form-group">
+          <label>Passage # (if known)</label>
+          <input type="number" id="imp-passage" min="0" placeholder="optional">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group full">
+          <label>Notes</label>
+          <textarea id="imp-notes" placeholder="any notes from notebook…"></textarea>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="importVial()">Add to Tank</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Bulk JSON Import</div>
+      <p style="font-size:12px;color:var(--text-dim);margin-bottom:14px;">
+        Paste a JSON array of vial objects. Each should have: <code style="color:var(--accent)">donor, clone, freeze_date, count</code> and optionally <code style="color:var(--accent)">passage, notes</code>.
+      </p>
+      <div class="form-row">
+        <div class="form-group full">
+          <label>JSON Array</label>
+          <textarea id="bulk-json" style="min-height:120px;font-size:11px;" placeholder='[{"donor":"F5","clone":"17","freeze_date":"2025-04-23","count":3,"passage":4}]'></textarea>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-warn" onclick="bulkImport()">Import JSON</button>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- COMMIT MODAL -->
+<div class="modal-overlay" id="commit-modal">
+  <div class="modal">
+    <div class="modal-title">↑ Commit to Git</div>
+    <div class="form-group" style="margin-bottom:16px;">
+      <label>Commit Message</label>
+      <input type="text" id="commit-msg" placeholder="e.g. Log freeze F5-17 23Apr2025">
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="doCommit()">Commit</button>
+      <button class="btn btn-secondary" onclick="closeCommitModal()">Cancel</button>
+    </div>
+    <div id="commit-result" style="margin-top:12px;font-family:var(--mono);font-size:12px;color:var(--text-dim);"></div>
+  </div>
+</div>
+
+<!-- CLONE DETAIL MODAL -->
+<div class="modal-overlay" id="clone-modal">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-title" id="clone-modal-title">Clone Detail</div>
+    <div id="clone-modal-body"></div>
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="closeCloneModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const API = 'http://localhost:8787';
+let state = { vials: [], events: [] };
+let tankFilter = 'all';
+let logFilter = 'all';
+
+// ── Data loading ──────────────────────────────────────────────────────────────
+async function loadData() {
+  try {
+    const [v, e] = await Promise.all([
+      fetch(`${API}/data/vials.json`).then(r => r.json()),
+      fetch(`${API}/data/events.json`).then(r => r.json())
+    ]);
+    state.vials = v.vials || [];
+    state.events = e.events || [];
+    setStatus('ok');
+    renderAll();
+  } catch(err) {
+    setStatus('err');
+    console.error(err);
+  }
+}
+
+async function saveData() {
+  await Promise.all([
+    fetch(`${API}/api/save`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ file: 'vials.json', data: { last_updated: new Date().toISOString(), vials: state.vials } })
+    }),
+    fetch(`${API}/api/save`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ file: 'events.json', data: { events: state.events } })
+    })
+  ]);
+  renderAll();
+}
+
+// ── Utilities ─────────────────────────────────────────────────────────────────
+function cloneKey(donor, clone) { return `${donor}-${clone}`; }
+
+function getPassageForClone(donor, clone) {
+  // Find the highest explicitly-set passage from events or vials
+  const key = cloneKey(donor, clone);
+  const passages = state.events
+    .filter(e => e.clone_key === key && e.type === 'passage' && e.passage_num != null)
+    .map(e => e.passage_num);
+  const vialPassages = state.vials
+    .filter(v => v.clone_key === key && v.passage != null)
+    .map(v => v.passage);
+  const all = [...passages, ...vialPassages];
+  if (all.length === 0) return null;
+  return Math.max(...all);
+}
+
+function allCloneKeys() {
+  const keys = new Set([
+    ...state.vials.map(v => v.clone_key),
+    ...state.events.map(e => e.clone_key).filter(Boolean)
+  ]);
+  return [...keys].sort();
+}
+
+function donorFromKey(key) { return key.split('-')[0]; }
+function cloneNumFromKey(key) { return key.split('-').slice(1).join('-'); }
+
+function fmt(dateStr) {
+  if (!dateStr) return '—';
+  const d = new Date(dateStr + 'T12:00:00');
+  return d.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+}
+
+function today() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function donorBadge(donor) {
+  const cls = donor === 'F2' ? 'badge-f2' : donor === 'F5' ? 'badge-f5' : 'badge-other';
+  return `<span class="badge ${cls}">${donor}</span>`;
+}
+
+// ── Render ────────────────────────────────────────────────────────────────────
+function renderAll() {
+  renderTank();
+  renderClones();
+  renderLog();
+  populateCloneSelects();
+}
+
+function renderTank() {
+  let vials = state.vials;
+  if (tankFilter !== 'all') vials = vials.filter(v => v.donor === tankFilter);
+
+  const totalVials = vials.reduce((s, v) => s + (v.count || 0), 0);
+  const cloneKeys = new Set(vials.map(v => v.clone_key));
+  const donors = new Set(vials.map(v => v.donor));
+
+  document.getElementById('tank-stats').innerHTML = `
+    <div class="stat-box"><div class="stat-val">${totalVials}</div><div class="stat-label">Total Vials</div></div>
+    <div class="stat-box"><div class="stat-val">${cloneKeys.size}</div><div class="stat-label">Clone Lines</div></div>
+    <div class="stat-box"><div class="stat-val">${donors.size}</div><div class="stat-label">Donors</div></div>
+    <div class="stat-box"><div class="stat-val">${state.events.length}</div><div class="stat-label">Events Logged</div></div>
+  `;
+
+  const tbody = document.getElementById('tank-tbody');
+  if (vials.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty">No vials in tank. Use Import to add your current inventory.</td></tr>';
+    return;
+  }
+
+  // Sort by donor then clone
+  vials = [...vials].sort((a, b) => a.clone_key.localeCompare(b.clone_key));
+
+  tbody.innerHTML = vials.map(v => {
+    const p = getPassageForClone(v.donor, v.clone_num) ?? v.passage;
+    const pTag = p != null ? `<span class="passage-tag">P${p}</span>` : '<span style="color:var(--text-dim)">—</span>';
+    return `<tr>
+      <td style="font-weight:600;color:var(--text-bright)">${v.clone_key}</td>
+      <td>${donorBadge(v.donor)}</td>
+      <td>${fmt(v.freeze_date)}</td>
+      <td style="color:var(--accent);font-weight:600">${v.count}</td>
+      <td>${pTag}</td>
+      <td style="color:var(--text-dim);font-size:11px">${v.notes || ''}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderClones() {
+  const keys = allCloneKeys();
+  const grid = document.getElementById('clone-grid');
+  if (keys.length === 0) {
+    grid.innerHTML = '<div class="empty">No clones yet. Add vials via Import or Freeze Down.</div>';
+    return;
+  }
+  grid.innerHTML = keys.map(key => {
+    const donor = donorFromKey(key);
+    const cloneNum = cloneNumFromKey(key);
+    const passage = getPassageForClone(donor, cloneNum);
+    const vialCount = state.vials.filter(v => v.clone_key === key).reduce((s, v) => s + (v.count || 0), 0);
+    const evCount = state.events.filter(e => e.clone_key === key).length;
+    return `<div class="clone-card" onclick="openCloneModal('${key}')">
+      <div class="clone-id">${key}</div>
+      <div class="clone-meta">
+        ${donorBadge(donor)}<br>
+        <span style="color:var(--text)">🧊 ${vialCount} vials in tank</span><br>
+        ${passage != null ? `<span class="clone-passage">Passage P${passage}</span>` : '<span style="color:var(--text-dim)">Passage unknown</span>'}<br>
+        <span>${evCount} events logged</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderLog() {
+  let evs = [...state.events].reverse();
+  if (logFilter !== 'all') evs = evs.filter(e => e.type === logFilter);
+  const el = document.getElementById('event-list');
+  if (evs.length === 0) {
+    el.innerHTML = '<div class="empty">No events logged yet.</div>';
+    return;
+  }
+  el.innerHTML = evs.map(e => {
+    const typeCls = { freeze: 'type-freeze', thaw: 'type-thaw', passage: 'type-passage' }[e.type] || '';
+    const typeLabel = { freeze: '❄️ freeze', thaw: '🌡️ thaw', passage: '⬆️ passage' }[e.type] || e.type;
+    let detail = e.clone_key || '';
+    if (e.type === 'freeze') detail += ` · +${e.count} vials`;
+    if (e.type === 'thaw') detail += ` · −${e.count} vials`;
+    if (e.type === 'passage') detail += e.passage_num != null ? ` → P${e.passage_num}` : '';
+    return `<div class="event-item">
+      <span class="event-date">${fmt(e.date)}</span>
+      <span class="event-type-badge ${typeCls}">${typeLabel}</span>
+      <span class="event-detail">${detail}</span>
+      <span class="event-note">${e.notes || ''}</span>
+    </div>`;
+  }).join('');
+}
+
+function populateCloneSelects() {
+  const keys = allCloneKeys();
+  const opts = keys.length ? keys.map(k => `<option value="${k}">${k}</option>`).join('') : '<option value="">— no clones yet —</option>';
+  document.getElementById('thaw-clone').innerHTML = opts;
+  document.getElementById('passage-clone').innerHTML = opts;
+  updatePassagePreview();
+}
+
+// ── Navigation ────────────────────────────────────────────────────────────────
+function navigate(view) {
+  document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  document.getElementById(`view-${view}`).classList.add('active');
+  const navEl = document.getElementById(`nav-${view}`);
+  if (navEl) navEl.classList.add('active');
+
+  // Set date defaults
+  const dateInputs = document.getElementById(`view-${view}`).querySelectorAll('input[type=date]');
+  dateInputs.forEach(inp => { if (!inp.value) inp.value = today(); });
+}
+
+// ── Filters ───────────────────────────────────────────────────────────────────
+function setTankFilter(f, btn) {
+  tankFilter = f;
+  document.querySelectorAll('#tank-filters .filter-chip').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTank();
+}
+function setLogFilter(f, btn) {
+  logFilter = f;
+  document.querySelectorAll('#event-list').forEach(() => {});
+  document.querySelectorAll('.filter-row .filter-chip').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderLog();
+}
+
+// ── Events ────────────────────────────────────────────────────────────────────
+async function logFreeze() {
+  const date = document.getElementById('freeze-date').value;
+  const donor = document.getElementById('freeze-donor').value;
+  const clone = document.getElementById('freeze-clone').value.trim();
+  const count = parseInt(document.getElementById('freeze-count').value);
+  const passage = document.getElementById('freeze-passage').value;
+  const notes = document.getElementById('freeze-notes').value.trim();
+
+  if (!date || !clone || !count) return toast('Please fill in date, clone #, and count.', 'error');
+
+  const key = cloneKey(donor, clone);
+  const event = { id: uid(), type: 'freeze', date, clone_key: key, donor, clone_num: clone, count, passage_num: passage ? parseInt(passage) : null, notes };
+  state.events.push(event);
+
+  // Update or add vial entry
+  const existing = state.vials.find(v => v.clone_key === key && v.freeze_date === date);
+  if (existing) {
+    existing.count += count;
+  } else {
+    state.vials.push({ clone_key: key, donor, clone_num: clone, freeze_date: date, count, passage: passage ? parseInt(passage) : null, notes });
+  }
+
+  await saveData();
+  toast(`Logged freeze: ${key} +${count} vials`, 'success');
+  document.getElementById('freeze-clone').value = '';
+  document.getElementById('freeze-count').value = '1';
+  document.getElementById('freeze-passage').value = '';
+  document.getElementById('freeze-notes').value = '';
+  navigate('tank');
+}
+
+async function logThaw() {
+  const date = document.getElementById('thaw-date').value;
+  const key = document.getElementById('thaw-clone').value;
+  const count = parseInt(document.getElementById('thaw-count').value);
+  const notes = document.getElementById('thaw-notes').value.trim();
+  const vialDate = document.getElementById('thaw-vial-date').value;
+
+  if (!date || !key || !count) return toast('Please fill in date, clone, and count.', 'error');
+
+  const event = { id: uid(), type: 'thaw', date, clone_key: key, count, vial_freeze_date: vialDate || null, notes };
+  state.events.push(event);
+
+  // Decrement vials — remove from oldest freeze date first (FIFO) unless vial date specified
+  let remaining = count;
+  const cloneVials = state.vials.filter(v => v.clone_key === key).sort((a, b) => a.freeze_date.localeCompare(b.freeze_date));
+  if (vialDate) {
+    // Remove from specific date if specified
+    const target = cloneVials.find(v => v.freeze_date === vialDate);
+    if (target) { target.count = Math.max(0, target.count - count); remaining = 0; }
+  }
+  if (remaining > 0) {
+    for (const v of cloneVials) {
+      if (remaining <= 0) break;
+      const take = Math.min(remaining, v.count);
+      v.count -= take;
+      remaining -= take;
+    }
+  }
+  // Remove zero-count vials
+  state.vials = state.vials.filter(v => v.count > 0);
+
+  await saveData();
+  toast(`Logged thaw: ${key} −${count} vials`, 'success');
+  document.getElementById('thaw-notes').value = '';
+  document.getElementById('thaw-count').value = '1';
+  navigate('tank');
+}
+
+async function logPassage() {
+  const date = document.getElementById('passage-date').value;
+  const key = document.getElementById('passage-clone').value;
+  const pNum = document.getElementById('passage-num').value;
+  const notes = document.getElementById('passage-notes').value.trim();
+
+  if (!date || !key) return toast('Please fill in date and clone.', 'error');
+
+  const donor = donorFromKey(key);
+  const cloneNum = cloneNumFromKey(key);
+  const currentP = getPassageForClone(donor, cloneNum);
+  const newP = pNum ? parseInt(pNum) : (currentP != null ? currentP + 1 : 1);
+
+  const event = { id: uid(), type: 'passage', date, clone_key: key, passage_num: newP, notes };
+  state.events.push(event);
+
+  await saveData();
+  toast(`Logged passage: ${key} → P${newP}`, 'success');
+  document.getElementById('passage-notes').value = '';
+  document.getElementById('passage-num').value = '';
+  navigate('clones');
+}
+
+function updatePassagePreview() {
+  const key = document.getElementById('passage-clone').value;
+  if (!key) return;
+  const donor = donorFromKey(key);
+  const cloneNum = cloneNumFromKey(key);
+  const current = getPassageForClone(donor, cloneNum);
+  const el = document.getElementById('passage-preview');
+  el.textContent = current != null
+    ? `Current: P${current} → will become P${current + 1} (unless overridden above)`
+    : 'No passage recorded yet → will be set to P1 (unless overridden above)';
+}
+
+// ── Import ────────────────────────────────────────────────────────────────────
+async function importVial() {
+  const donor = document.getElementById('imp-donor').value;
+  const clone = document.getElementById('imp-clone').value.trim();
+  const date = document.getElementById('imp-date').value;
+  const count = parseInt(document.getElementById('imp-count').value);
+  const passage = document.getElementById('imp-passage').value;
+  const notes = document.getElementById('imp-notes').value.trim();
+
+  if (!clone || !date || !count) return toast('Fill in clone #, date, and count.', 'error');
+
+  const key = cloneKey(donor, clone);
+  const existing = state.vials.find(v => v.clone_key === key && v.freeze_date === date);
+  if (existing) {
+    existing.count += count;
+    if (passage) existing.passage = parseInt(passage);
+  } else {
+    state.vials.push({ clone_key: key, donor, clone_num: clone, freeze_date: date, count, passage: passage ? parseInt(passage) : null, notes });
+  }
+
+  // Log as a historical freeze event too
+  state.events.push({ id: uid(), type: 'freeze', date, clone_key: key, donor, clone_num: clone, count, passage_num: passage ? parseInt(passage) : null, notes: `[imported] ${notes}` });
+
+  await saveData();
+  toast(`Added ${key}: ${count} vials from ${fmt(date)}`, 'success');
+  document.getElementById('imp-clone').value = '';
+  document.getElementById('imp-count').value = '3';
+  document.getElementById('imp-passage').value = '';
+  document.getElementById('imp-notes').value = '';
+}
+
+async function bulkImport() {
+  const raw = document.getElementById('bulk-json').value.trim();
+  let arr;
+  try { arr = JSON.parse(raw); } catch(e) { return toast('Invalid JSON', 'error'); }
+  if (!Array.isArray(arr)) return toast('JSON must be an array', 'error');
+
+  for (const item of arr) {
+    const { donor, clone, freeze_date, count, passage, notes } = item;
+    if (!donor || !clone || !freeze_date || !count) continue;
+    const key = cloneKey(donor, clone);
+    const existing = state.vials.find(v => v.clone_key === key && v.freeze_date === freeze_date);
+    if (existing) { existing.count += count; } else {
+      state.vials.push({ clone_key: key, donor, clone_num: String(clone), freeze_date, count, passage: passage ?? null, notes: notes || '' });
+    }
+    state.events.push({ id: uid(), type: 'freeze', date: freeze_date, clone_key: key, donor, clone_num: String(clone), count, passage_num: passage ?? null, notes: `[bulk import] ${notes || ''}` });
+  }
+
+  await saveData();
+  toast(`Imported ${arr.length} entries`, 'success');
+  document.getElementById('bulk-json').value = '';
+}
+
+// ── Clone modal ───────────────────────────────────────────────────────────────
+function openCloneModal(key) {
+  const donor = donorFromKey(key);
+  const cloneNum = cloneNumFromKey(key);
+  const vials = state.vials.filter(v => v.clone_key === key);
+  const events = state.events.filter(e => e.clone_key === key).sort((a, b) => a.date.localeCompare(b.date));
+  const passage = getPassageForClone(donor, cloneNum);
+  const totalVials = vials.reduce((s, v) => s + v.count, 0);
+
+  document.getElementById('clone-modal-title').textContent = `Clone ${key}`;
+  document.getElementById('clone-modal-body').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px;">
+      <div class="stat-box"><div class="stat-val" style="font-size:20px;">${totalVials}</div><div class="stat-label">Vials in tank</div></div>
+      <div class="stat-box"><div class="stat-val" style="font-size:20px;color:var(--warn);">${passage != null ? 'P'+passage : '?'}</div><div class="stat-label">Current passage</div></div>
+      <div class="stat-box"><div class="stat-val" style="font-size:20px;color:var(--accent2);">${events.length}</div><div class="stat-label">Events</div></div>
+    </div>
+    <h3>Vials in Tank</h3>
+    <table style="margin-bottom:16px;">
+      <thead><tr><th>Freeze Date</th><th>Count</th><th>Passage</th></tr></thead>
+      <tbody>${vials.map(v => `<tr><td>${fmt(v.freeze_date)}</td><td style="color:var(--accent)">${v.count}</td><td>${v.passage != null ? 'P'+v.passage : '—'}</td></tr>`).join('') || '<tr><td colspan="3" style="color:var(--text-dim)">None</td></tr>'}</tbody>
+    </table>
+    <h3>Event History</h3>
+    <div class="event-list" style="gap:6px;">
+      ${events.map(e => {
+        const typeCls = { freeze: 'type-freeze', thaw: 'type-thaw', passage: 'type-passage' }[e.type] || '';
+        const typeLabel = { freeze: '❄️ freeze', thaw: '🌡️ thaw', passage: '⬆️ passage' }[e.type] || e.type;
+        let detail = '';
+        if (e.type === 'freeze') detail = `+${e.count} vials`;
+        if (e.type === 'thaw') detail = `−${e.count} vials`;
+        if (e.type === 'passage') detail = e.passage_num != null ? `→ P${e.passage_num}` : '';
+        return `<div class="event-item" style="grid-template-columns:90px 80px 1fr 1fr;">
+          <span class="event-date">${fmt(e.date)}</span>
+          <span class="event-type-badge ${typeCls}">${typeLabel}</span>
+          <span style="font-family:var(--mono);font-size:12px;color:var(--text)">${detail}</span>
+          <span style="font-size:11px;color:var(--text-dim)">${e.notes || ''}</span>
+        </div>`;
+      }).join('') || '<div class="empty">No events yet.</div>'}
+    </div>
+  `;
+  document.getElementById('clone-modal').classList.add('open');
+}
+function closeCloneModal() { document.getElementById('clone-modal').classList.remove('open'); }
+
+// ── Commit modal ──────────────────────────────────────────────────────────────
+function openCommitModal() {
+  document.getElementById('commit-result').textContent = '';
+  document.getElementById('commit-msg').value = `Update cell tracker — ${new Date().toLocaleDateString('en-GB')}`;
+  document.getElementById('commit-modal').classList.add('open');
+}
+function closeCommitModal() { document.getElementById('commit-modal').classList.remove('open'); }
+
+async function doCommit() {
+  const msg = document.getElementById('commit-msg').value.trim() || 'Update cell tracker data';
+  const res = await fetch(`${API}/api/commit`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message: msg })
+  });
+  const data = await res.json();
+  document.getElementById('commit-result').textContent = data.output || (data.ok ? 'Committed.' : 'Error.');
+  if (data.ok) toast('git commit successful', 'success');
+}
+
+// ── UI helpers ────────────────────────────────────────────────────────────────
+function setStatus(s) {
+  const el = document.getElementById('server-status');
+  if (s === 'ok') { el.textContent = '● server connected'; el.className = 'status-pill ok'; }
+  else { el.textContent = '✕ server offline'; el.className = 'status-pill err'; }
+}
+
+let toastTimer;
+function toast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'show ' + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.className = ''; }, 3000);
+}
+
+function uid() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+loadData();
+</script>
+</body>
+</html>
