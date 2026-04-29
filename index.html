@@ -429,6 +429,63 @@
   .filter-chip:hover, .filter-chip.active { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
 
   h3 { font-family: var(--mono); font-size: 14px; color: var(--text-bright); margin-bottom: 10px; }
+
+  /* BATCH ROWS */
+  .batch-row {
+    display: grid;
+    grid-template-columns: 80px 110px 90px 90px 1fr 32px;
+    gap: 8px;
+    align-items: end;
+    padding: 10px 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 8px;
+  }
+  .batch-row:first-child { border-color: var(--border-bright); }
+  .batch-remove {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 6px;
+    line-height: 1;
+    transition: all 0.1s;
+    align-self: end;
+  }
+  .batch-row.import-row {
+    grid-template-columns: 80px 110px 130px 80px 90px 1fr 32px;
+  }
+
+  /* CORRECTION */
+  .corr-candidate {
+    display: grid;
+    grid-template-columns: 90px 70px 1fr 1fr auto;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-family: var(--mono);
+    font-size: 12px;
+    margin-bottom: 6px;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .corr-candidate:hover { border-color: var(--warn); }
+  .corr-candidate.selected { border-color: var(--warn); background: var(--warn-dim); }
+  .corr-candidate.superseded { opacity: 0.45; cursor: default; }
+  .superseded-tag {
+    font-size: 10px;
+    color: var(--danger);
+    background: #3a1a1a;
+    border: 1px solid var(--danger);
+    border-radius: 99px;
+    padding: 1px 7px;
+  }
 </style>
 </head>
 <body>
@@ -467,6 +524,9 @@
   <div class="nav-section">Setup</div>
   <div class="nav-item" onclick="navigate('import')" id="nav-import">
     <span class="icon">📦</span> Import Vials
+  </div>
+  <div class="nav-item" onclick="navigate('correct')" id="nav-correct">
+    <span class="icon">✏️</span> Correct Entry
   </div>
 </aside>
 
@@ -527,45 +587,26 @@
   <!-- ═══ FREEZE DOWN ═══ -->
   <div class="view" id="view-add-freeze">
     <div class="page-title">Log Freeze Down</div>
-    <div class="page-sub">Record new vials added to the LN₂ tank</div>
+    <div class="page-sub">Record new vials added to the LN₂ tank — add as many clones as you froze that day</div>
     <div class="card">
-      <div class="card-title">Freeze Event</div>
+      <div class="card-title">Freeze Date</div>
       <div class="form-row">
         <div class="form-group">
           <label>Date</label>
           <input type="date" id="freeze-date">
         </div>
-        <div class="form-group">
-          <label>Donor</label>
-          <select id="freeze-donor">
-            <option value="F2">F2</option>
-            <option value="F5">F5</option>
-            <option value="other">Other</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Clone #</label>
-          <input type="text" id="freeze-clone" placeholder="e.g. 17">
-        </div>
-        <div class="form-group">
-          <label>Number of Vials</label>
-          <input type="number" id="freeze-count" min="1" value="1">
-        </div>
-        <div class="form-group">
-          <label>Passage # (if known)</label>
-          <input type="number" id="freeze-passage" min="0" placeholder="optional">
-        </div>
       </div>
-      <div class="form-row">
-        <div class="form-group full">
-          <label>Notes</label>
-          <textarea id="freeze-notes" placeholder="cell density, viability, media, any relevant observations…"></textarea>
-        </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Clones Frozen</div>
+      <div id="freeze-rows"></div>
+      <div class="btn-row" style="margin-top:12px;">
+        <button class="btn btn-secondary" onclick="addFreezeRow()">+ Add Clone</button>
       </div>
-      <div class="btn-row">
-        <button class="btn btn-primary" onclick="logFreeze()">Log Freeze Event</button>
-        <button class="btn btn-secondary" onclick="navigate('tank')">Cancel</button>
-      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="logFreeze()">Log All Freeze Events</button>
+      <button class="btn btn-secondary" onclick="navigate('tank')">Cancel</button>
     </div>
   </div>
 
@@ -611,34 +652,26 @@
   <!-- ═══ PASSAGE ═══ -->
   <div class="view" id="view-add-passage">
     <div class="page-title">Log Passage</div>
-    <div class="page-sub">Record a passage event (increments passage counter)</div>
+    <div class="page-sub">Record passage events — add multiple clones if you passaged several on the same day</div>
     <div class="card">
-      <div class="card-title">Passage Event</div>
+      <div class="card-title">Passage Date</div>
       <div class="form-row">
         <div class="form-group">
           <label>Date</label>
           <input type="date" id="passage-date">
         </div>
-        <div class="form-group">
-          <label>Clone ID</label>
-          <select id="passage-clone" onchange="updatePassagePreview()"></select>
-        </div>
-        <div class="form-group">
-          <label>Resulting Passage #</label>
-          <input type="number" id="passage-num" min="0" placeholder="will auto-calculate">
-        </div>
       </div>
-      <div class="form-row">
-        <div class="form-group full">
-          <label>Notes</label>
-          <textarea id="passage-notes" placeholder="split ratio, cell count, flask type, observations…"></textarea>
-        </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Clones Passaged</div>
+      <div id="passage-rows"></div>
+      <div class="btn-row" style="margin-top:12px;">
+        <button class="btn btn-secondary" onclick="addPassageRow()">+ Add Clone</button>
       </div>
-      <div id="passage-preview" style="margin-top:8px; font-family:var(--mono); font-size:12px; color:var(--text-dim);"></div>
-      <div class="btn-row">
-        <button class="btn btn-primary" onclick="logPassage()">Log Passage</button>
-        <button class="btn btn-secondary" onclick="navigate('clones')">Cancel</button>
-      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="logPassage()">Log All Passage Events</button>
+      <button class="btn btn-secondary" onclick="navigate('clones')">Cancel</button>
     </div>
   </div>
 
@@ -648,44 +681,16 @@
     <div class="page-sub">Use this to do the one-time setup — paste your current inventory from the lab notebook</div>
 
     <div class="card">
-      <div class="card-title">Add Single Vial Group</div>
+      <div class="card-title">Add Vial Groups</div>
       <p style="font-size:12px;color:var(--text-dim);margin-bottom:14px;">
-        Use this to reconstruct your historical inventory. Each entry represents vials from one freeze-down event.
+        Each row is one freeze-down event. Dates can differ between rows — useful for reconstructing inventory from lab notebooks across multiple dates.
       </p>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Donor</label>
-          <select id="imp-donor">
-            <option value="F2">F2</option>
-            <option value="F5">F5</option>
-            <option value="other">Other</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Clone #</label>
-          <input type="text" id="imp-clone" placeholder="e.g. 17">
-        </div>
-        <div class="form-group">
-          <label>Freeze Date</label>
-          <input type="date" id="imp-date">
-        </div>
-        <div class="form-group">
-          <label>Vial Count</label>
-          <input type="number" id="imp-count" min="1" value="3">
-        </div>
-        <div class="form-group">
-          <label>Passage # (if known)</label>
-          <input type="number" id="imp-passage" min="0" placeholder="optional">
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group full">
-          <label>Notes</label>
-          <textarea id="imp-notes" placeholder="any notes from notebook…"></textarea>
-        </div>
+      <div id="import-rows"></div>
+      <div class="btn-row" style="margin-top:12px;">
+        <button class="btn btn-secondary" onclick="addImportRow()">+ Add Row</button>
       </div>
       <div class="btn-row">
-        <button class="btn btn-primary" onclick="importVial()">Add to Tank</button>
+        <button class="btn btn-primary" onclick="importVials()">Add All to Tank</button>
       </div>
     </div>
 
@@ -702,6 +707,59 @@
       </div>
       <div class="btn-row">
         <button class="btn btn-warn" onclick="bulkImport()">Import JSON</button>
+      </div>
+    </div>
+  </div>
+  <!-- ═══ CORRECT ENTRY ═══ -->
+  <div class="view" id="view-correct">
+    <div class="page-title">Correct an Entry</div>
+    <div class="page-sub">Logs a correction event — the original record is preserved in history</div>
+
+    <div class="card">
+      <div class="card-title">Step 1 — Find the event to correct</div>
+      <p style="font-size:12px;color:var(--text-dim);margin-bottom:14px;">
+        Select a clone and event type to browse matching events, then click one to load it for correction.
+      </p>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Clone ID</label>
+          <select id="corr-filter-clone" onchange="renderCorrectionCandidates()"></select>
+        </div>
+        <div class="form-group">
+          <label>Event Type</label>
+          <select id="corr-filter-type" onchange="renderCorrectionCandidates()">
+            <option value="all">All types</option>
+            <option value="freeze">❄️ Freeze</option>
+            <option value="thaw">🌡️ Thaw</option>
+            <option value="passage">⬆️ Passage</option>
+          </select>
+        </div>
+      </div>
+      <div id="corr-candidates" style="margin-top:8px;"></div>
+    </div>
+
+    <div class="card" id="corr-edit-card" style="display:none;">
+      <div class="card-title">Step 2 — Apply correction</div>
+      <div id="corr-original-display" style="
+        background:var(--bg); border:1px solid var(--border); border-radius:var(--radius);
+        padding:12px 14px; margin-bottom:16px; font-family:var(--mono); font-size:12px;
+      "></div>
+
+      <p style="font-size:12px;color:var(--text-dim);margin-bottom:14px;">
+        Edit any fields below. Leave a field unchanged to keep its original value. A <code style="color:var(--warn)">correction</code> event will be appended to the log, and the original event will be marked as superseded.
+      </p>
+
+      <div class="form-row" id="corr-fields"></div>
+
+      <div class="form-row">
+        <div class="form-group full">
+          <label>Reason for correction <span style="color:var(--danger)">*</span></label>
+          <textarea id="corr-reason" placeholder="e.g. Wrong date entered during import — correct date is 23 Apr 2025" style="min-height:50px;"></textarea>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-warn" onclick="applyCorrection()">Apply Correction</button>
+        <button class="btn btn-secondary" onclick="clearCorrectionForm()">Clear</button>
       </div>
     </div>
   </div>
@@ -905,11 +963,14 @@ function renderLog() {
     if (e.type === 'freeze') detail += ` · +${e.count} vials`;
     if (e.type === 'thaw') detail += ` · −${e.count} vials`;
     if (e.type === 'passage') detail += e.passage_num != null ? ` → P${e.passage_num}` : '';
-    return `<div class="event-item">
+    const supStyle = e.superseded_by ? 'opacity:0.4;text-decoration:line-through;' : '';
+    const corrTag = e.is_correction ? `<span style="font-size:10px;color:var(--warn);background:var(--warn-dim);border-radius:99px;padding:1px 7px;margin-left:6px;">correction</span>` : '';
+    const supTag = e.superseded_by ? `<span style="font-size:10px;color:var(--danger);background:#3a1a1a;border-radius:99px;padding:1px 7px;margin-left:6px;">superseded</span>` : '';
+    return `<div class="event-item" style="${supStyle}">
       <span class="event-date">${fmt(e.date)}</span>
       <span class="event-type-badge ${typeCls}">${typeLabel}</span>
-      <span class="event-detail">${detail}</span>
-      <span class="event-note">${e.notes || ''}</span>
+      <span class="event-detail">${detail}${corrTag}${supTag}</span>
+      <span class="event-note">${e.is_correction ? `✏️ ${e.correction_reason}` : (e.notes || '')}</span>
     </div>`;
   }).join('');
 }
@@ -918,8 +979,8 @@ function populateCloneSelects() {
   const keys = allCloneKeys();
   const opts = keys.length ? keys.map(k => `<option value="${k}">${k}</option>`).join('') : '<option value="">— no clones yet —</option>';
   document.getElementById('thaw-clone').innerHTML = opts;
-  document.getElementById('passage-clone').innerHTML = opts;
-  updatePassagePreview();
+  document.getElementById('corr-filter-clone').innerHTML = opts;
+  // Passage and freeze rows are rendered dynamically — no static selects to update
 }
 
 // ── Navigation ────────────────────────────────────────────────────────────────
@@ -930,9 +991,17 @@ function navigate(view) {
   const navEl = document.getElementById(`nav-${view}`);
   if (navEl) navEl.classList.add('active');
 
-  // Set date defaults
-  const dateInputs = document.getElementById(`view-${view}`).querySelectorAll('input[type=date]');
-  dateInputs.forEach(inp => { if (!inp.value) inp.value = today(); });
+  // Set date defaults — always reset to today when navigating to an event form
+  const eventForms = ['add-freeze', 'add-thaw', 'add-passage'];
+  if (eventForms.includes(view)) {
+    const dateInputs = document.getElementById(`view-${view}`).querySelectorAll('input[type=date]');
+    dateInputs.forEach(inp => { inp.value = today(); });
+  }
+
+  if (view === 'add-freeze') initFreezeRows();
+  if (view === 'add-passage') initPassageRows();
+  if (view === 'import') initImportRows();
+  if (view === 'correct') renderCorrectionCandidates();
 }
 
 // ── Filters ───────────────────────────────────────────────────────────────────
@@ -950,35 +1019,135 @@ function setLogFilter(f, btn) {
   renderLog();
 }
 
+// ── Batch row management ──────────────────────────────────────────────────────
+function donorOptions(selected = 'F2') {
+  return ['F2','F5','other'].map(d => `<option value="${d}" ${d===selected?'selected':''}>${d}</option>`).join('');
+}
+
+function cloneOptions(selected = '') {
+  const keys = allCloneKeys();
+  return keys.map(k => `<option value="${k}" ${k===selected?'selected':''}>${k}</option>`).join('');
+}
+
+let freezeRowCount = 0;
+function initFreezeRows() {
+  freezeRowCount = 0;
+  document.getElementById('freeze-rows').innerHTML = '';
+  addFreezeRow();
+}
+
+function addFreezeRow() {
+  freezeRowCount++;
+  const id = `fr-${freezeRowCount}`;
+  const el = document.createElement('div');
+  el.className = 'batch-row';
+  el.id = id;
+  el.innerHTML = `
+    <div class="form-group">
+      ${freezeRowCount === 1 ? '<label>Donor</label>' : ''}
+      <select class="fr-donor">${donorOptions()}</select>
+    </div>
+    <div class="form-group">
+      ${freezeRowCount === 1 ? '<label>Clone #</label>' : ''}
+      <input class="fr-clone" type="text" placeholder="e.g. 17">
+    </div>
+    <div class="form-group">
+      ${freezeRowCount === 1 ? '<label>Vials</label>' : ''}
+      <input class="fr-count" type="number" min="1" value="1">
+    </div>
+    <div class="form-group">
+      ${freezeRowCount === 1 ? '<label>Passage #</label>' : ''}
+      <input class="fr-passage" type="number" min="0" placeholder="optional">
+    </div>
+    <div class="form-group">
+      ${freezeRowCount === 1 ? '<label>Notes</label>' : ''}
+      <input class="fr-notes" type="text" placeholder="optional notes">
+    </div>
+    <button class="batch-remove" onclick="removeBatchRow('${id}')" title="Remove">×</button>
+  `;
+  document.getElementById('freeze-rows').appendChild(el);
+}
+
+let passageRowCount = 0;
+function initPassageRows() {
+  passageRowCount = 0;
+  document.getElementById('passage-rows').innerHTML = '';
+  addPassageRow();
+}
+
+function addPassageRow() {
+  passageRowCount++;
+  const id = `pr-${passageRowCount}`;
+  const keys = allCloneKeys();
+  const el = document.createElement('div');
+  el.className = 'batch-row';
+  el.id = id;
+  el.style.gridTemplateColumns = '160px 110px 1fr 32px';
+  el.innerHTML = `
+    <div class="form-group">
+      ${passageRowCount === 1 ? '<label>Clone ID</label>' : ''}
+      <select class="pr-clone" onchange="updatePassageHint(this)">${cloneOptions()}</select>
+    </div>
+    <div class="form-group">
+      ${passageRowCount === 1 ? '<label>Passage # (auto)</label>' : ''}
+      <input class="pr-num" type="number" min="0" placeholder="auto">
+    </div>
+    <div class="form-group">
+      ${passageRowCount === 1 ? '<label>Notes</label>' : ''}
+      <input class="pr-notes" type="text" placeholder="split ratio, flask, observations…">
+    </div>
+    <button class="batch-remove" onclick="removeBatchRow('${id}')" title="Remove">×</button>
+  `;
+  document.getElementById('passage-rows').appendChild(el);
+  // Show passage hint on the select
+  updatePassageHint(el.querySelector('.pr-clone'));
+}
+
+function removeBatchRow(id) {
+  const el = document.getElementById(id);
+  if (el) el.remove();
+}
+
+function updatePassageHint(selectEl) {
+  const key = selectEl.value;
+  if (!key) return;
+  const donor = donorFromKey(key);
+  const cloneNum = cloneNumFromKey(key);
+  const current = getPassageForClone(donor, cloneNum);
+  const numInput = selectEl.closest('.batch-row').querySelector('.pr-num');
+  numInput.placeholder = current != null ? `auto → P${current + 1}` : 'auto → P1';
+}
+
 // ── Events ────────────────────────────────────────────────────────────────────
 async function logFreeze() {
   const date = document.getElementById('freeze-date').value;
-  const donor = document.getElementById('freeze-donor').value;
-  const clone = document.getElementById('freeze-clone').value.trim();
-  const count = parseInt(document.getElementById('freeze-count').value);
-  const passage = document.getElementById('freeze-passage').value;
-  const notes = document.getElementById('freeze-notes').value.trim();
+  if (!date) return toast('Please set a date.', 'error');
 
-  if (!date || !clone || !count) return toast('Please fill in date, clone #, and count.', 'error');
+  const rows = document.querySelectorAll('#freeze-rows .batch-row');
+  if (rows.length === 0) return toast('Add at least one clone row.', 'error');
 
-  const key = cloneKey(donor, clone);
-  const event = { id: uid(), type: 'freeze', date, clone_key: key, donor, clone_num: clone, count, passage_num: passage ? parseInt(passage) : null, notes };
-  state.events.push(event);
+  const entries = [];
+  for (const row of rows) {
+    const donor = row.querySelector('.fr-donor').value;
+    const clone = row.querySelector('.fr-clone').value.trim();
+    const count = parseInt(row.querySelector('.fr-count').value);
+    const passage = row.querySelector('.fr-passage').value;
+    const notes = row.querySelector('.fr-notes').value.trim();
+    if (!clone || !count) return toast(`Fill in clone # and count for every row.`, 'error');
+    entries.push({ donor, clone, count, passage, notes });
+  }
 
-  // Update or add vial entry
-  const existing = state.vials.find(v => v.clone_key === key && v.freeze_date === date);
-  if (existing) {
-    existing.count += count;
-  } else {
-    state.vials.push({ clone_key: key, donor, clone_num: clone, freeze_date: date, count, passage: passage ? parseInt(passage) : null, notes });
+  for (const { donor, clone, count, passage, notes } of entries) {
+    const key = cloneKey(donor, clone);
+    state.events.push({ id: uid(), type: 'freeze', date, clone_key: key, donor, clone_num: clone, count, passage_num: passage ? parseInt(passage) : null, notes });
+    const existing = state.vials.find(v => v.clone_key === key && v.freeze_date === date);
+    if (existing) { existing.count += count; } else {
+      state.vials.push({ clone_key: key, donor, clone_num: clone, freeze_date: date, count, passage: passage ? parseInt(passage) : null, notes });
+    }
   }
 
   await saveData();
-  toast(`Logged freeze: ${key} +${count} vials`, 'success');
-  document.getElementById('freeze-clone').value = '';
-  document.getElementById('freeze-count').value = '1';
-  document.getElementById('freeze-passage').value = '';
-  document.getElementById('freeze-notes').value = '';
+  toast(`Logged ${entries.length} freeze event${entries.length > 1 ? 's' : ''} for ${date}`, 'success');
   navigate('tank');
 }
 
@@ -1022,68 +1191,108 @@ async function logThaw() {
 
 async function logPassage() {
   const date = document.getElementById('passage-date').value;
-  const key = document.getElementById('passage-clone').value;
-  const pNum = document.getElementById('passage-num').value;
-  const notes = document.getElementById('passage-notes').value.trim();
+  if (!date) return toast('Please set a date.', 'error');
 
-  if (!date || !key) return toast('Please fill in date and clone.', 'error');
+  const rows = document.querySelectorAll('#passage-rows .batch-row');
+  if (rows.length === 0) return toast('Add at least one clone row.', 'error');
 
-  const donor = donorFromKey(key);
-  const cloneNum = cloneNumFromKey(key);
-  const currentP = getPassageForClone(donor, cloneNum);
-  const newP = pNum ? parseInt(pNum) : (currentP != null ? currentP + 1 : 1);
+  const entries = [];
+  for (const row of rows) {
+    const key = row.querySelector('.pr-clone').value;
+    const pNumVal = row.querySelector('.pr-num').value;
+    const notes = row.querySelector('.pr-notes').value.trim();
+    if (!key) continue;
+    const donor = donorFromKey(key);
+    const cloneNum = cloneNumFromKey(key);
+    const currentP = getPassageForClone(donor, cloneNum);
+    const newP = pNumVal ? parseInt(pNumVal) : (currentP != null ? currentP + 1 : 1);
+    entries.push({ key, newP, notes });
+  }
 
-  const event = { id: uid(), type: 'passage', date, clone_key: key, passage_num: newP, notes };
-  state.events.push(event);
+  for (const { key, newP, notes } of entries) {
+    state.events.push({ id: uid(), type: 'passage', date, clone_key: key, passage_num: newP, notes });
+  }
 
   await saveData();
-  toast(`Logged passage: ${key} → P${newP}`, 'success');
-  document.getElementById('passage-notes').value = '';
-  document.getElementById('passage-num').value = '';
+  toast(`Logged ${entries.length} passage event${entries.length > 1 ? 's' : ''} for ${date}`, 'success');
   navigate('clones');
 }
 
-function updatePassagePreview() {
-  const key = document.getElementById('passage-clone').value;
-  if (!key) return;
-  const donor = donorFromKey(key);
-  const cloneNum = cloneNumFromKey(key);
-  const current = getPassageForClone(donor, cloneNum);
-  const el = document.getElementById('passage-preview');
-  el.textContent = current != null
-    ? `Current: P${current} → will become P${current + 1} (unless overridden above)`
-    : 'No passage recorded yet → will be set to P1 (unless overridden above)';
+// ── Import ────────────────────────────────────────────────────────────────────
+let importRowCount = 0;
+function initImportRows() {
+  importRowCount = 0;
+  document.getElementById('import-rows').innerHTML = '';
+  addImportRow();
 }
 
-// ── Import ────────────────────────────────────────────────────────────────────
-async function importVial() {
-  const donor = document.getElementById('imp-donor').value;
-  const clone = document.getElementById('imp-clone').value.trim();
-  const date = document.getElementById('imp-date').value;
-  const count = parseInt(document.getElementById('imp-count').value);
-  const passage = document.getElementById('imp-passage').value;
-  const notes = document.getElementById('imp-notes').value.trim();
+function addImportRow() {
+  importRowCount++;
+  const id = `ir-${importRowCount}`;
+  const el = document.createElement('div');
+  el.className = 'batch-row import-row';
+  el.id = id;
+  el.innerHTML = `
+    <div class="form-group">
+      ${importRowCount === 1 ? '<label>Donor</label>' : ''}
+      <select class="ir-donor">${donorOptions()}</select>
+    </div>
+    <div class="form-group">
+      ${importRowCount === 1 ? '<label>Clone #</label>' : ''}
+      <input class="ir-clone" type="text" placeholder="e.g. 17">
+    </div>
+    <div class="form-group">
+      ${importRowCount === 1 ? '<label>Freeze Date</label>' : ''}
+      <input class="ir-date" type="date" value="${today()}">
+    </div>
+    <div class="form-group">
+      ${importRowCount === 1 ? '<label>Vials</label>' : ''}
+      <input class="ir-count" type="number" min="1" value="3">
+    </div>
+    <div class="form-group">
+      ${importRowCount === 1 ? '<label>Passage #</label>' : ''}
+      <input class="ir-passage" type="number" min="0" placeholder="optional">
+    </div>
+    <div class="form-group">
+      ${importRowCount === 1 ? '<label>Notes</label>' : ''}
+      <input class="ir-notes" type="text" placeholder="any notes from notebook…">
+    </div>
+    <button class="batch-remove" onclick="removeBatchRow('${id}')" title="Remove">×</button>
+  `;
+  document.getElementById('import-rows').appendChild(el);
+}
 
-  if (!clone || !date || !count) return toast('Fill in clone #, date, and count.', 'error');
+async function importVials() {
+  const rows = document.querySelectorAll('#import-rows .batch-row');
+  if (rows.length === 0) return toast('Add at least one row.', 'error');
 
-  const key = cloneKey(donor, clone);
-  const existing = state.vials.find(v => v.clone_key === key && v.freeze_date === date);
-  if (existing) {
-    existing.count += count;
-    if (passage) existing.passage = parseInt(passage);
-  } else {
-    state.vials.push({ clone_key: key, donor, clone_num: clone, freeze_date: date, count, passage: passage ? parseInt(passage) : null, notes });
+  const entries = [];
+  for (const row of rows) {
+    const donor = row.querySelector('.ir-donor').value;
+    const clone = row.querySelector('.ir-clone').value.trim();
+    const date = row.querySelector('.ir-date').value;
+    const count = parseInt(row.querySelector('.ir-count').value);
+    const passage = row.querySelector('.ir-passage').value;
+    const notes = row.querySelector('.ir-notes').value.trim();
+    if (!clone || !date || !count) return toast('Fill in clone #, date, and count for every row.', 'error');
+    entries.push({ donor, clone, date, count, passage, notes });
   }
 
-  // Log as a historical freeze event too
-  state.events.push({ id: uid(), type: 'freeze', date, clone_key: key, donor, clone_num: clone, count, passage_num: passage ? parseInt(passage) : null, notes: `[imported] ${notes}` });
+  for (const { donor, clone, date, count, passage, notes } of entries) {
+    const key = cloneKey(donor, clone);
+    const existing = state.vials.find(v => v.clone_key === key && v.freeze_date === date);
+    if (existing) {
+      existing.count += count;
+      if (passage) existing.passage = parseInt(passage);
+    } else {
+      state.vials.push({ clone_key: key, donor, clone_num: clone, freeze_date: date, count, passage: passage ? parseInt(passage) : null, notes });
+    }
+    state.events.push({ id: uid(), type: 'freeze', date, clone_key: key, donor, clone_num: clone, count, passage_num: passage ? parseInt(passage) : null, notes: `[imported] ${notes}` });
+  }
 
   await saveData();
-  toast(`Added ${key}: ${count} vials from ${fmt(date)}`, 'success');
-  document.getElementById('imp-clone').value = '';
-  document.getElementById('imp-count').value = '3';
-  document.getElementById('imp-passage').value = '';
-  document.getElementById('imp-notes').value = '';
+  toast(`Imported ${entries.length} vial group${entries.length > 1 ? 's' : ''}`, 'success');
+  initImportRows();
 }
 
 async function bulkImport() {
@@ -1191,7 +1400,176 @@ function uid() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 }
 
+// ── Correction ────────────────────────────────────────────────────────────────
+let corrSelectedEventId = null;
+
+function renderCorrectionCandidates() {
+  const filterClone = document.getElementById('corr-filter-clone').value;
+  const filterType = document.getElementById('corr-filter-type').value;
+
+  let evs = state.events.filter(e => e.clone_key === filterClone);
+  if (filterType !== 'all') evs = evs.filter(e => e.type === filterType);
+  evs = [...evs].sort((a, b) => b.date.localeCompare(a.date)); // newest first
+
+  const el = document.getElementById('corr-candidates');
+  if (evs.length === 0) {
+    el.innerHTML = '<div class="empty" style="padding:20px 0;">No events found for this clone.</div>';
+    return;
+  }
+
+  el.innerHTML = evs.map(e => {
+    const typeCls = { freeze: 'type-freeze', thaw: 'type-thaw', passage: 'type-passage' }[e.type] || '';
+    const typeLabel = { freeze: '❄️ freeze', thaw: '🌡️ thaw', passage: '⬆️ passage' }[e.type] || e.type;
+    let detail = '';
+    if (e.type === 'freeze') detail = `+${e.count} vials`;
+    if (e.type === 'thaw') detail = `−${e.count} vials`;
+    if (e.type === 'passage') detail = e.passage_num != null ? `→ P${e.passage_num}` : '';
+    const isSuperseded = !!e.superseded_by;
+    const supTag = isSuperseded ? `<span class="superseded-tag">superseded</span>` : `<button class="btn btn-sm btn-warn" onclick="loadEventForCorrection('${e.id}')">Select</button>`;
+    return `<div class="corr-candidate ${isSuperseded ? 'superseded' : ''}" id="cand-${e.id}">
+      <span style="color:var(--text-dim)">${fmt(e.date)}</span>
+      <span class="event-type-badge ${typeCls}">${typeLabel}</span>
+      <span style="color:var(--text)">${detail}</span>
+      <span style="color:var(--text-dim);font-size:11px">${e.notes || ''}</span>
+      ${supTag}
+    </div>`;
+  }).join('');
+}
+
+function loadEventForCorrection(eventId) {
+  const e = state.events.find(ev => ev.id === eventId);
+  if (!e) return;
+  corrSelectedEventId = eventId;
+
+  // Highlight selected
+  document.querySelectorAll('.corr-candidate').forEach(el => el.classList.remove('selected'));
+  const cand = document.getElementById(`cand-${eventId}`);
+  if (cand) cand.classList.add('selected');
+
+  // Show original
+  const origEl = document.getElementById('corr-original-display');
+  origEl.innerHTML = `<span style="color:var(--text-dim)">Original event:</span>&nbsp;&nbsp;` +
+    Object.entries(e)
+      .filter(([k]) => !['id','superseded_by'].includes(k))
+      .map(([k, v]) => `<span style="color:var(--accent2)">${k}</span>=<span style="color:var(--text)">${v ?? '—'}</span>`)
+      .join('  ·  ');
+
+  // Build editable fields depending on event type
+  const fieldsEl = document.getElementById('corr-fields');
+  const dateField = `
+    <div class="form-group">
+      <label>Date</label>
+      <input type="date" id="corr-date" value="${e.date || ''}">
+    </div>`;
+
+  let typeFields = '';
+  if (e.type === 'freeze' || e.type === 'thaw') {
+    typeFields = `
+      <div class="form-group">
+        <label>Vial Count</label>
+        <input type="number" id="corr-count" min="1" value="${e.count ?? ''}">
+      </div>`;
+  }
+  if (e.type === 'freeze' || e.type === 'passage') {
+    typeFields += `
+      <div class="form-group">
+        <label>Passage #</label>
+        <input type="number" id="corr-passage" min="0" value="${e.passage_num ?? ''}">
+      </div>`;
+  }
+  const notesField = `
+    <div class="form-group full">
+      <label>Notes</label>
+      <textarea id="corr-notes">${e.notes || ''}</textarea>
+    </div>`;
+
+  fieldsEl.innerHTML = dateField + typeFields + notesField;
+  document.getElementById('corr-edit-card').style.display = 'block';
+  document.getElementById('corr-reason').value = '';
+  document.getElementById('corr-edit-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+async function applyCorrection() {
+  if (!corrSelectedEventId) return toast('No event selected.', 'error');
+  const reason = document.getElementById('corr-reason').value.trim();
+  if (!reason) return toast('Please enter a reason for the correction.', 'error');
+
+  const original = state.events.find(e => e.id === corrSelectedEventId);
+  if (!original) return toast('Original event not found.', 'error');
+
+  // Collect corrected values (fall back to originals if field not present)
+  const corrDate    = document.getElementById('corr-date')?.value    || original.date;
+  const corrCount   = document.getElementById('corr-count')?.value != null && document.getElementById('corr-count')?.value !== ''
+                        ? parseInt(document.getElementById('corr-count').value) : original.count;
+  const corrPassage = document.getElementById('corr-passage')?.value !== ''
+                        ? (document.getElementById('corr-passage')?.value ? parseInt(document.getElementById('corr-passage').value) : original.passage_num)
+                        : original.passage_num;
+  const corrNotes   = document.getElementById('corr-notes')?.value ?? original.notes;
+
+  // Mark original as superseded
+  original.superseded_by = uid(); // will match the new event id below
+  const newId = original.superseded_by;
+
+  // Build corrected event
+  const corrected = {
+    ...original,
+    id: newId,
+    date: corrDate,
+    count: corrCount,
+    passage_num: corrPassage,
+    notes: corrNotes,
+    is_correction: true,
+    corrects: corrSelectedEventId,
+    correction_reason: reason,
+    correction_logged: new Date().toISOString().slice(0, 10),
+  };
+  delete corrected.superseded_by; // the corrected event itself isn't superseded
+
+  state.events.push(corrected);
+
+  // Patch vials.json to reflect the correction (only for freeze/thaw date changes)
+  if (original.type === 'freeze') {
+    const oldVial = state.vials.find(v => v.clone_key === original.clone_key && v.freeze_date === original.date);
+    if (oldVial) {
+      // Move to correct date: update in place if date changed, also fix count if changed
+      if (corrDate !== original.date) {
+        // Check if an entry already exists for the corrected date
+        const existing = state.vials.find(v => v.clone_key === original.clone_key && v.freeze_date === corrDate);
+        if (existing) {
+          existing.count += corrCount;
+          // Remove old entry if the count was entirely due to this event
+          if (oldVial.count === original.count) {
+            state.vials = state.vials.filter(v => v !== oldVial);
+          } else {
+            oldVial.count -= original.count;
+          }
+        } else {
+          oldVial.freeze_date = corrDate;
+          oldVial.count = corrCount;
+        }
+      } else if (corrCount !== original.count) {
+        oldVial.count = oldVial.count - original.count + corrCount;
+      }
+      if (corrPassage != null) oldVial.passage = corrPassage;
+      if (corrNotes !== original.notes) oldVial.notes = corrNotes;
+    }
+  }
+
+  await saveData();
+  toast(`Correction applied to ${original.clone_key} — original preserved in log`, 'success');
+  clearCorrectionForm();
+  renderCorrectionCandidates();
+}
+
+function clearCorrectionForm() {
+  corrSelectedEventId = null;
+  document.getElementById('corr-edit-card').style.display = 'none';
+  document.getElementById('corr-reason').value = '';
+  document.querySelectorAll('.corr-candidate').forEach(el => el.classList.remove('selected'));
+}
+
 // ── Init ──────────────────────────────────────────────────────────────────────
+document.getElementById('thaw-date').value = today();
 loadData();
 </script>
 </body>
