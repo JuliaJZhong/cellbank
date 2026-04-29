@@ -1,0 +1,50 @@
+{
+  "last_updated": "2026-04-29T22:58:49.603Z",
+  "vials": [
+    {
+      "clone_key": "F2-02",
+      "donor": "F2",
+      "clone_num": "02",
+      "freeze_date": "2024-10-18",
+      "count": 7,
+      "passage": null,
+      "notes": ""
+    },
+    {
+      "clone_key": "F2-09",
+      "donor": "F2",
+      "clone_num": "09",
+      "freeze_date": "2025-02-17",
+      "count": 3,
+      "passage": null,
+      "notes": ""
+    },
+    {
+      "clone_key": "F2-10",
+      "donor": "F2",
+      "clone_num": "10",
+      "freeze_date": "2025-03-24",
+      "count": 2,
+      "passage": null,
+      "notes": ""
+    },
+    {
+      "clone_key": "F2-10",
+      "donor": "F2",
+      "clone_num": "10",
+      "freeze_date": "2025-10-26",
+      "count": 2,
+      "passage": null,
+      "notes": ""
+    },
+    {
+      "clone_key": "F2-13",
+      "donor": "F2",
+      "clone_num": "13",
+      "freeze_date": "2025-06-09",
+      "count": 2,
+      "passage": null,
+      "notes": ""
+    }
+  ]
+}

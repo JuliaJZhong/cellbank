@@ -1,0 +1,70 @@
+{
+  "events": [
+    {
+      "id": "moknkar10n43",
+      "type": "freeze",
+      "date": "2024-10-18",
+      "clone_key": "F2-02",
+      "donor": "F2",
+      "clone_num": "02",
+      "count": 5,
+      "passage_num": null,
+      "notes": "[imported] "
+    },
+    {
+      "id": "moknkmmehm5b",
+      "type": "freeze",
+      "date": "2024-10-18",
+      "clone_key": "F2-02",
+      "donor": "F2",
+      "clone_num": "02",
+      "count": 2,
+      "passage_num": null,
+      "notes": "[imported] "
+    },
+    {
+      "id": "mokno9z43rno",
+      "type": "freeze",
+      "date": "2025-02-17",
+      "clone_key": "F2-09",
+      "donor": "F2",
+      "clone_num": "09",
+      "count": 3,
+      "passage_num": null,
+      "notes": "[imported] "
+    },
+    {
+      "id": "moknooavgq8i",
+      "type": "freeze",
+      "date": "2025-03-24",
+      "clone_key": "F2-10",
+      "donor": "F2",
+      "clone_num": "10",
+      "count": 2,
+      "passage_num": null,
+      "notes": "[imported] "
+    },
+    {
+      "id": "moknoyn1eyq9",
+      "type": "freeze",
+      "date": "2025-10-26",
+      "clone_key": "F2-10",
+      "donor": "F2",
+      "clone_num": "10",
+      "count": 2,
+      "passage_num": null,
+      "notes": "[imported] "
+    },
+    {
+      "id": "moknph8jdwje",
+      "type": "freeze",
+      "date": "2025-06-09",
+      "clone_key": "F2-13",
+      "donor": "F2",
+      "clone_num": "13",
+      "count": 2,
+      "passage_num": null,
+      "notes": "[imported] "
+    }
+  ]
+}
