@@ -593,7 +593,7 @@
       <div class="form-row">
         <div class="form-group">
           <label>Date</label>
-          <input type="date" id="freeze-date">
+          <input type="text" id="freeze-date" placeholder="e.g. 13Jun25" style="max-width:130px;">
         </div>
       </div>
     </div>
@@ -619,7 +619,7 @@
       <div class="form-row">
         <div class="form-group">
           <label>Date</label>
-          <input type="date" id="thaw-date">
+          <input type="text" id="thaw-date" placeholder="e.g. 13Jun25" style="max-width:130px;">
         </div>
         <div class="form-group">
           <label>Clone ID</label>
@@ -633,7 +633,7 @@
       <div class="form-row">
         <div class="form-group">
           <label>Freeze date of thawed vial (if known)</label>
-          <input type="date" id="thaw-vial-date" placeholder="optional">
+          <input type="text" id="thaw-vial-date" placeholder="e.g. 13Jun25 (optional)" style="max-width:200px;">
         </div>
       </div>
       <div class="form-row">
@@ -658,7 +658,7 @@
       <div class="form-row">
         <div class="form-group">
           <label>Date</label>
-          <input type="date" id="passage-date">
+          <input type="text" id="passage-date" placeholder="e.g. 13Jun25" style="max-width:130px;">
         </div>
       </div>
     </div>
@@ -778,7 +778,6 @@
       <button class="btn btn-primary" onclick="doCommit()">Commit</button>
       <button class="btn btn-secondary" onclick="closeCommitModal()">Cancel</button>
     </div>
-    <div id="commit-result" style="margin-top:12px;font-family:var(--mono);font-size:12px;color:var(--text-dim);"></div>
   </div>
 </div>
 
@@ -870,6 +869,29 @@ function fmt(dateStr) {
 
 function today() {
   return new Date().toISOString().slice(0, 10);
+}
+
+// Parse "13Jun25" or "13Jun2025" → "2025-06-13" (ISO). Returns null if unrecognised.
+const MONTHS = { jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11 };
+function parseDMY(str) {
+  const m = str.trim().match(/^(\d{1,2})([A-Za-z]{3})(\d{2,4})$/);
+  if (!m) return null;
+  const day = parseInt(m[1]);
+  const mon = MONTHS[m[2].toLowerCase()];
+  if (mon === undefined) return null;
+  let year = parseInt(m[3]);
+  if (year < 100) year += 2000;
+  const d = new Date(year, mon, day);
+  if (isNaN(d)) return null;
+  return `${year}-${String(mon+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+}
+
+// Format ISO "2025-06-13" → "13Jun25"
+function fmtDMY(isoStr) {
+  if (!isoStr) return '';
+  const d = new Date(isoStr + 'T12:00:00');
+  const mon = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()];
+  return `${String(d.getDate()).padStart(2,'0')}${mon}${String(d.getFullYear()).slice(2)}`;
 }
 
 function donorBadge(donor) {
@@ -994,8 +1016,8 @@ function navigate(view) {
   // Set date defaults — always reset to today when navigating to an event form
   const eventForms = ['add-freeze', 'add-thaw', 'add-passage'];
   if (eventForms.includes(view)) {
-    const dateInputs = document.getElementById(`view-${view}`).querySelectorAll('input[type=date]');
-    dateInputs.forEach(inp => { inp.value = today(); });
+    const t = fmtDMY(today());
+    document.getElementById(`view-${view}`).querySelectorAll('input[placeholder*="Jun"]').forEach(inp => { inp.value = t; });
   }
 
   if (view === 'add-freeze') initFreezeRows();
@@ -1120,8 +1142,8 @@ function updatePassageHint(selectEl) {
 
 // ── Events ────────────────────────────────────────────────────────────────────
 async function logFreeze() {
-  const date = document.getElementById('freeze-date').value;
-  if (!date) return toast('Please set a date.', 'error');
+  const date = parseDMY(document.getElementById('freeze-date').value.trim());
+  if (!date) return toast('Enter a valid date, e.g. 13Jun25.', 'error');
 
   const rows = document.querySelectorAll('#freeze-rows .batch-row');
   if (rows.length === 0) return toast('Add at least one clone row.', 'error');
@@ -1152,13 +1174,15 @@ async function logFreeze() {
 }
 
 async function logThaw() {
-  const date = document.getElementById('thaw-date').value;
+  const date = parseDMY(document.getElementById('thaw-date').value.trim());
+  if (!date) return toast('Enter a valid date, e.g. 13Jun25.', 'error');
   const key = document.getElementById('thaw-clone').value;
   const count = parseInt(document.getElementById('thaw-count').value);
   const notes = document.getElementById('thaw-notes').value.trim();
-  const vialDate = document.getElementById('thaw-vial-date').value;
+  const vialDateRaw = document.getElementById('thaw-vial-date').value.trim();
+  const vialDate = vialDateRaw ? parseDMY(vialDateRaw) : null;
 
-  if (!date || !key || !count) return toast('Please fill in date, clone, and count.', 'error');
+  if (!key || !count) return toast('Please fill in clone and count.', 'error');
 
   const event = { id: uid(), type: 'thaw', date, clone_key: key, count, vial_freeze_date: vialDate || null, notes };
   state.events.push(event);
@@ -1190,8 +1214,8 @@ async function logThaw() {
 }
 
 async function logPassage() {
-  const date = document.getElementById('passage-date').value;
-  if (!date) return toast('Please set a date.', 'error');
+  const date = parseDMY(document.getElementById('passage-date').value.trim());
+  if (!date) return toast('Enter a valid date, e.g. 13Jun25.', 'error');
 
   const rows = document.querySelectorAll('#passage-rows .batch-row');
   if (rows.length === 0) return toast('Add at least one clone row.', 'error');
@@ -1243,7 +1267,7 @@ function addImportRow() {
     </div>
     <div class="form-group">
       ${importRowCount === 1 ? '<label>Freeze Date</label>' : ''}
-      <input class="ir-date" type="date" value="${today()}">
+      <input class="ir-date" type="text" placeholder="e.g. 13Jun25" value="${fmtDMY(today())}" style="width:100%">
     </div>
     <div class="form-group">
       ${importRowCount === 1 ? '<label>Vials</label>' : ''}
@@ -1270,11 +1294,12 @@ async function importVials() {
   for (const row of rows) {
     const donor = row.querySelector('.ir-donor').value;
     const clone = row.querySelector('.ir-clone').value.trim();
-    const date = row.querySelector('.ir-date').value;
+    const rawDate = row.querySelector('.ir-date').value.trim();
+    const date = parseDMY(rawDate);
     const count = parseInt(row.querySelector('.ir-count').value);
     const passage = row.querySelector('.ir-passage').value;
     const notes = row.querySelector('.ir-notes').value.trim();
-    if (!clone || !date || !count) return toast('Fill in clone #, date, and count for every row.', 'error');
+    if (!clone || !date || !count) return toast(`Row with clone "${clone || '?'}": fill in clone #, a valid date (e.g. 13Jun25), and count.`, 'error');
     entries.push({ donor, clone, date, count, passage, notes });
   }
 
@@ -1376,8 +1401,13 @@ async function doCommit() {
     body: JSON.stringify({ message: msg })
   });
   const data = await res.json();
-  document.getElementById('commit-result').textContent = data.output || (data.ok ? 'Committed.' : 'Error.');
-  if (data.ok) toast('git commit successful', 'success');
+  closeCommitModal();
+  if (data.ok) {
+    const out = data.output || 'Committed.';
+    toast(`↑ ${out}`, 'success');
+  } else {
+    toast(`git error: ${data.error || 'unknown'}`, 'error');
+  }
 }
 
 // ── UI helpers ────────────────────────────────────────────────────────────────
@@ -1459,7 +1489,7 @@ function loadEventForCorrection(eventId) {
   const dateField = `
     <div class="form-group">
       <label>Date</label>
-      <input type="date" id="corr-date" value="${e.date || ''}">
+      <input type="text" id="corr-date" value="${fmtDMY(e.date)}" placeholder="e.g. 13Jun25">
     </div>`;
 
   let typeFields = '';
@@ -1498,7 +1528,8 @@ async function applyCorrection() {
   if (!original) return toast('Original event not found.', 'error');
 
   // Collect corrected values (fall back to originals if field not present)
-  const corrDate    = document.getElementById('corr-date')?.value    || original.date;
+  const corrDateRaw = document.getElementById('corr-date')?.value || '';
+  const corrDate = parseDMY(corrDateRaw) || original.date;
   const corrCount   = document.getElementById('corr-count')?.value != null && document.getElementById('corr-count')?.value !== ''
                         ? parseInt(document.getElementById('corr-count').value) : original.count;
   const corrPassage = document.getElementById('corr-passage')?.value !== ''
@@ -1569,7 +1600,7 @@ function clearCorrectionForm() {
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
-document.getElementById('thaw-date').value = today();
+document.getElementById('thaw-date').value = fmtDMY(today());
 loadData();
 </script>
 </body>
