@@ -246,6 +246,94 @@
       "count": 3,
       "passage_num": null,
       "notes": "[imported] "
+    },
+    {
+      "id": "mokpfenr0fb2",
+      "type": "freeze",
+      "date": "2025-06-13",
+      "clone_key": "F5-1B",
+      "donor": "F5",
+      "clone_num": "1B",
+      "count": 1,
+      "passage_num": null,
+      "notes": "[imported] "
+    },
+    {
+      "id": "mokpfenr21jv",
+      "type": "freeze",
+      "date": "2025-04-19",
+      "clone_key": "F5-02",
+      "donor": "F5",
+      "clone_num": "02",
+      "count": 2,
+      "passage_num": null,
+      "notes": "[imported] "
+    },
+    {
+      "id": "mokpfenrmk4e",
+      "type": "freeze",
+      "date": "2025-02-28",
+      "clone_key": "F5-04",
+      "donor": "F5",
+      "clone_num": "04",
+      "count": 1,
+      "passage_num": null,
+      "notes": "[imported] "
+    },
+    {
+      "id": "mokpfenrs1vj",
+      "type": "freeze",
+      "date": "2025-03-03",
+      "clone_key": "F5-06",
+      "donor": "F5",
+      "clone_num": "06",
+      "count": 5,
+      "passage_num": null,
+      "notes": "[imported] "
+    },
+    {
+      "id": "mokpfenr7l4o",
+      "type": "freeze",
+      "date": "2025-03-25",
+      "clone_key": "F5-04",
+      "donor": "F5",
+      "clone_num": "04",
+      "count": 3,
+      "passage_num": null,
+      "notes": "[imported] "
+    },
+    {
+      "id": "mokpfenrwdy2",
+      "type": "freeze",
+      "date": "2024-03-15",
+      "clone_key": "F5-07",
+      "donor": "F5",
+      "clone_num": "07",
+      "count": 1,
+      "passage_num": null,
+      "notes": "[imported] frozen down by RO"
+    },
+    {
+      "id": "mokpfenrdngm",
+      "type": "freeze",
+      "date": "2025-03-25",
+      "clone_key": "F5-7",
+      "donor": "F5",
+      "clone_num": "7",
+      "count": 3,
+      "passage_num": null,
+      "notes": "[imported] "
+    },
+    {
+      "id": "mokpfenrt84r",
+      "type": "freeze",
+      "date": "2024-03-29",
+      "clone_key": "F5-9",
+      "donor": "F5",
+      "clone_num": "9",
+      "count": 3,
+      "passage_num": null,
+      "notes": "[imported] frozen down by RO"
     }
   ]
 }

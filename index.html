@@ -1064,10 +1064,12 @@ function addFreezeRow() {
   const el = document.createElement('div');
   el.className = 'batch-row';
   el.id = id;
+  const prevRows = document.querySelectorAll('#freeze-rows .fr-donor');
+  const prevDonor = prevRows.length ? prevRows[prevRows.length - 1].value : 'F2';
   el.innerHTML = `
     <div class="form-group">
       ${freezeRowCount === 1 ? '<label>Donor</label>' : ''}
-      <select class="fr-donor">${donorOptions()}</select>
+      <select class="fr-donor">${donorOptions(prevDonor)}</select>
     </div>
     <div class="form-group">
       ${freezeRowCount === 1 ? '<label>Clone #</label>' : ''}
@@ -1256,10 +1258,12 @@ function addImportRow() {
   const el = document.createElement('div');
   el.className = 'batch-row import-row';
   el.id = id;
+  const prevIrRows = document.querySelectorAll('#import-rows .ir-donor');
+  const prevIrDonor = prevIrRows.length ? prevIrRows[prevIrRows.length - 1].value : 'F2';
   el.innerHTML = `
     <div class="form-group">
       ${importRowCount === 1 ? '<label>Donor</label>' : ''}
-      <select class="ir-donor">${donorOptions()}</select>
+      <select class="ir-donor">${donorOptions(prevIrDonor)}</select>
     </div>
     <div class="form-group">
       ${importRowCount === 1 ? '<label>Clone #</label>' : ''}
@@ -1387,7 +1391,6 @@ function closeCloneModal() { document.getElementById('clone-modal').classList.re
 
 // ── Commit modal ──────────────────────────────────────────────────────────────
 function openCommitModal() {
-  document.getElementById('commit-result').textContent = '';
   document.getElementById('commit-msg').value = `Update cell tracker — ${new Date().toLocaleDateString('en-GB')}`;
   document.getElementById('commit-modal').classList.add('open');
 }
