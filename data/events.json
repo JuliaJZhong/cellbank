@@ -136,7 +136,8 @@
       "clone_num": "22",
       "count": 3,
       "passage_num": null,
-      "notes": "[imported] frozen down by RO"
+      "notes": "[imported] frozen down by RO",
+      "superseded_by": "mokwloyfrkov"
     },
     {
       "id": "mokoz9mu09ir",
@@ -378,7 +379,8 @@
       "clone_num": "16a",
       "count": 3,
       "passage_num": null,
-      "notes": "[imported] not sure if this is 16a, 16c?"
+      "notes": "[imported] not sure if this is 16a, 16c?",
+      "superseded_by": "mokwnm70jnl1"
     },
     {
       "id": "mokqp6p2lixe",
@@ -465,6 +467,58 @@
       "corrects": "mokqp6p2qhmb",
       "correction_reason": "update note",
       "correction_logged": "2026-04-30"
+    },
+    {
+      "id": "mokwloyfrkov",
+      "type": "freeze",
+      "date": "2024-05-03",
+      "clone_key": "F2-22",
+      "donor": "F2",
+      "clone_num": "22",
+      "count": 2,
+      "passage_num": null,
+      "notes": "[imported] frozen down by RO",
+      "is_correction": true,
+      "corrects": "mokoz9muzbam",
+      "correction_reason": "accidental +1 to vial count",
+      "correction_logged": "2026-04-30"
+    },
+    {
+      "id": "mokwnm70jnl1",
+      "type": "freeze",
+      "date": "2024-10-18",
+      "clone_key": "F5-16a",
+      "donor": "F5",
+      "clone_num": "16a",
+      "count": 4,
+      "passage_num": null,
+      "notes": "[imported] not sure if this is 16a, 16c?",
+      "is_correction": true,
+      "corrects": "mokqp6p29o7z",
+      "correction_reason": "wrong num vials and date",
+      "correction_logged": "2026-04-30"
+    },
+    {
+      "id": "mokwp53sflcp",
+      "type": "freeze",
+      "date": "2025-10-24",
+      "clone_key": "F5-16c",
+      "donor": "F5",
+      "clone_num": "16c",
+      "count": 2,
+      "passage_num": null,
+      "notes": "[imported] "
+    },
+    {
+      "id": "mokx7q53kuxe",
+      "type": "freeze",
+      "date": "2024-10-24",
+      "clone_key": "F2-02",
+      "donor": "F2",
+      "clone_num": "02",
+      "count": 5,
+      "passage_num": null,
+      "notes": "[imported] "
     }
   ]
 }
