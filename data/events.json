@@ -334,6 +334,105 @@
       "count": 3,
       "passage_num": null,
       "notes": "[imported] frozen down by RO"
+    },
+    {
+      "id": "mokqp6p23p65",
+      "type": "freeze",
+      "date": "2024-03-05",
+      "clone_key": "F5-12",
+      "donor": "F5",
+      "clone_num": "12",
+      "count": 1,
+      "passage_num": null,
+      "notes": "[imported] "
+    },
+    {
+      "id": "mokqp6p20hvn",
+      "type": "freeze",
+      "date": "2025-03-25",
+      "clone_key": "F5-12",
+      "donor": "F5",
+      "clone_num": "12",
+      "count": 3,
+      "passage_num": null,
+      "notes": "[imported] "
+    },
+    {
+      "id": "mokqp6p2e9fb",
+      "type": "freeze",
+      "date": "2025-10-26",
+      "clone_key": "F5-12",
+      "donor": "F5",
+      "clone_num": "12",
+      "count": 4,
+      "passage_num": null,
+      "notes": "[imported] "
+    },
+    {
+      "id": "mokqp6p29o7z",
+      "type": "freeze",
+      "date": "2026-04-30",
+      "clone_key": "F5-16a",
+      "donor": "F5",
+      "clone_num": "16a",
+      "count": 3,
+      "passage_num": null,
+      "notes": "[imported] not sure if this is 16a, 16c?"
+    },
+    {
+      "id": "mokqp6p2lixe",
+      "type": "freeze",
+      "date": "2025-02-28",
+      "clone_key": "F5-16c",
+      "donor": "F5",
+      "clone_num": "16c",
+      "count": 1,
+      "passage_num": null,
+      "notes": "[imported] there are multiple \"16\". can we figure out which?"
+    },
+    {
+      "id": "mokqp6p2gzl4",
+      "type": "freeze",
+      "date": "2024-03-26",
+      "clone_key": "F5-17",
+      "donor": "F5",
+      "clone_num": "17",
+      "count": 2,
+      "passage_num": null,
+      "notes": "[imported] "
+    },
+    {
+      "id": "mokqp6p2nsvh",
+      "type": "freeze",
+      "date": "2024-10-18",
+      "clone_key": "F5-17",
+      "donor": "F5",
+      "clone_num": "17",
+      "count": 4,
+      "passage_num": null,
+      "notes": "[imported] "
+    },
+    {
+      "id": "mokqp6p2qhmb",
+      "type": "freeze",
+      "date": "2024-05-03",
+      "clone_key": "F5-21",
+      "donor": "F5",
+      "clone_num": "21",
+      "count": 3,
+      "passage_num": null,
+      "notes": "[imported] "
+    },
+    {
+      "id": "mokqp6p2k0py",
+      "type": "freeze",
+      "date": "2025-10-26",
+      "clone_key": "F5-25",
+      "donor": "F5",
+      "clone_num": "25",
+      "count": 1,
+      "passage_num": null,
+      "notes": "[imported] "
     }
   ]
 }

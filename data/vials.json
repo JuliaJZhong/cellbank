@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-04-29T23:46:58.935Z",
+  "last_updated": "2026-04-30T00:22:34.790Z",
   "vials": [
     {
       "clone_key": "F2-02",
@@ -252,6 +252,87 @@
       "count": 3,
       "passage": null,
       "notes": "frozen down by RO"
+    },
+    {
+      "clone_key": "F5-12",
+      "donor": "F5",
+      "clone_num": "12",
+      "freeze_date": "2024-03-05",
+      "count": 1,
+      "passage": null,
+      "notes": ""
+    },
+    {
+      "clone_key": "F5-12",
+      "donor": "F5",
+      "clone_num": "12",
+      "freeze_date": "2025-03-25",
+      "count": 3,
+      "passage": null,
+      "notes": ""
+    },
+    {
+      "clone_key": "F5-12",
+      "donor": "F5",
+      "clone_num": "12",
+      "freeze_date": "2025-10-26",
+      "count": 4,
+      "passage": null,
+      "notes": ""
+    },
+    {
+      "clone_key": "F5-16a",
+      "donor": "F5",
+      "clone_num": "16a",
+      "freeze_date": "2026-04-30",
+      "count": 3,
+      "passage": null,
+      "notes": "not sure if this is 16a, 16c?"
+    },
+    {
+      "clone_key": "F5-16c",
+      "donor": "F5",
+      "clone_num": "16c",
+      "freeze_date": "2025-02-28",
+      "count": 1,
+      "passage": null,
+      "notes": "there are multiple \"16\". can we figure out which?"
+    },
+    {
+      "clone_key": "F5-17",
+      "donor": "F5",
+      "clone_num": "17",
+      "freeze_date": "2024-03-26",
+      "count": 2,
+      "passage": null,
+      "notes": ""
+    },
+    {
+      "clone_key": "F5-17",
+      "donor": "F5",
+      "clone_num": "17",
+      "freeze_date": "2024-10-18",
+      "count": 4,
+      "passage": null,
+      "notes": ""
+    },
+    {
+      "clone_key": "F5-21",
+      "donor": "F5",
+      "clone_num": "21",
+      "freeze_date": "2024-05-03",
+      "count": 3,
+      "passage": null,
+      "notes": ""
+    },
+    {
+      "clone_key": "F5-25",
+      "donor": "F5",
+      "clone_num": "25",
+      "freeze_date": "2025-10-26",
+      "count": 1,
+      "passage": null,
+      "notes": ""
     }
   ]
 }
