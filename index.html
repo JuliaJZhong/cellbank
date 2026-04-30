@@ -834,7 +834,18 @@ async function saveData() {
 }
 
 // ── Utilities ─────────────────────────────────────────────────────────────────
-function cloneKey(donor, clone) { return `${donor}-${clone}`; }
+// Normalise clone number: strip leading zeros, then re-pad to 2 digits if numeric
+// so "3", "03", "003" all → "03"; "17" → "17"; "3b" → "3b" (non-numeric left as-is)
+function normaliseClone(clone) {
+  const s = String(clone).trim();
+  const n = parseInt(s, 10);
+  if (!isNaN(n) && String(n) === s.replace(/^0+/, '') || s === '0') {
+    return String(n).padStart(2, '0');
+  }
+  return s;
+}
+
+function cloneKey(donor, clone) { return `${donor}-${normaliseClone(clone)}`; }
 
 function getPassageForClone(donor, clone) {
   // Find the highest explicitly-set passage from events or vials
@@ -932,7 +943,7 @@ function renderTank() {
   vials = [...vials].sort((a, b) => a.clone_key.localeCompare(b.clone_key));
 
   tbody.innerHTML = vials.map(v => {
-    const p = getPassageForClone(v.donor, v.clone_num) ?? v.passage;
+    const p = v.passage;
     const pTag = p != null ? `<span class="passage-tag">P${p}</span>` : '<span style="color:var(--text-dim)">—</span>';
     return `<tr>
       <td style="font-weight:600;color:var(--text-bright)">${v.clone_key}</td>
@@ -955,15 +966,20 @@ function renderClones() {
   grid.innerHTML = keys.map(key => {
     const donor = donorFromKey(key);
     const cloneNum = cloneNumFromKey(key);
-    const passage = getPassageForClone(donor, cloneNum);
-    const vialCount = state.vials.filter(v => v.clone_key === key).reduce((s, v) => s + (v.count || 0), 0);
+    const cloneVials = state.vials.filter(v => v.clone_key === key);
+    const vialCount = cloneVials.reduce((s, v) => s + (v.count || 0), 0);
     const evCount = state.events.filter(e => e.clone_key === key).length;
+    const passages = cloneVials.map(v => v.passage).filter(p => p != null);
+    const passageDisplay = passages.length === 0 ? '<span style="color:var(--text-dim)">Passage unknown</span>'
+      : passages.length === 1 || Math.min(...passages) === Math.max(...passages)
+        ? `<span class="clone-passage">P${passages[0]}</span>`
+        : `<span class="clone-passage">P${Math.min(...passages)}–P${Math.max(...passages)}</span>`;
     return `<div class="clone-card" onclick="openCloneModal('${key}')">
       <div class="clone-id">${key}</div>
       <div class="clone-meta">
         ${donorBadge(donor)}<br>
         <span style="color:var(--text)">🧊 ${vialCount} vials in tank</span><br>
-        ${passage != null ? `<span class="clone-passage">Passage P${passage}</span>` : '<span style="color:var(--text-dim)">Passage unknown</span>'}<br>
+        ${passageDisplay}<br>
         <span>${evCount} events logged</span>
       </div>
     </div>`;
@@ -1106,11 +1122,15 @@ function addPassageRow() {
   const el = document.createElement('div');
   el.className = 'batch-row';
   el.id = id;
-  el.style.gridTemplateColumns = '160px 110px 1fr 32px';
+  el.style.gridTemplateColumns = '150px 150px 100px 1fr 32px';
   el.innerHTML = `
     <div class="form-group">
       ${passageRowCount === 1 ? '<label>Clone ID</label>' : ''}
       <select class="pr-clone" onchange="updatePassageHint(this)">${cloneOptions()}</select>
+    </div>
+    <div class="form-group">
+      ${passageRowCount === 1 ? '<label>Freeze date of vial</label>' : ''}
+      <select class="pr-freeze-date" onchange="updatePassageHint(this)"><option value="">— all batches —</option></select>
     </div>
     <div class="form-group">
       ${passageRowCount === 1 ? '<label>Passage # (auto)</label>' : ''}
@@ -1123,7 +1143,6 @@ function addPassageRow() {
     <button class="batch-remove" onclick="removeBatchRow('${id}')" title="Remove">×</button>
   `;
   document.getElementById('passage-rows').appendChild(el);
-  // Show passage hint on the select
   updatePassageHint(el.querySelector('.pr-clone'));
 }
 
@@ -1132,14 +1151,29 @@ function removeBatchRow(id) {
   if (el) el.remove();
 }
 
-function updatePassageHint(selectEl) {
-  const key = selectEl.value;
+function updatePassageHint(el) {
+  const row = el.closest('.batch-row');
+  const key = row.querySelector('.pr-clone').value;
   if (!key) return;
-  const donor = donorFromKey(key);
-  const cloneNum = cloneNumFromKey(key);
-  const current = getPassageForClone(donor, cloneNum);
-  const numInput = selectEl.closest('.batch-row').querySelector('.pr-num');
-  numInput.placeholder = current != null ? `auto → P${current + 1}` : 'auto → P1';
+
+  // Populate freeze-date dropdown for this clone
+  const freezeSel = row.querySelector('.pr-freeze-date');
+  const cloneVials = state.vials.filter(v => v.clone_key === key);
+  freezeSel.innerHTML = '<option value="">— all batches —</option>' +
+    cloneVials.map(v => `<option value="${v.freeze_date}">${fmtDMY(v.freeze_date)}${v.passage != null ? ' (P'+v.passage+')' : ''}</option>`).join('');
+
+  // Passage hint: use selected vial's passage, or max across all if none selected
+  const selectedDate = freezeSel.value;
+  const numInput = row.querySelector('.pr-num');
+  if (selectedDate) {
+    const vial = cloneVials.find(v => v.freeze_date === selectedDate);
+    const current = vial?.passage ?? null;
+    numInput.placeholder = current != null ? `auto → P${current + 1}` : 'auto → P1';
+  } else {
+    const passages = cloneVials.map(v => v.passage).filter(p => p != null);
+    const current = passages.length ? Math.max(...passages) : null;
+    numInput.placeholder = current != null ? `auto → P${current + 1}` : 'auto → P1';
+  }
 }
 
 // ── Events ────────────────────────────────────────────────────────────────────
@@ -1163,10 +1197,11 @@ async function logFreeze() {
 
   for (const { donor, clone, count, passage, notes } of entries) {
     const key = cloneKey(donor, clone);
-    state.events.push({ id: uid(), type: 'freeze', date, clone_key: key, donor, clone_num: clone, count, passage_num: passage ? parseInt(passage) : null, notes });
+    const normClone = normaliseClone(clone);
+    state.events.push({ id: uid(), type: 'freeze', date, clone_key: key, donor, clone_num: normClone, count, passage_num: passage ? parseInt(passage) : null, notes });
     const existing = state.vials.find(v => v.clone_key === key && v.freeze_date === date);
     if (existing) { existing.count += count; } else {
-      state.vials.push({ clone_key: key, donor, clone_num: clone, freeze_date: date, count, passage: passage ? parseInt(passage) : null, notes });
+      state.vials.push({ clone_key: key, donor, clone_num: normClone, freeze_date: date, count, passage: passage ? parseInt(passage) : null, notes });
     }
   }
 
@@ -1225,22 +1260,29 @@ async function logPassage() {
   const entries = [];
   for (const row of rows) {
     const key = row.querySelector('.pr-clone').value;
+    const freezeDate = row.querySelector('.pr-freeze-date').value || null;
     const pNumVal = row.querySelector('.pr-num').value;
     const notes = row.querySelector('.pr-notes').value.trim();
     if (!key) continue;
-    const donor = donorFromKey(key);
-    const cloneNum = cloneNumFromKey(key);
-    const currentP = getPassageForClone(donor, cloneNum);
+
+    // Determine current passage from the specific vial batch (or max across all)
+    const cloneVials = state.vials.filter(v => v.clone_key === key);
+    const targetVials = freezeDate ? cloneVials.filter(v => v.freeze_date === freezeDate) : cloneVials;
+    const passages = targetVials.map(v => v.passage).filter(p => p != null);
+    const currentP = passages.length ? Math.max(...passages) : null;
     const newP = pNumVal ? parseInt(pNumVal) : (currentP != null ? currentP + 1 : 1);
-    entries.push({ key, newP, notes });
+
+    entries.push({ key, freezeDate, newP, notes, targetVials });
   }
 
-  for (const { key, newP, notes } of entries) {
-    state.events.push({ id: uid(), type: 'passage', date, clone_key: key, passage_num: newP, notes });
+  for (const { key, freezeDate, newP, notes, targetVials } of entries) {
+    // Update passage on the matching vial(s)
+    for (const v of targetVials) { v.passage = newP; }
+    state.events.push({ id: uid(), type: 'passage', date, clone_key: key, freeze_date: freezeDate, passage_num: newP, notes });
   }
 
   await saveData();
-  toast(`Logged ${entries.length} passage event${entries.length > 1 ? 's' : ''} for ${date}`, 'success');
+  toast(`Logged ${entries.length} passage event${entries.length > 1 ? 's' : ''} for ${fmtDMY(date)}`, 'success');
   navigate('clones');
 }
 
@@ -1309,14 +1351,15 @@ async function importVials() {
 
   for (const { donor, clone, date, count, passage, notes } of entries) {
     const key = cloneKey(donor, clone);
+    const normClone = normaliseClone(clone);
     const existing = state.vials.find(v => v.clone_key === key && v.freeze_date === date);
     if (existing) {
       existing.count += count;
       if (passage) existing.passage = parseInt(passage);
     } else {
-      state.vials.push({ clone_key: key, donor, clone_num: clone, freeze_date: date, count, passage: passage ? parseInt(passage) : null, notes });
+      state.vials.push({ clone_key: key, donor, clone_num: normClone, freeze_date: date, count, passage: passage ? parseInt(passage) : null, notes });
     }
-    state.events.push({ id: uid(), type: 'freeze', date, clone_key: key, donor, clone_num: clone, count, passage_num: passage ? parseInt(passage) : null, notes: `[imported] ${notes}` });
+    state.events.push({ id: uid(), type: 'freeze', date, clone_key: key, donor, clone_num: normClone, count, passage_num: passage ? parseInt(passage) : null, notes: `[imported] ${notes}` });
   }
 
   await saveData();
