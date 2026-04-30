@@ -32,7 +32,8 @@
       "clone_num": "09",
       "count": 3,
       "passage_num": null,
-      "notes": "[imported] "
+      "notes": "[imported] ",
+      "superseded_by": "mokqqd6d9cxm"
     },
     {
       "id": "moknooavgq8i",
@@ -421,7 +422,8 @@
       "clone_num": "21",
       "count": 3,
       "passage_num": null,
-      "notes": "[imported] "
+      "notes": "[imported] ",
+      "superseded_by": "mokqrf6zu76c"
     },
     {
       "id": "mokqp6p2k0py",
@@ -433,6 +435,36 @@
       "count": 1,
       "passage_num": null,
       "notes": "[imported] "
+    },
+    {
+      "id": "mokqqd6d9cxm",
+      "type": "freeze",
+      "date": "2025-02-17",
+      "clone_key": "F2-09",
+      "donor": "F2",
+      "clone_num": "09",
+      "count": 3,
+      "passage_num": null,
+      "notes": "frozen down by RO",
+      "is_correction": true,
+      "corrects": "mokno9z43rno",
+      "correction_reason": "forgot to mark who froze down",
+      "correction_logged": "2026-04-30"
+    },
+    {
+      "id": "mokqrf6zu76c",
+      "type": "freeze",
+      "date": "2024-05-03",
+      "clone_key": "F5-21",
+      "donor": "F5",
+      "clone_num": "21",
+      "count": 3,
+      "passage_num": null,
+      "notes": "[imported] frozen down by RO",
+      "is_correction": true,
+      "corrects": "mokqp6p2qhmb",
+      "correction_reason": "update note",
+      "correction_logged": "2026-04-30"
     }
   ]
 }
