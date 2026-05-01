@@ -963,15 +963,19 @@ let logFilter = 'all';
 // ── Data loading ──────────────────────────────────────────────────────────────
 async function loadData() {
   try {
-    const [v, e] = await Promise.all([
+    const [v, e, inf] = await Promise.all([
       fetch(`${API}/data/vials.json`).then(r => r.json()),
-      fetch(`${API}/data/events.json`).then(r => r.json())
+      fetch(`${API}/data/events.json`).then(r => r.json()),
+      fetch(`${API}/data/inference.json`).then(r => r.json()).catch(() => ({})),
     ]);
     state.vials = v.vials || [];
     state.events = e.events || [];
+    reconDays = inf.reconDays || [];
+    ambiguityResolutions = inf.ambiguityResolutions || {};
     normaliseState();
     setStatus('ok');
     renderAll();
+    if (reconDays.length) { renderReconDaysList(); renderReconTrees(); }
   } catch(err) {
     setStatus('err');
     console.error(err);
@@ -997,6 +1001,19 @@ async function saveData() {
     toast('Warning: could not save to disk — is the server running?', 'error');
   }
   renderAll();
+}
+
+async function saveInference() {
+  try {
+    await fetch(`${API}/api/save`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ file: 'inference.json', data: { reconDays, ambiguityResolutions, last_updated: new Date().toISOString() } })
+    });
+  } catch(err) {
+    console.error('saveInference failed:', err);
+    toast('Warning: could not save inference data — is the server running?', 'error');
+  }
 }
 
 // ── Utilities ─────────────────────────────────────────────────────────────────
@@ -2099,6 +2116,7 @@ function commitReconDay() {
 
   renderReconDaysList();
   renderReconTrees();
+  saveInference();
   const total = thaws.length + passages.length + discards.length;
   toast(`Added ${total} event${total !== 1 ? 's' : ''} for ${fmtDMY(date)}`, 'success');
 }
@@ -2107,6 +2125,7 @@ function removeReconDay(date) {
   reconDays = reconDays.filter(d => d.date !== date);
   renderReconDaysList();
   renderReconTrees();
+  saveInference();
 }
 
 function removeReconDayEntry(date, type, clone_key) {
@@ -2117,6 +2136,7 @@ function removeReconDayEntry(date, type, clone_key) {
     reconDays = reconDays.filter(d => d.date !== date);
   renderReconDaysList();
   renderReconTrees();
+  saveInference();
 }
 
 function renderReconDaysList() {
@@ -2487,6 +2507,7 @@ function renderCloneTree(clone_key, cycles, pNums, cloneVials) {
 function resolveAmbiguity(ambKey, freezeDate) {
   if (freezeDate) ambiguityResolutions[ambKey] = freezeDate;
   else delete ambiguityResolutions[ambKey];
+  saveInference();
   renderReconTrees();
 }
 
@@ -2524,6 +2545,7 @@ async function applyAllReconPassages() {
   reconRowCounts = { thaw: 0, passage: 0, discard: 0 };
   ambiguityResolutions = {};
   await saveData();
+  await saveInference();
   renderReconTrees();
   renderReconDaysList();
   toast(`Applied: ${updatedVials} vial batches updated, ${loggedPassages} passage events logged`, 'success');
