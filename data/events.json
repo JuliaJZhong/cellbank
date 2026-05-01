@@ -597,6 +597,22 @@
       "is_correction": true,
       "corrects": null,
       "correction_reason": "wrong vial number",
+      "correction_logged": "2026-05-01",
+      "superseded_by": "momfp4q4gyad"
+    },
+    {
+      "id": "momfp4q4gyad",
+      "type": "freeze",
+      "date": "2024-10-18",
+      "clone_key": "F5-16a",
+      "donor": "F5",
+      "clone_num": "16a",
+      "count": 4,
+      "passage_num": null,
+      "notes": "not sure if this is 16a, 16c?",
+      "is_correction": true,
+      "corrects": "momfj8zsgeji",
+      "correction_reason": "wrong date",
       "correction_logged": "2026-05-01"
     }
   ]

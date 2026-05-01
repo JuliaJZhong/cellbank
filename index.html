@@ -531,7 +531,7 @@
     <span class="icon">📦</span> Import Vials
   </div>
   <div class="nav-item" onclick="navigate('correct')" id="nav-correct">
-    <span class="icon">✏️</span> Correct Entry
+    <span class="icon">✏️</span> Correction
   </div>
 </aside>
 
@@ -1658,15 +1658,15 @@ function renderCorrectionSnapshot() {
   }
 
   rowsEl.innerHTML = `
-    <div style="display:grid;grid-template-columns:120px 70px 80px 1fr;gap:8px;margin-bottom:6px;padding:0 2px;">
+    <div style="display:grid;grid-template-columns:130px 70px 80px 1fr;gap:8px;margin-bottom:6px;padding:0 2px;">
       <span style="font-family:var(--mono);font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;">Freeze Date</span>
       <span style="font-family:var(--mono);font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;">Count</span>
       <span style="font-family:var(--mono);font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;">Passage</span>
       <span style="font-family:var(--mono);font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;">Notes</span>
     </div>
     ${vials.map((v, i) => `
-      <div class="batch-row" style="grid-template-columns:120px 70px 80px 1fr;margin-bottom:8px;" data-freeze-date="${v.freeze_date}">
-        <div style="font-family:var(--mono);font-size:13px;color:var(--text-bright);align-self:center;">${fmtDMY(v.freeze_date)}</div>
+      <div class="batch-row" style="grid-template-columns:130px 70px 80px 1fr;margin-bottom:8px;" data-freeze-date="${v.freeze_date}">
+        <input class="snap-date" type="text" value="${fmtDMY(v.freeze_date)}" placeholder="e.g. 13Jun25" data-orig="${v.freeze_date}">
         <input class="snap-count" type="number" min="0" value="${v.count}" data-orig="${v.count}">
         <input class="snap-passage" type="number" min="0" value="${v.passage ?? ''}" placeholder="—" data-orig="${v.passage ?? ''}">
         <input class="snap-notes" type="text" value="${v.notes || ''}" placeholder="notes" data-orig="${v.notes || ''}">
@@ -1686,7 +1686,9 @@ async function applySnapshotCorrection() {
   let changeCount = 0;
 
   for (const row of rows) {
-    const freezeDate = row.dataset.freezeDate;
+    const origFreezeDate = row.dataset.freezeDate;
+    const newDateRaw = row.querySelector('.snap-date').value.trim();
+    const newFreezeDate = parseDMY(newDateRaw) || origFreezeDate;
     const newCount = parseInt(row.querySelector('.snap-count').value);
     const newPassageVal = row.querySelector('.snap-passage').value;
     const newPassage = newPassageVal !== '' ? parseInt(newPassageVal) : null;
@@ -1697,12 +1699,13 @@ async function applySnapshotCorrection() {
     const origPassage = origPassageVal !== '' ? parseInt(origPassageVal) : null;
     const origNotes = row.querySelector('.snap-notes').dataset.orig;
 
-    const changed = newCount !== origCount || newPassage !== origPassage || newNotes !== origNotes;
+    const changed = newFreezeDate !== origFreezeDate || newCount !== origCount || newPassage !== origPassage || newNotes !== origNotes;
     if (!changed) continue;
 
     // Update vial in state
-    const vial = state.vials.find(v => v.clone_key === key && v.freeze_date === freezeDate);
+    const vial = state.vials.find(v => v.clone_key === key && v.freeze_date === origFreezeDate);
     if (vial) {
+      vial.freeze_date = newFreezeDate;
       vial.count = newCount;
       vial.passage = newPassage;
       vial.notes = newNotes;
@@ -1710,7 +1713,7 @@ async function applySnapshotCorrection() {
 
     // Find the most recent non-superseded freeze event for this batch to supersede
     const originalEvent = [...state.events]
-      .filter(e => e.clone_key === key && e.freeze_date === freezeDate || e.clone_key === key && e.date === freezeDate)
+      .filter(e => e.clone_key === key && (e.date === origFreezeDate || e.freeze_date === origFreezeDate))
       .filter(e => e.type === 'freeze' && !e.superseded_by)
       .sort((a, b) => (b.correction_logged || b.date).localeCompare(a.correction_logged || a.date))[0];
 
@@ -1720,7 +1723,7 @@ async function applySnapshotCorrection() {
     state.events.push({
       id: newId,
       type: 'freeze',
-      date: freezeDate,
+      date: newFreezeDate,
       clone_key: key,
       donor: donorFromKey(key),
       clone_num: cloneNumFromKey(key),
