@@ -1,6 +1,6 @@
 \*made with Claude Pro. shoutout to Roseann
 
-# Welcome 2 My Bank 🧬
+# welcome 2 my cell bank 🧬
 
 A local web app for tracking clonal B cell lines, LN₂ tank inventory, and passage history. All data lives as plain JSON files in a git repo — no database, no hosting, no cost.
 
