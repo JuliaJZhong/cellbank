@@ -1,5 +1,275 @@
 {
-  "reconDays": [],
+  "reconDays": [
+    {
+      "date": "2025-02-04",
+      "thaws": [
+        {
+          "clone_key": "F2-09",
+          "notes": ""
+        },
+        {
+          "clone_key": "F2-10",
+          "notes": ""
+        },
+        {
+          "clone_key": "F2-30",
+          "notes": ""
+        },
+        {
+          "clone_key": "F2-42",
+          "notes": ""
+        }
+      ],
+      "passages": [],
+      "discards": [],
+      "freezes": []
+    },
+    {
+      "date": "2025-02-18",
+      "thaws": [
+        {
+          "clone_key": "F5-25",
+          "notes": ""
+        },
+        {
+          "clone_key": "F5-04",
+          "notes": ""
+        },
+        {
+          "clone_key": "F5-06",
+          "notes": ""
+        },
+        {
+          "clone_key": "F5-16c",
+          "notes": ""
+        }
+      ],
+      "passages": [],
+      "discards": [],
+      "freezes": []
+    },
+    {
+      "date": "2025-02-28",
+      "thaws": [],
+      "passages": [],
+      "discards": [],
+      "freezes": [
+        {
+          "clone_key": "F5-04",
+          "count_frozen": 2,
+          "count_current": 1
+        },
+        {
+          "clone_key": "F5-16c",
+          "count_frozen": 3,
+          "count_current": 1
+        }
+      ]
+    },
+    {
+      "date": "2025-03-03",
+      "thaws": [],
+      "passages": [],
+      "discards": [],
+      "freezes": [
+        {
+          "clone_key": "F5-06",
+          "count_frozen": 6,
+          "count_current": 5
+        },
+        {
+          "clone_key": "F5-25",
+          "count_frozen": 1,
+          "count_current": 0,
+          "historical": true
+        }
+      ]
+    },
+    {
+      "date": "2025-03-04",
+      "thaws": [
+        {
+          "clone_key": "F2-25",
+          "notes": ""
+        },
+        {
+          "clone_key": "F2-24",
+          "notes": ""
+        },
+        {
+          "clone_key": "F2-36",
+          "notes": ""
+        },
+        {
+          "clone_key": "F2-30",
+          "notes": ""
+        },
+        {
+          "clone_key": "F2-42",
+          "notes": ""
+        },
+        {
+          "clone_key": "F2-10",
+          "notes": ""
+        },
+        {
+          "clone_key": "F2-09",
+          "notes": ""
+        },
+        {
+          "clone_key": "F2-23",
+          "notes": ""
+        },
+        {
+          "clone_key": "F2-22",
+          "notes": ""
+        },
+        {
+          "clone_key": "F2-20",
+          "notes": ""
+        }
+      ],
+      "passages": [],
+      "discards": [],
+      "freezes": []
+    },
+    {
+      "date": "2025-03-05",
+      "thaws": [
+        {
+          "clone_key": "F5-02",
+          "notes": ""
+        },
+        {
+          "clone_key": "F5-04",
+          "notes": ""
+        },
+        {
+          "clone_key": "F5-07",
+          "notes": ""
+        },
+        {
+          "clone_key": "F5-09",
+          "notes": ""
+        },
+        {
+          "clone_key": "F5-06",
+          "notes": ""
+        },
+        {
+          "clone_key": "F5-12",
+          "notes": ""
+        },
+        {
+          "clone_key": "F5-16c",
+          "notes": ""
+        },
+        {
+          "clone_key": "F5-17",
+          "notes": ""
+        },
+        {
+          "clone_key": "F5-21",
+          "notes": ""
+        }
+      ],
+      "passages": [],
+      "discards": [],
+      "freezes": []
+    },
+    {
+      "date": "2025-03-25",
+      "thaws": [],
+      "passages": [],
+      "discards": [],
+      "freezes": [
+        {
+          "clone_key": "F2-20",
+          "count_frozen": 1,
+          "count_current": 1
+        },
+        {
+          "clone_key": "F5-04",
+          "count_frozen": 3,
+          "count_current": 3
+        },
+        {
+          "clone_key": "F5-07",
+          "count_frozen": 3,
+          "count_current": 3
+        },
+        {
+          "clone_key": "F5-12",
+          "count_frozen": 4,
+          "count_current": 3
+        }
+      ]
+    },
+    {
+      "date": "2025-06-09",
+      "thaws": [],
+      "passages": [],
+      "discards": [],
+      "freezes": [
+        {
+          "clone_key": "F2-13",
+          "count_frozen": 2,
+          "count_current": 2
+        },
+        {
+          "clone_key": "F2-27",
+          "count_frozen": 3,
+          "count_current": 3
+        }
+      ]
+    },
+    {
+      "date": "2025-06-21",
+      "thaws": [],
+      "passages": [],
+      "discards": [],
+      "freezes": [
+        {
+          "clone_key": "F2-17",
+          "count_frozen": 4,
+          "count_current": 4
+        },
+        {
+          "clone_key": "F2-29",
+          "count_frozen": 3,
+          "count_current": 3
+        }
+      ]
+    },
+    {
+      "date": "2025-10-26",
+      "thaws": [],
+      "passages": [],
+      "discards": [],
+      "freezes": [
+        {
+          "clone_key": "F2-10",
+          "count_frozen": 2,
+          "count_current": 2
+        },
+        {
+          "clone_key": "F2-30",
+          "count_frozen": 4,
+          "count_current": 4
+        },
+        {
+          "clone_key": "F5-12",
+          "count_frozen": 4,
+          "count_current": 4
+        },
+        {
+          "clone_key": "F5-25",
+          "count_frozen": 1,
+          "count_current": 1
+        }
+      ]
+    }
+  ],
   "ambiguityResolutions": {},
-  "last_updated": null
+  "last_updated": "2026-05-01T19:07:26.897Z"
 }
