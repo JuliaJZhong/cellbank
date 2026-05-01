@@ -81,7 +81,8 @@
       "is_correction": true,
       "corrects": "moknkmmehm5b",
       "correction_reason": "wrong date for import oops",
-      "correction_logged": "2026-04-29"
+      "correction_logged": "2026-04-29",
+      "superseded_by": "__recovered__"
     },
     {
       "id": "mokoz9muzgv3",
@@ -103,7 +104,8 @@
       "clone_num": "20",
       "count": 1,
       "passage_num": null,
-      "notes": "[imported] frozen down by RO"
+      "notes": "[imported] frozen down by RO",
+      "superseded_by": "mometma1tba7"
     },
     {
       "id": "mokoz9muk1vr",
@@ -319,7 +321,7 @@
       "id": "mokpfenrdngm",
       "type": "freeze",
       "date": "2025-03-25",
-      "clone_key": "F5-7",
+      "clone_key": "F5-07",
       "donor": "F5",
       "clone_num": "7",
       "count": 3,
@@ -330,7 +332,7 @@
       "id": "mokpfenrt84r",
       "type": "freeze",
       "date": "2024-03-29",
-      "clone_key": "F5-9",
+      "clone_key": "F5-09",
       "donor": "F5",
       "clone_num": "9",
       "count": 3,
@@ -451,7 +453,8 @@
       "is_correction": true,
       "corrects": "mokno9z43rno",
       "correction_reason": "forgot to mark who froze down",
-      "correction_logged": "2026-04-30"
+      "correction_logged": "2026-04-30",
+      "superseded_by": "__recovered__"
     },
     {
       "id": "mokqrf6zu76c",
@@ -466,7 +469,8 @@
       "is_correction": true,
       "corrects": "mokqp6p2qhmb",
       "correction_reason": "update note",
-      "correction_logged": "2026-04-30"
+      "correction_logged": "2026-04-30",
+      "superseded_by": "__recovered__"
     },
     {
       "id": "mokwloyfrkov",
@@ -481,7 +485,8 @@
       "is_correction": true,
       "corrects": "mokoz9muzbam",
       "correction_reason": "accidental +1 to vial count",
-      "correction_logged": "2026-04-30"
+      "correction_logged": "2026-04-30",
+      "superseded_by": "__recovered__"
     },
     {
       "id": "mokwnm70jnl1",
@@ -496,7 +501,8 @@
       "is_correction": true,
       "corrects": "mokqp6p29o7z",
       "correction_reason": "wrong num vials and date",
-      "correction_logged": "2026-04-30"
+      "correction_logged": "2026-04-30",
+      "superseded_by": "__recovered__"
     },
     {
       "id": "mokwp53sflcp",
@@ -518,7 +524,49 @@
       "clone_num": "02",
       "count": 5,
       "passage_num": null,
-      "notes": "[imported] "
+      "notes": "[imported] ",
+      "superseded_by": "momeslkcnlq1"
+    },
+    {
+      "id": "momeslkcnlq1",
+      "type": "freeze",
+      "date": "2025-10-24",
+      "clone_key": "F2-02",
+      "donor": "F2",
+      "clone_num": "02",
+      "count": 2,
+      "passage_num": null,
+      "notes": "[imported] ",
+      "is_correction": true,
+      "corrects": "mokx7q53kuxe",
+      "correction_reason": "date and vial count",
+      "correction_logged": "2026-05-01"
+    },
+    {
+      "id": "mometma1tba7",
+      "type": "freeze",
+      "date": "2024-03-15",
+      "clone_key": "F2-20",
+      "donor": "F2",
+      "clone_num": "20",
+      "count": 1,
+      "passage_num": null,
+      "notes": "[imported] frozen down by RO",
+      "is_correction": true,
+      "corrects": "mokoz9muoc2e",
+      "correction_reason": "typo in date",
+      "correction_logged": "2026-05-01"
+    },
+    {
+      "id": "momex0ay2aab",
+      "type": "freeze",
+      "date": "2024-05-03",
+      "clone_key": "F2-22",
+      "donor": "F2",
+      "clone_num": "22",
+      "count": 2,
+      "passage_num": null,
+      "notes": "[imported] frozen down by RO"
     }
   ]
 }
