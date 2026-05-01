@@ -811,66 +811,111 @@
   <!-- ═══ PASSAGE INFERENCE ═══ -->
   <div class="view" id="view-reconstruct">
     <div class="page-title">Passage Inference</div>
-    <div class="page-sub">Reconstruct passage numbers from lab notebook records. Work date by date — enter what happened each day, across all clones.</div>
+    <div class="page-sub">Reconstruct passage numbers by entering lab notebook events date by date. Passage +1, Freeze +1, Thaw = no change.</div>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;">
+    <div style="display:grid;grid-template-columns:380px 1fr;gap:20px;align-items:start;">
 
-      <!-- LEFT: date entry panel -->
+      <!-- LEFT: date entry -->
       <div>
         <div class="card">
           <div class="card-title">Log a Lab Day</div>
-          <div class="form-row">
+          <div class="form-row" style="margin-bottom:10px;">
             <div class="form-group">
               <label>Date</label>
               <input type="text" id="recon-date" placeholder="e.g. 13Jun25" style="max-width:130px;" oninput="renderReconDayPanel()">
             </div>
           </div>
-
           <div id="recon-day-panel" style="display:none;">
-            <!-- Freeze events on this date (auto-detected) -->
-            <div id="recon-freeze-section" style="margin-bottom:14px;"></div>
 
-            <!-- Passage events to add -->
-            <div style="margin-bottom:8px;">
-              <div style="font-family:var(--mono);font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Passage Events This Day</div>
+            <!-- AUTO-DETECTED FREEZES -->
+            <div id="recon-freeze-section" style="margin-bottom:12px;"></div>
+
+            <!-- THAWS -->
+            <div style="margin-bottom:12px;">
+              <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">🌡️ Thaws</div>
+              <div id="recon-thaw-rows"></div>
+              <button class="btn btn-secondary btn-sm" style="margin-top:4px;" onclick="addReconRow('thaw')">+ Add Clone</button>
+            </div>
+
+            <!-- PASSAGES -->
+            <div style="margin-bottom:12px;">
+              <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">⬆️ Passages</div>
               <div id="recon-passage-rows"></div>
-              <button class="btn btn-secondary" style="margin-top:6px;" onclick="addReconPassageRow()">+ Add Clone</button>
+              <button class="btn btn-secondary btn-sm" style="margin-top:4px;" onclick="addReconRow('passage')">+ Add Clone</button>
+            </div>
+
+            <!-- DISCARDS -->
+            <div style="margin-bottom:12px;">
+              <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">🗑️ Discards (culture ended, not frozen)</div>
+              <div id="recon-discard-rows"></div>
+              <button class="btn btn-secondary btn-sm" style="margin-top:4px;" onclick="addReconRow('discard')">+ Add Clone</button>
+            </div>
+
+            <!-- HISTORICAL FREEZES (batches no longer in tank) -->
+            <div style="margin-bottom:12px;">
+              <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">❄️ Historical Freeze Batches (no longer in tank)</div>
+              <div id="recon-hist-freeze-rows"></div>
+              <button class="btn btn-secondary btn-sm" style="margin-top:4px;" onclick="addReconRow('hist-freeze')">+ Add Batch</button>
             </div>
 
             <div class="form-row">
               <div class="form-group full">
-                <label>Notes for this day (optional)</label>
-                <input type="text" id="recon-day-notes" placeholder="e.g. split ratio, observations…">
+                <label>Notes (optional)</label>
+                <input type="text" id="recon-day-notes" placeholder="observations, split ratio…">
               </div>
             </div>
-
             <div class="btn-row">
               <button class="btn btn-primary" onclick="commitReconDay()">Add to Inference</button>
             </div>
           </div>
         </div>
 
-        <!-- Logged days summary -->
         <div class="card" id="recon-days-card" style="display:none;">
           <div class="card-title">Logged Days</div>
           <div id="recon-days-list"></div>
         </div>
       </div>
 
-      <!-- RIGHT: per-clone timelines -->
+      <!-- RIGHT: tree view + ambiguity resolution -->
       <div>
         <div class="card">
-          <div class="card-title">Clone Timelines</div>
-          <div class="filter-row" id="recon-clone-filter" style="flex-wrap:wrap;"></div>
-          <div id="recon-timelines"></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+            <div class="card-title" style="margin-bottom:0;">Lineage Trees</div>
+            <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);">
+              <span style="color:var(--accent)">●</span> P0 &nbsp;
+              <span style="color:var(--accent2)">●</span> freeze &nbsp;
+              <span style="color:var(--warn)">●</span> passage &nbsp;
+              <span style="color:var(--danger)">●</span> discard
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center;">
+            <select id="recon-filter-donor" onchange="renderReconTrees()"
+              style="font-family:var(--mono);font-size:12px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:5px 8px;">
+              <option value="">All donors</option>
+              <option value="F2">F2</option>
+              <option value="F5">F5</option>
+              <option value="other">Other</option>
+            </select>
+            <select id="recon-filter-clone" onchange="renderReconTrees()"
+              style="font-family:var(--mono);font-size:12px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:5px 8px;">
+              <option value="">All clones</option>
+            </select>
+          </div>
+          <div id="recon-timelines"><div class="empty">Log lab days on the left to build lineage trees.</div></div>
         </div>
 
+        <!-- AMBIGUITY RESOLUTION -->
+        <div class="card" id="recon-ambiguity-card" style="display:none;">
+          <div class="card-title" style="color:var(--danger);">⚠️ Ambiguities to Resolve</div>
+          <p style="font-size:12px;color:var(--text-dim);margin-bottom:12px;">Multiple source batches are possible for these thaw events. Pick which batch was thawed.</p>
+          <div id="recon-ambiguity-list"></div>
+        </div>
+
+        <!-- APPLY -->
         <div class="card" id="recon-apply-card" style="display:none;">
           <div class="card-title">Apply Inferred Passages</div>
-          <p style="font-size:12px;color:var(--text-dim);margin-bottom:14px;">
-            Writes inferred passage numbers to all vial batches and logs the passage events. Only fully-determined batches are updated.
-          </p>
-          <div id="recon-apply-preview" style="margin-bottom:14px;"></div>
+          <p style="font-size:12px;color:var(--text-dim);margin-bottom:12px;">Writes inferred passage numbers to vial batches and logs passage events. Only fully-resolved batches are updated.</p>
+          <div id="recon-apply-preview" style="margin-bottom:12px;font-family:var(--mono);font-size:12px;"></div>
           <div class="btn-row">
             <button class="btn btn-primary" onclick="applyAllReconPassages()">Apply All to Vials</button>
           </div>
@@ -879,7 +924,6 @@
 
     </div>
   </div>
-
 </main>
 
 <!-- COMMIT MODAL -->
@@ -1889,393 +1933,602 @@ function clearCorrectionForm() {
 }
 
 // ── Passage Inference ─────────────────────────────────────────────────────────
-// reconDays: array of { date, passages: [{clone_key, notes}] }
-// keyed and sorted by date
+// reconDays: [{date, thaws:[{clone_key}], passages:[{clone_key,notes}],
+//              freezes:[{clone_key,count_frozen}], discards:[{clone_key}]}]
+// ambiguityResolutions: { "cloneKey|thawDate": sourceFreezeDate }
+
 let reconDays = [];
-let reconPassageRowCount = 0;
-let reconActiveCloneFilter = null; // null = show all
+let reconRowCounts = { thaw: 0, passage: 0, discard: 0 };
+let ambiguityResolutions = {}; // "clone_key|thaw_date" -> freeze_date of source batch
 
-function initReconPage() {
-  reconDays = [];
-  reconPassageRowCount = 0;
-  reconActiveCloneFilter = null;
-  document.getElementById('recon-date').value = '';
-  document.getElementById('recon-day-panel').style.display = 'none';
-  document.getElementById('recon-days-card').style.display = 'none';
-  renderReconDaysList();
-  renderReconTimelines();
-}
+// ── Day panel ──────────────────────────────────────────────────────────────────
 
-// ── Day panel ──
 function renderReconDayPanel() {
-  const rawDate = document.getElementById('recon-date').value.trim();
-  const date = parseDMY(rawDate);
+  const date = parseDMY(document.getElementById('recon-date').value.trim());
   const panel = document.getElementById('recon-day-panel');
   if (!date) { panel.style.display = 'none'; return; }
   panel.style.display = 'block';
 
-  // Show freeze batches that exist on this date
+  // Auto-detect freezes
   const freezesThisDay = state.vials.filter(v => v.freeze_date === date);
-  const freezeSection = document.getElementById('recon-freeze-section');
-  if (freezesThisDay.length > 0) {
-    freezeSection.innerHTML = `
-      <div style="font-family:var(--mono);font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Freeze Batches on This Date (auto-detected)</div>
+  const sec = document.getElementById('recon-freeze-section');
+  if (freezesThisDay.length) {
+    sec.innerHTML = `
+      <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">❄️ Freeze Batches (auto-detected)</div>
+      <div style="display:grid;grid-template-columns:120px 64px 64px 1fr;gap:5px;padding:0 2px;margin-bottom:4px;">
+        <span style="font-family:var(--mono);font-size:9px;color:var(--text-dim);text-transform:uppercase;">Clone</span>
+        <span style="font-family:var(--mono);font-size:9px;color:var(--text-dim);text-transform:uppercase;">Frozen</span>
+        <span style="font-family:var(--mono);font-size:9px;color:var(--text-dim);text-transform:uppercase;">In tank</span>
+        <span style="font-family:var(--mono);font-size:9px;color:var(--text-dim);text-transform:uppercase;">Notes</span>
+      </div>
       ${freezesThisDay.map(v => `
-        <div style="display:flex;align-items:center;gap:10px;padding:7px 10px;background:var(--accent2-dim);border:1px solid var(--accent2);border-radius:var(--radius);margin-bottom:4px;font-family:var(--mono);font-size:12px;">
-          <span style="color:var(--accent2)">❄️</span>
-          <span style="color:var(--text-bright);font-weight:600;">${v.clone_key}</span>
-          <span style="color:var(--text-dim)">${v.count} vials${v.notes ? ' — ' + v.notes : ''}</span>
-        </div>
-      `).join('')}
-    `;
+        <div style="display:grid;grid-template-columns:120px 64px 64px 1fr;gap:5px;align-items:center;
+             padding:5px 7px;background:var(--accent2-dim);border:1px solid var(--accent2);
+             border-radius:var(--radius);margin-bottom:3px;">
+          <span style="font-family:var(--mono);font-size:12px;color:var(--text-bright);font-weight:600;">❄️ ${v.clone_key}</span>
+          <input class="recon-freeze-count" type="number" min="${v.count}" value="${v.count}"
+            data-clone="${v.clone_key}" data-current="${v.count}"
+            style="font-family:var(--mono);font-size:12px;background:var(--bg);border:1px solid var(--accent2);
+                   border-radius:4px;color:var(--text);padding:3px 5px;width:100%;">
+          <span style="font-family:var(--mono);font-size:12px;color:var(--text-dim);">${v.count}</span>
+          <span style="font-family:var(--mono);font-size:11px;color:var(--text-dim);">${v.notes||''}</span>
+        </div>`).join('')}
+      <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);margin-top:3px;">
+        Edit "Frozen" if more were frozen than currently remain in tank.
+      </div>`;
   } else {
-    freezeSection.innerHTML = `<div style="font-family:var(--mono);font-size:12px;color:var(--text-dim);margin-bottom:8px;">No freeze batches recorded on this date.</div>`;
+    sec.innerHTML = `<div style="font-family:var(--mono);font-size:11px;color:var(--text-dim);margin-bottom:8px;">No freeze batches on this date.</div>`;
   }
 }
 
-function addReconPassageRow() {
-  reconPassageRowCount++;
-  const id = `rpr-${reconPassageRowCount}`;
+function addReconRow(type) {
+  reconRowCounts[type] = (reconRowCounts[type] || 0) + 1;
+  const id = `rr-${type}-${reconRowCounts[type]}`;
+  const containerId = type === 'thaw' ? 'recon-thaw-rows'
+    : type === 'passage' ? 'recon-passage-rows'
+    : type === 'discard' ? 'recon-discard-rows'
+    : 'recon-hist-freeze-rows';
+  const container = document.getElementById(containerId);
+
+  const prevDonorSels = container.querySelectorAll('.rr-donor');
+  const prevDonor = prevDonorSels.length ? prevDonorSels[prevDonorSels.length-1].value : 'F2';
+
   const el = document.createElement('div');
   el.className = 'batch-row';
   el.id = id;
-  el.style.gridTemplateColumns = '80px 140px 1fr 32px';
-  el.style.marginBottom = '6px';
 
-  const keys = allCloneKeys();
-  el.innerHTML = `
-    <div class="form-group">
-      ${reconPassageRowCount === 1 ? '<label>Donor</label>' : ''}
-      <select class="rpr-donor" onchange="updateReconPassageClone(this)">${donorOptions()}</select>
-    </div>
-    <div class="form-group">
-      ${reconPassageRowCount === 1 ? '<label>Clone #</label>' : ''}
-      <select class="rpr-clone">${reconCloneOpts(donorOptions().match(/value="(\w+)"/)?.[1] || 'F2')}</select>
-    </div>
-    <div class="form-group">
-      ${reconPassageRowCount === 1 ? '<label>Notes</label>' : ''}
-      <input class="rpr-notes" type="text" placeholder="optional">
-    </div>
-    <button class="batch-remove" onclick="document.getElementById('${id}').remove()" title="Remove">×</button>
-  `;
-  document.getElementById('recon-passage-rows').appendChild(el);
-  updateReconPassageClone(el.querySelector('.rpr-donor'));
+  if (type === 'hist-freeze') {
+    el.style.cssText = 'grid-template-columns:70px 110px 70px 32px;margin-bottom:4px;';
+    el.innerHTML = `
+      <div class="form-group">
+        <select class="rr-donor" onchange="updateReconRowClone(this,'${containerId}')">${donorOptions(prevDonor)}</select>
+      </div>
+      <div class="form-group">
+        <select class="rr-clone">${reconCloneOpts(prevDonor)}</select>
+      </div>
+      <div class="form-group">
+        <input class="rr-count" type="number" min="1" value="1" placeholder="# vials">
+      </div>
+      <button class="batch-remove" onclick="document.getElementById('${id}').remove()" title="Remove">×</button>
+    `;
+  } else {
+    const hasNotes = type === 'passage';
+    el.style.cssText = `grid-template-columns:70px 110px ${hasNotes ? '1fr ' : ''}32px;margin-bottom:4px;`;
+    el.innerHTML = `
+      <div class="form-group">
+        <select class="rr-donor" onchange="updateReconRowClone(this,'${containerId}')">${donorOptions(prevDonor)}</select>
+      </div>
+      <div class="form-group">
+        <select class="rr-clone">${reconCloneOpts(prevDonor)}</select>
+      </div>
+      ${hasNotes ? `<div class="form-group"><input class="rr-notes" type="text" placeholder="notes"></div>` : ''}
+      <button class="batch-remove" onclick="document.getElementById('${id}').remove()" title="Remove">×</button>
+    `;
+  }
+  container.appendChild(el);
+  updateReconRowClone(el.querySelector('.rr-donor'), containerId);
 }
 
 function reconCloneOpts(donor) {
-  const keys = allCloneKeys().filter(k => donorFromKey(k) === donor);
-  return keys.map(k => `<option value="${k}">${cloneNumFromKey(k)}</option>`).join('');
+  return allCloneKeys().filter(k => donorFromKey(k) === donor)
+    .map(k => `<option value="${k}">${cloneNumFromKey(k)}</option>`).join('');
 }
 
-function updateReconPassageClone(donorEl) {
-  const row = donorEl.closest('.batch-row');
-  const donor = donorEl.value;
-  row.querySelector('.rpr-clone').innerHTML = reconCloneOpts(donor);
-  // default clone donor to prev row
-  const allDonorSels = document.querySelectorAll('#recon-passage-rows .rpr-donor');
-  const idx = [...allDonorSels].indexOf(donorEl);
-  if (idx > 0) {
-    const prevDonor = allDonorSels[idx-1].value;
-    if (donor === prevDonor) {
-      // already matching — fine
-    }
-  }
+function updateReconRowClone(donorEl, containerId) {
+  donorEl.closest('.batch-row').querySelector('.rr-clone').innerHTML = reconCloneOpts(donorEl.value);
 }
 
 function commitReconDay() {
-  const rawDate = document.getElementById('recon-date').value.trim();
-  const date = parseDMY(rawDate);
+  const raw = document.getElementById('recon-date').value.trim();
+  const date = parseDMY(raw);
   if (!date) return toast('Enter a valid date.', 'error');
 
   const dayNotes = document.getElementById('recon-day-notes').value.trim();
-  const rows = document.querySelectorAll('#recon-passage-rows .batch-row');
-  const passages = [];
-  for (const row of rows) {
-    const key = row.querySelector('.rpr-clone').value;
-    const notes = row.querySelector('.rpr-notes').value.trim();
-    if (key) passages.push({ clone_key: key, notes: [dayNotes, notes].filter(Boolean).join(' — ') });
-  }
 
-  // Merge with existing day entry if date already exists
+  const readRows = (containerId, hasNotes) => {
+    return [...document.querySelectorAll(`#${containerId} .batch-row`)].map(row => {
+      const clone_key = row.querySelector('.rr-clone')?.value;
+      const notes = hasNotes ? (row.querySelector('.rr-notes')?.value.trim() || '') : '';
+      return clone_key ? { clone_key, notes: [dayNotes, notes].filter(Boolean).join(' — ') } : null;
+    }).filter(Boolean);
+  };
+
+  const thaws    = readRows('recon-thaw-rows', false);
+  const passages = readRows('recon-passage-rows', true);
+  const discards = readRows('recon-discard-rows', false);
+
+  // All auto-detected freezes (including unchanged counts)
+  const freezes = [...document.querySelectorAll('.recon-freeze-count')].map(inp => ({
+    clone_key: inp.dataset.clone,
+    count_frozen: parseInt(inp.value),
+    count_current: parseInt(inp.dataset.current),
+  }));
+
+  // Historical freeze batches (no longer in tank)
+  const histFreezes = [...document.querySelectorAll('#recon-hist-freeze-rows .batch-row')].map(row => {
+    const clone_key = row.querySelector('.rr-clone')?.value;
+    const count = parseInt(row.querySelector('.rr-count')?.value) || 1;
+    return clone_key ? { clone_key, count_frozen: count, count_current: 0, historical: true } : null;
+  }).filter(Boolean);
+
+  // Merge or add
   const existing = reconDays.find(d => d.date === date);
   if (existing) {
-    for (const p of passages) {
-      if (!existing.passages.find(e => e.clone_key === p.clone_key)) existing.passages.push(p);
+    const merge = (arr, key) => {
+      for (const item of arr) {
+        if (!existing[key].find(e => e.clone_key === item.clone_key)) existing[key].push(item);
+      }
+    };
+    merge(thaws, 'thaws'); merge(passages, 'passages');
+    merge(discards, 'discards');
+    for (const f of [...freezes, ...histFreezes]) {
+      const ef = existing.freezes.find(x => x.clone_key === f.clone_key);
+      if (ef) ef.count_frozen = f.count_frozen; else existing.freezes.push(f);
     }
   } else {
-    reconDays.push({ date, passages });
+    reconDays.push({ date, thaws, passages, discards, freezes: [...freezes, ...histFreezes] });
   }
   reconDays.sort((a, b) => a.date.localeCompare(b.date));
 
-  // Reset panel
-  document.getElementById('recon-passage-rows').innerHTML = '';
-  reconPassageRowCount = 0;
+  // Reset
+  ['recon-thaw-rows','recon-passage-rows','recon-discard-rows','recon-hist-freeze-rows'].forEach(id => document.getElementById(id).innerHTML = '');
+  reconRowCounts = { thaw: 0, passage: 0, discard: 0 };
   document.getElementById('recon-day-notes').value = '';
   document.getElementById('recon-date').value = '';
   document.getElementById('recon-day-panel').style.display = 'none';
 
   renderReconDaysList();
-  renderReconTimelines();
-  toast(`Added ${passages.length} passage event${passages.length !== 1 ? 's' : ''} for ${fmtDMY(date)}`, 'success');
+  renderReconTrees();
+  const total = thaws.length + passages.length + discards.length;
+  toast(`Added ${total} event${total !== 1 ? 's' : ''} for ${fmtDMY(date)}`, 'success');
 }
 
 function removeReconDay(date) {
   reconDays = reconDays.filter(d => d.date !== date);
   renderReconDaysList();
-  renderReconTimelines();
+  renderReconTrees();
 }
 
-function removeReconDayPassage(date, clone_key) {
+function removeReconDayEntry(date, type, clone_key) {
   const day = reconDays.find(d => d.date === date);
   if (!day) return;
-  day.passages = day.passages.filter(p => p.clone_key !== clone_key);
-  if (day.passages.length === 0) reconDays = reconDays.filter(d => d.date !== date);
+  day[type] = day[type].filter(e => e.clone_key !== clone_key);
+  if (!day.thaws.length && !day.passages.length && !day.discards.length && !day.freezes.length)
+    reconDays = reconDays.filter(d => d.date !== date);
   renderReconDaysList();
-  renderReconTimelines();
+  renderReconTrees();
 }
 
 function renderReconDaysList() {
   const card = document.getElementById('recon-days-card');
   const el = document.getElementById('recon-days-list');
-  if (reconDays.length === 0) { card.style.display = 'none'; return; }
+  if (!reconDays.length) { card.style.display = 'none'; return; }
   card.style.display = 'block';
+
+  const icon = { thaws:'🌡️', passages:'⬆️', discards:'🗑️', freezes:'❄️' };
+  const color = { thaws:'var(--danger)', passages:'var(--warn)', discards:'var(--text-dim)', freezes:'var(--accent2)' };
+
   el.innerHTML = reconDays.map(d => `
     <div style="margin-bottom:10px;">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
-        <span style="font-family:var(--mono);font-size:13px;font-weight:600;color:var(--text-bright);">${fmtDMY(d.date)}</span>
-        <button class="tl-remove" onclick="removeReconDay('${d.date}')" title="Remove day">×</button>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+        <span style="font-family:var(--mono);font-size:12px;font-weight:600;color:var(--text-bright);">${fmtDMY(d.date)}</span>
+        <button class="tl-remove" onclick="removeReconDay('${d.date}')">×</button>
       </div>
-      ${d.passages.map(p => `
-        <div style="display:flex;align-items:center;gap:8px;padding:5px 8px;background:var(--warn-dim);border:1px solid var(--warn);border-radius:4px;margin-bottom:3px;font-family:var(--mono);font-size:11px;">
-          <span style="color:var(--warn)">⬆️</span>
-          <span style="color:var(--text-bright)">${p.clone_key}</span>
-          <span style="color:var(--text-dim);flex:1">${p.notes || ''}</span>
-          <button class="tl-remove" onclick="removeReconDayPassage('${d.date}','${p.clone_key}')" title="Remove">×</button>
-        </div>
-      `).join('')}
+      ${['thaws','passages','discards'].map(type => d[type].map(e => `
+        <div style="display:flex;align-items:center;gap:6px;padding:3px 7px;margin-bottom:2px;
+             background:var(--surface2);border-radius:4px;font-family:var(--mono);font-size:11px;">
+          <span style="color:${color[type]}">${icon[type]}</span>
+          <span style="color:var(--text-bright)">${e.clone_key}</span>
+          <span style="color:var(--text-dim);flex:1">${e.notes||''}</span>
+          <button class="tl-remove" onclick="removeReconDayEntry('${d.date}','${type}','${e.clone_key}')">×</button>
+        </div>`).join('')).join('')}
+      ${d.freezes.filter(f => f.count_frozen !== f.count_current).map(f => `
+        <div style="display:flex;align-items:center;gap:6px;padding:3px 7px;margin-bottom:2px;
+             background:var(--accent2-dim);border-radius:4px;font-family:var(--mono);font-size:11px;">
+          <span style="color:var(--accent2)">❄️</span>
+          <span style="color:var(--text-bright)">${f.clone_key}</span>
+          <span style="color:var(--text-dim)">${f.count_frozen} frozen (${f.count_current} in tank)</span>
+        </div>`).join('')}
     </div>
-  `).join('<div style="height:1px;background:var(--border);margin:8px 0;"></div>');
+  `).join('<div style="height:1px;background:var(--border);margin:6px 0;"></div>');
 }
 
-// ── Inference ──
-function inferAllPassages() {
-  // Collect all clone keys that appear in either existing vials or reconDays
-  const keysFromDays = new Set(reconDays.flatMap(d => d.passages.map(p => p.clone_key)));
-  const keysFromVials = new Set(state.vials.map(v => v.clone_key));
-  const allKeys = new Set([...keysFromDays, ...keysFromVials]);
+// ── Inference engine ───────────────────────────────────────────────────────────
 
-  const results = {};
-  for (const key of allKeys) {
-    results[key] = inferForClone(key);
+function buildCultureCycles() {
+  // Returns { cycles, ambiguities } where:
+  // cycles: [{id, clone_key, thaw_date, source_freeze_date, passages:[], end_type, freeze_date}]
+  // ambiguities: [{clone_key, thaw_date, candidates:[freeze_date]}]
+
+  // Per clone: track vials remaining at each point in time
+  // Start with current tank + any "extra frozen" counts from reconDays
+  // Then work backwards? No — work forwards from earliest event.
+
+  // Build per-clone event stream from reconDays
+  const cloneEvents = {}; // clone_key -> [{date, type: 'thaw'|'passage'|'discard'|'freeze', data}]
+
+  for (const day of reconDays) {
+    for (const e of day.thaws)    addCloneEvent(cloneEvents, e.clone_key, day.date, 'thaw', {});
+    for (const e of day.passages) addCloneEvent(cloneEvents, e.clone_key, day.date, 'passage', { notes: e.notes });
+    for (const e of day.discards) addCloneEvent(cloneEvents, e.clone_key, day.date, 'discard', {});
+    for (const e of day.freezes)  addCloneEvent(cloneEvents, e.clone_key, day.date, 'freeze', { count_frozen: e.count_frozen, count_current: e.count_current });
   }
-  return results;
-}
 
-function inferForClone(key) {
-  const vials = state.vials.filter(v => v.clone_key === key)
-    .sort((a, b) => a.freeze_date.localeCompare(b.freeze_date));
-
-  // Passages from reconDays for this clone
-  const notebookPassages = reconDays
-    .filter(d => d.passages.some(p => p.clone_key === key))
-    .map(d => ({ date: d.date, notes: d.passages.find(p => p.clone_key === key)?.notes || '', source: 'notebook' }));
-
-  // Already-logged passage events
-  const loggedPassages = state.events
-    .filter(e => e.clone_key === key && e.type === 'passage' && !e.superseded_by)
-    .map(e => ({ date: e.date, notes: e.notes, source: 'logged' }));
-
-  // Merge, deduplicate by date (notebook wins)
-  const allPassages = [...loggedPassages];
-  for (const p of notebookPassages) {
-    if (!allPassages.find(e => e.date === p.date)) allPassages.push(p);
-  }
-  allPassages.sort((a, b) => a.date.localeCompare(b.date));
-
-  // Build timeline items
-  const items = [
-    { type: 'anchor', date: null, label: 'P0 — acquired' },
-    ...allPassages.map(p => ({ type: 'passage', date: p.date, notes: p.notes, source: p.source })),
-    ...vials.map(v => ({ type: 'freeze', date: v.freeze_date, vial: v })),
-  ];
-  items.sort((a, b) => {
-    if (a.type === 'anchor') return -1;
-    if (b.type === 'anchor') return 1;
-    return a.date.localeCompare(b.date);
-  });
-
-  let counter = 0;
-  const warnings = [];
-  for (const item of items) {
-    if (item.type === 'anchor') { item.p = 0; }
-    else if (item.type === 'passage') {
-      item.pBefore = counter;
-      counter++;
-      item.pAfter = counter;
-    } else if (item.type === 'freeze') {
-      item.pBefore = counter;
-      counter++;
-      item.pAssigned = counter;
-      // Check if freeze predates all passage events
-      if (allPassages.length > 0 && item.date < allPassages[0].date) {
-        item.uncertain = true;
-        warnings.push(`⚠️ ${fmtDMY(item.date)} freeze predates all passage events`);
-      }
+  // Also include freeze events from vials still in tank that aren't in reconDays
+  for (const v of state.vials) {
+    const key = v.clone_key;
+    if (!cloneEvents[key]) cloneEvents[key] = [];
+    if (!cloneEvents[key].find(e => e.type === 'freeze' && e.date === v.freeze_date)) {
+      addCloneEvent(cloneEvents, key, v.freeze_date, 'freeze', {
+        count_frozen: v.count, count_current: v.count
+      });
     }
   }
-  return { items, warnings, allPassages };
+
+  // Already-logged passage events from state
+  for (const e of state.events) {
+    if (e.type !== 'passage' || e.superseded_by) continue;
+    if (!cloneEvents[e.clone_key]) cloneEvents[e.clone_key] = [];
+    if (!cloneEvents[e.clone_key].find(ev => ev.type === 'passage' && ev.date === e.date)) {
+      addCloneEvent(cloneEvents, e.clone_key, e.date, 'passage', { notes: e.notes, source: 'logged' });
+    }
+  }
+
+  // Sort each clone's events
+  for (const key of Object.keys(cloneEvents)) {
+    cloneEvents[key].sort((a, b) => a.date.localeCompare(b.date));
+  }
+
+  const cycles = [];
+  const ambiguities = [];
+
+  for (const [clone_key, events] of Object.entries(cloneEvents)) {
+    // Track vials available per freeze batch (including P0 = 1 virtual vial)
+    // Start: P0 has 1 vial; each freeze batch has its count_frozen vials
+    const batchVials = { '__P0__': 1 }; // freeze_date -> remaining vials
+
+    // Pre-populate from freeze events
+    for (const ev of events) {
+      if (ev.type === 'freeze') batchVials[ev.date] = ev.data.count_frozen;
+    }
+
+    let openCycle = null; // {id, thaw_date, source_freeze_date, passages}
+
+    for (const ev of events) {
+      if (ev.type === 'thaw') {
+        // Close any open cycle without a freeze (shouldn't happen — discard should close it)
+        // Find source batch: which batch had vials at this point?
+        const ambigKey = `${clone_key}|${ev.date}`;
+        let sourceBatch;
+
+        if (ambiguityResolutions[ambigKey]) {
+          sourceBatch = ambiguityResolutions[ambigKey];
+        } else {
+          const candidates = Object.entries(batchVials)
+            .filter(([fd, count]) => count > 0 && (fd === '__P0__' || fd < ev.date))
+            .map(([fd]) => fd);
+          if (candidates.length === 1) {
+            sourceBatch = candidates[0];
+          } else if (candidates.length > 1) {
+            ambiguities.push({ clone_key, thaw_date: ev.date, candidates });
+            sourceBatch = null; // unresolved
+          } else {
+            sourceBatch = null; // no vials available — data gap
+          }
+        }
+
+        if (sourceBatch) batchVials[sourceBatch] = (batchVials[sourceBatch] || 0) - 1;
+
+        openCycle = { id: uid(), clone_key, thaw_date: ev.date, source_freeze_date: sourceBatch, passages: [], end_type: null, freeze_date: null };
+
+      } else if (ev.type === 'passage' && openCycle) {
+        openCycle.passages.push({ date: ev.date, notes: ev.data.notes || '', source: ev.data.source });
+
+      } else if (ev.type === 'freeze' && openCycle) {
+        openCycle.end_type = 'freeze';
+        openCycle.freeze_date = ev.date;
+        cycles.push({ ...openCycle });
+        openCycle = null;
+
+      } else if (ev.type === 'discard' && openCycle) {
+        openCycle.end_type = 'discard';
+        cycles.push({ ...openCycle });
+        openCycle = null;
+      }
+    }
+    // Any unclosed cycle (cells still in culture — shouldn't happen for past data)
+    if (openCycle) { openCycle.end_type = 'open'; cycles.push({ ...openCycle }); }
+  }
+
+  return { cycles, ambiguities };
 }
 
-// ── Render timelines ──
-function renderReconTimelines() {
-  const inferred = inferAllPassages();
-  const allKeys = Object.keys(inferred).sort();
+function addCloneEvent(map, clone_key, date, type, data) {
+  if (!map[clone_key]) map[clone_key] = [];
+  map[clone_key].push({ date, type, data });
+}
 
-  // Build/update clone filter chips
-  const filterEl = document.getElementById('recon-clone-filter');
-  if (allKeys.length === 0) {
-    filterEl.innerHTML = '';
-    document.getElementById('recon-timelines').innerHTML = '<div class="empty">Add passage events to see timelines.</div>';
+function inferPassageNumbers(cycles) {
+  // Build tree: node = freeze_date (or '__P0__'), children = cycles that thawed from it
+  // Passage number at a node = parent's pNum + passages in cycle + 1 (freeze)
+
+  const pNums = { '__P0__': 0 }; // freeze_date -> passage number
+  const cyclesBySource = {};
+  for (const c of cycles) {
+    const src = c.source_freeze_date || '__unresolved__';
+    if (!cyclesBySource[src]) cyclesBySource[src] = [];
+    cyclesBySource[src].push(c);
+  }
+
+  // BFS from P0
+  const queue = ['__P0__'];
+  while (queue.length) {
+    const src = queue.shift();
+    const parentP = pNums[src] ?? null;
+    if (parentP === null) continue;
+    for (const cycle of (cyclesBySource[src] || [])) {
+      const cycleP = parentP + cycle.passages.length;
+      if (cycle.end_type === 'freeze' && cycle.freeze_date) {
+        pNums[cycle.freeze_date] = cycleP + 1; // +1 for freeze
+        queue.push(cycle.freeze_date);
+      }
+      // discard/open: no node to assign, but child cycles can't branch from discards anyway
+    }
+  }
+  return pNums;
+}
+
+// ── Render ─────────────────────────────────────────────────────────────────────
+
+function renderReconTrees() {
+  const { cycles, ambiguities } = buildCultureCycles();
+  const pNums = inferPassageNumbers(cycles);
+
+  // Update clone filter dropdown based on donor selection
+  const donorFilter = document.getElementById('recon-filter-donor')?.value || '';
+  const cloneFilter = document.getElementById('recon-filter-clone')?.value || '';
+  const cloneSel = document.getElementById('recon-filter-clone');
+  if (cloneSel) {
+    const allKeys = [...new Set([
+      ...cycles.map(c => c.clone_key),
+      ...state.vials.map(v => v.clone_key),
+    ])].filter(k => !donorFilter || donorFromKey(k) === donorFilter).sort();
+    cloneSel.innerHTML = '<option value="">All clones</option>' +
+      allKeys.map(k => `<option value="${k}" ${k === cloneFilter ? 'selected' : ''}>${k}</option>`).join('');
+  }
+  const ambCard = document.getElementById('recon-ambiguity-card');
+  const ambList = document.getElementById('recon-ambiguity-list');
+  if (ambiguities.length) {
+    ambCard.style.display = 'block';
+    ambList.innerHTML = ambiguities.map(a => {
+      const ambKey = `${a.clone_key}|${a.thaw_date}`;
+      const resolved = ambiguityResolutions[ambKey];
+      return `<div style="margin-bottom:10px;padding:10px;background:var(--surface2);border:1px solid var(--danger);border-radius:var(--radius);">
+        <div style="font-family:var(--mono);font-size:12px;color:var(--text-bright);margin-bottom:6px;">
+          ${a.clone_key} — thaw on ${fmtDMY(a.thaw_date)}
+        </div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--text-dim);margin-bottom:6px;">
+          Which batch was thawed?
+        </div>
+        <select onchange="resolveAmbiguity('${ambKey}', this.value)"
+          style="font-family:var(--mono);font-size:12px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:5px 8px;">
+          <option value="">— pick source batch —</option>
+          ${a.candidates.map(fd => `<option value="${fd}" ${resolved===fd?'selected':''}>
+            ${fd === '__P0__' ? 'P0 (original vial from collaborator)' : fmtDMY(fd)}
+          </option>`).join('')}
+        </select>
+      </div>`;
+    }).join('');
+  } else {
+    ambCard.style.display = 'none';
+  }
+
+  // Get all clone keys involved
+  const allKeys = [...new Set([
+    ...cycles.map(c => c.clone_key),
+    ...state.vials.map(v => v.clone_key),
+    ...reconDays.flatMap(d => d.freezes.map(f => f.clone_key)),
+  ])].sort();
+
+  // Apply dropdown filters
+  const visibleKeys = allKeys.filter(k => {
+    if (donorFilter && donorFromKey(k) !== donorFilter) return false;
+    if (cloneFilter && k !== cloneFilter) return false;
+    return true;
+  });
+
+  const tlEl = document.getElementById('recon-timelines');
+
+  if (!visibleKeys.length) {
+    tlEl.innerHTML = '<div class="empty">No clones match the current filter. Log lab days on the left to build lineage trees.</div>';
     document.getElementById('recon-apply-card').style.display = 'none';
     return;
   }
 
-  filterEl.innerHTML = `<button class="filter-chip ${reconActiveCloneFilter === null ? 'active' : ''}" onclick="setReconFilter(null, this)">All</button>` +
-    allKeys.map(k => `<button class="filter-chip ${reconActiveCloneFilter === k ? 'active' : ''}" onclick="setReconFilter('${k}', this)">${k}</button>`).join('');
-
-  const visibleKeys = reconActiveCloneFilter ? [reconActiveCloneFilter] : allKeys;
-  const tlEl = document.getElementById('recon-timelines');
-
-  tlEl.innerHTML = visibleKeys.map(key => {
-    const { items, warnings } = inferred[key];
-    const tlRows = items.map(item => {
-      if (item.type === 'anchor') {
-        return `<div class="tl-event tl-anchor">
-          <span class="tl-date">—</span>
-          <span class="tl-pnum" style="color:var(--accent)">P0</span>
-          <span class="tl-label">Acquired</span>
-          <span></span>
-        </div>`;
-      }
-      if (item.type === 'passage') {
-        const src = item.source === 'logged'
-          ? `<span style="font-size:10px;color:var(--text-dim)">logged</span>`
-          : `<span style="font-size:10px;color:var(--warn)">notebook</span>`;
-        return `<div class="tl-event tl-passage">
-          <span class="tl-date">${fmtDMY(item.date)}</span>
-          <span class="tl-pnum">P${item.pBefore}→${item.pAfter}</span>
-          <span class="tl-label">Passage <span class="tl-note">${item.notes || ''}</span></span>
-          ${src}
-        </div>`;
-      }
-      if (item.type === 'freeze') {
-        const cls = item.uncertain ? 'tl-freeze tl-uncertain' : 'tl-freeze';
-        const pTag = item.uncertain
-          ? `<span class="tl-pnum unknown">P?</span>`
-          : `<span class="tl-pnum inferred">P${item.pAssigned}</span>`;
-        const cur = item.vial.passage;
-        const matchTag = item.uncertain ? '' : cur != null
-          ? cur === item.pAssigned ? `<span style="font-size:10px;color:var(--accent)">✓</span>` : `<span style="font-size:10px;color:var(--warn)">was P${cur}</span>`
-          : `<span style="font-size:10px;color:var(--text-dim)">unset</span>`;
-        return `<div class="tl-event ${cls}">
-          <span class="tl-date">${fmtDMY(item.date)}</span>
-          ${pTag}
-          <span class="tl-label">Freeze ${item.vial.count}v <span class="tl-note">${item.vial.notes||''}</span></span>
-          ${matchTag}
-        </div>`;
-      }
-      return '';
-    }).join('');
-
-    const warnHtml = warnings.length
-      ? warnings.map(w => `<div style="font-family:var(--mono);font-size:11px;color:var(--danger);margin-top:4px;">${w}</div>`).join('')
-      : '';
-
-    return `<div style="margin-bottom:16px;">
-      <div style="font-family:var(--mono);font-size:13px;font-weight:600;color:var(--text-bright);margin-bottom:8px;">${key}</div>
-      <div class="timeline">${tlRows}</div>
-      ${warnHtml}
+  tlEl.innerHTML = visibleKeys.map(clone_key => {
+    const cloneCycles = cycles.filter(c => c.clone_key === clone_key);
+    const cloneVials = state.vials.filter(v => v.clone_key === clone_key);
+    return `<div style="margin-bottom:20px;">
+      <div style="font-family:var(--mono);font-size:13px;font-weight:600;color:var(--text-bright);margin-bottom:8px;">${clone_key}</div>
+      <div class="timeline">${renderCloneTree(clone_key, cloneCycles, pNums, cloneVials)}</div>
     </div>`;
-  }).join('<div style="height:1px;background:var(--border);margin:12px 0;"></div>');
+  }).join('<div style="height:1px;background:var(--border);margin:10px 0;"></div>');
 
   // Apply preview
-  const applyCard = document.getElementById('recon-apply-card');
-  const applyEl = document.getElementById('recon-apply-preview');
   const updates = [];
-  for (const key of allKeys) {
-    const { items } = inferred[key];
-    for (const item of items) {
-      if (item.type === 'freeze' && !item.uncertain && item.vial.passage !== item.pAssigned) {
-        updates.push({ key, date: item.date, pAssigned: item.pAssigned, cur: item.vial.passage });
-      }
+  for (const [freezeDate, pNum] of Object.entries(pNums)) {
+    if (freezeDate === '__P0__') continue;
+    const vial = state.vials.find(v => v.freeze_date === freezeDate &&
+      cycles.find(c => c.freeze_date === freezeDate && c.clone_key === v.clone_key));
+    if (vial && vial.passage !== pNum) {
+      updates.push({ clone_key: vial.clone_key, freeze_date: freezeDate, pNum, cur: vial.passage });
     }
   }
-  if (updates.length > 0) {
+
+  const applyCard = document.getElementById('recon-apply-card');
+  const applyEl = document.getElementById('recon-apply-preview');
+  if (updates.length || cycles.length) {
     applyCard.style.display = 'block';
-    applyEl.innerHTML = updates.map(u =>
-      `<div style="font-family:var(--mono);font-size:12px;margin-bottom:3px;">
-        <span style="color:var(--text-bright)">${u.key}</span>
-        <span style="color:var(--text-dim)"> ${fmtDMY(u.date)}</span>
-        → <span style="color:var(--warn)">P${u.pAssigned}</span>
-        ${u.cur != null ? `<span style="color:var(--text-dim)">(was P${u.cur})</span>` : '<span style="color:var(--accent)">(new)</span>'}
-      </div>`
-    ).join('');
+    applyEl.innerHTML = updates.length
+      ? updates.map(u => `<div style="margin-bottom:3px;">
+          <span style="color:var(--text-bright)">${u.clone_key}</span>
+          <span style="color:var(--text-dim)"> ${fmtDMY(u.freeze_date)}</span>
+          → <span style="color:var(--warn)">P${u.pNum}</span>
+          ${u.cur != null ? `<span style="color:var(--text-dim)">(was P${u.cur})</span>` : '<span style="color:var(--accent)">(new)</span>'}
+        </div>`).join('')
+      : '<span style="color:var(--text-dim)">All batches already match — passage events will still be logged.</span>';
   } else {
-    applyCard.style.display = reconDays.length > 0 ? 'block' : 'none';
-    applyEl.innerHTML = '<div style="font-size:12px;color:var(--text-dim);">All freeze batches already match — nothing to update.</div>';
+    applyCard.style.display = 'none';
   }
 }
 
-function setReconFilter(key, btn) {
-  reconActiveCloneFilter = key;
-  document.querySelectorAll('#recon-clone-filter .filter-chip').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  renderReconTimelines();
+function renderCloneTree(clone_key, cycles, pNums, cloneVials) {
+  // Build node tree: node = {freeze_date, pNum, children:[cycle]}
+  // Root = P0
+  const lines = [];
+
+  function renderNode(freezeDate, depth) {
+    const indent = depth * 20;
+    const isP0 = freezeDate === '__P0__';
+    const pNum = pNums[freezeDate] ?? '?';
+    const vial = isP0 ? null : cloneVials.find(v => v.freeze_date === freezeDate);
+    const inTank = vial?.count ?? 0;
+
+    // Find reconDays freeze entry for count_frozen
+    const reconFreeze = reconDays.flatMap(d => d.freezes).find(f => f.clone_key === clone_key && false); // placeholder
+    const dayEntry = reconDays.find(d => d.freezes.some(f => f.clone_key === clone_key && d.date === freezeDate));
+    const countFrozen = dayEntry?.freezes.find(f => f.clone_key === clone_key)?.count_frozen ?? inTank;
+    const thawed = countFrozen - inTank;
+
+    // Node row
+    if (isP0) {
+      lines.push(`<div class="tl-event tl-anchor" style="margin-left:${indent}px;">
+        <span class="tl-date">—</span>
+        <span class="tl-pnum" style="color:var(--accent)">P0</span>
+        <span class="tl-label">Acquired from collaborator</span>
+        <span></span>
+      </div>`);
+    } else {
+      const pTag = pNum === '?' ? `<span class="tl-pnum unknown">P?</span>`
+        : `<span class="tl-pnum inferred">P${pNum}</span>`;
+      const curP = vial?.passage;
+      const matchTag = pNum === '?' ? '' : curP != null
+        ? curP === pNum ? `<span style="font-size:10px;color:var(--accent)">✓</span>`
+          : `<span style="font-size:10px;color:var(--warn)">was P${curP}</span>`
+        : `<span style="font-size:10px;color:var(--text-dim)">unset</span>`;
+      const countNote = thawed > 0 ? `${countFrozen}v (${thawed} thawed)` : `${countFrozen}v`;
+      lines.push(`<div class="tl-event tl-freeze" style="margin-left:${indent}px;">
+        <span class="tl-date">${fmtDMY(freezeDate)}</span>
+        ${pTag}
+        <span class="tl-label">Freeze ${countNote}</span>
+        ${matchTag}
+      </div>`);
+    }
+
+    // Children: cycles that thaw from this node
+    const children = cycles.filter(c => (c.source_freeze_date || '__P0__') === freezeDate);
+    for (const cycle of children) {
+      // Show passage events in this cycle
+      for (const p of cycle.passages) {
+        const pNum2 = pNums[freezeDate] ?? 0;
+        const idx = cycle.passages.indexOf(p) + 1;
+        lines.push(`<div class="tl-event tl-passage" style="margin-left:${indent+20}px;">
+          <span class="tl-date">${fmtDMY(p.date)}</span>
+          <span class="tl-pnum" style="font-size:11px;">+${idx}</span>
+          <span class="tl-label">Passage <span class="tl-note">${p.notes||''}</span></span>
+          ${p.source === 'logged' ? '<span style="font-size:10px;color:var(--text-dim)">logged</span>' : ''}
+        </div>`);
+      }
+      // End node
+      if (cycle.end_type === 'freeze' && cycle.freeze_date) {
+        renderNode(cycle.freeze_date, depth + 1);
+      } else if (cycle.end_type === 'discard') {
+        lines.push(`<div class="tl-event" style="margin-left:${indent+20}px;border-color:var(--border);opacity:0.6;">
+          <span class="tl-date">${fmtDMY(cycle.thaw_date)}</span>
+          <span class="tl-pnum unknown" style="font-size:10px;">end</span>
+          <span class="tl-label" style="color:var(--text-dim)">🗑️ Discarded</span>
+          <span></span>
+        </div>`);
+      } else if (cycle.end_type === 'open') {
+        lines.push(`<div class="tl-event" style="margin-left:${indent+20}px;border-color:var(--warn);opacity:0.7;">
+          <span class="tl-date">—</span>
+          <span class="tl-pnum" style="color:var(--warn);font-size:10px;">open</span>
+          <span class="tl-label" style="color:var(--text-dim)">Culture still active?</span>
+          <span></span>
+        </div>`);
+      }
+    }
+  }
+
+  renderNode('__P0__', 0);
+  return lines.join('');
+}
+
+function resolveAmbiguity(ambKey, freezeDate) {
+  if (freezeDate) ambiguityResolutions[ambKey] = freezeDate;
+  else delete ambiguityResolutions[ambKey];
+  renderReconTrees();
 }
 
 async function applyAllReconPassages() {
-  const inferred = inferAllPassages();
-  const today_iso = today();
-  let updatedVials = 0;
-  let loggedPassages = 0;
+  const { cycles, ambiguities } = buildCultureCycles();
+  if (ambiguities.length) return toast('Resolve all ambiguities before applying.', 'error');
 
-  for (const [key, { items, allPassages }] of Object.entries(inferred)) {
-    // Log notebook passage events not yet in state.events
-    const notebookForKey = reconDays
-      .filter(d => d.passages.some(p => p.clone_key === key))
-      .map(d => ({ date: d.date, notes: d.passages.find(p => p.clone_key === key)?.notes || '' }));
+  const pNums = inferPassageNumbers(cycles);
+  let updatedVials = 0, loggedPassages = 0;
 
-    for (const p of notebookForKey) {
+  // Log notebook passage events
+  for (const day of reconDays) {
+    for (const p of day.passages) {
       const alreadyLogged = state.events.find(e =>
-        e.clone_key === key && e.type === 'passage' && e.date === p.date && !e.superseded_by
+        e.clone_key === p.clone_key && e.type === 'passage' && e.date === day.date && !e.superseded_by
       );
       if (!alreadyLogged) {
-        state.events.push({
-          id: uid(), type: 'passage', date: p.date, clone_key: key,
-          passage_num: null, notes: p.notes, source: 'reconstructed',
-        });
+        state.events.push({ id: uid(), type: 'passage', date: day.date, clone_key: p.clone_key,
+          passage_num: null, notes: p.notes, source: 'reconstructed' });
         loggedPassages++;
-      }
-    }
-
-    // Update vial passage numbers
-    for (const item of items) {
-      if (item.type !== 'freeze' || item.uncertain) continue;
-      const vial = state.vials.find(v => v.clone_key === key && v.freeze_date === item.date);
-      if (vial && vial.passage !== item.pAssigned) {
-        vial.passage = item.pAssigned;
-        updatedVials++;
       }
     }
   }
 
+  // Update vial passage numbers
+  for (const [freezeDate, pNum] of Object.entries(pNums)) {
+    if (freezeDate === '__P0__') continue;
+    const matchCycle = cycles.find(c => c.freeze_date === freezeDate);
+    if (!matchCycle) continue;
+    const vial = state.vials.find(v => v.clone_key === matchCycle.clone_key && v.freeze_date === freezeDate);
+    if (vial && vial.passage !== pNum) { vial.passage = pNum; updatedVials++; }
+  }
+
   reconDays = [];
-  reconPassageRowCount = 0;
+  reconRowCounts = { thaw: 0, passage: 0, discard: 0 };
+  ambiguityResolutions = {};
   await saveData();
-  renderReconTimelines();
+  renderReconTrees();
   renderReconDaysList();
   toast(`Applied: ${updatedVials} vial batches updated, ${loggedPassages} passage events logged`, 'success');
 }
+
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 loadData();
