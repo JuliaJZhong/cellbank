@@ -704,18 +704,15 @@
   </div>
   <!-- ═══ CORRECT ENTRY ═══ -->
   <div class="view" id="view-correct">
-    <div class="page-title">Correct an Entry</div>
-    <div class="page-sub">Logs a correction event — the original record is preserved in history</div>
+    <div class="page-title">Correct LN₂ Snapshot</div>
+    <div class="page-sub">Edit the current tank state directly — corrections are logged to the event history</div>
 
     <div class="card">
-      <div class="card-title">Step 1 — Find the event to correct</div>
-      <p style="font-size:12px;color:var(--text-dim);margin-bottom:14px;">
-        Select a clone and event type to browse matching events, then click one to load it for correction.
-      </p>
+      <div class="card-title">Select Clone</div>
       <div class="form-row">
         <div class="form-group">
           <label>Donor</label>
-          <select id="corr-filter-donor" onchange="updateCorrCloneOptions(); renderCorrectionCandidates()">
+          <select id="corr-filter-donor" onchange="updateCorrCloneOptions()">
             <option value="F2">F2</option>
             <option value="F5">F5</option>
             <option value="other">Other</option>
@@ -723,43 +720,26 @@
         </div>
         <div class="form-group">
           <label>Clone #</label>
-          <select id="corr-filter-clone" onchange="renderCorrectionCandidates()"></select>
-        </div>
-        <div class="form-group">
-          <label>Event Type</label>
-          <select id="corr-filter-type" onchange="renderCorrectionCandidates()">
-            <option value="all">All types</option>
-            <option value="freeze">❄️ Freeze</option>
-            <option value="thaw">🌡️ Thaw</option>
-            <option value="passage">⬆️ Passage</option>
-          </select>
+          <select id="corr-filter-clone" onchange="renderCorrectionSnapshot()"></select>
         </div>
       </div>
-      <div id="corr-candidates" style="margin-top:8px;"></div>
     </div>
 
-    <div class="card" id="corr-edit-card" style="display:none;">
-      <div class="card-title">Step 2 — Apply correction</div>
-      <div id="corr-original-display" style="
-        background:var(--bg); border:1px solid var(--border); border-radius:var(--radius);
-        padding:12px 14px; margin-bottom:16px; font-family:var(--mono); font-size:12px;
-      "></div>
-
+    <div class="card" id="corr-snapshot-card" style="display:none;">
+      <div class="card-title">Current Freeze Batches — edit to correct</div>
       <p style="font-size:12px;color:var(--text-dim);margin-bottom:14px;">
-        Edit any fields below. Leave a field unchanged to keep its original value. A <code style="color:var(--warn)">correction</code> event will be appended to the log, and the original event will be marked as superseded.
+        Edit any field. Each changed batch logs a <span style="color:var(--warn)">correction</span> event. Unchanged batches are left alone.
       </p>
-
-      <div class="form-row" id="corr-fields"></div>
-
-      <div class="form-row">
+      <div id="corr-snapshot-rows"></div>
+      <div class="form-row" style="margin-top:16px;">
         <div class="form-group full">
-          <label>Reason for correction <span style="color:var(--danger)">*</span></label>
-          <textarea id="corr-reason" placeholder="e.g. Wrong date entered during import — correct date is 23 Apr 2025" style="min-height:50px;"></textarea>
+          <label>Reason <span style="color:var(--danger)">*</span></label>
+          <textarea id="corr-reason" placeholder="e.g. Miscounted vials on import" style="min-height:44px;"></textarea>
         </div>
       </div>
       <div class="btn-row">
-        <button class="btn btn-warn" onclick="applyCorrection()">Apply Correction</button>
-        <button class="btn btn-secondary" onclick="clearCorrectionForm()">Clear</button>
+        <button class="btn btn-warn" onclick="applySnapshotCorrection()">Apply Corrections</button>
+        <button class="btn btn-secondary" onclick="clearCorrectionForm()">Cancel</button>
       </div>
     </div>
   </div>
@@ -899,17 +879,16 @@ function normaliseState() {
     }
   }
 
-  // Ensure every event whose id appears as a superseded_by target is actually marked
-  const supersededIds = new Set(state.events.filter(e => e.superseded_by).map(e => e.superseded_by));
+  // Mark any event as superseded if another event's `corrects` field references its id.
+  // (Fixes cases where superseded_by wasn't persisted correctly to JSON.)
+  const correctedIds = new Set(state.events.filter(e => e.corrects).map(e => e.corrects));
   for (const e of state.events) {
-    if (supersededIds.has(e.id) && !e.superseded_by) {
-      // This event is referenced as superseded but field wasn't saved — mark it
-      // We use a sentinel since we don't know the exact correcting id
+    if (correctedIds.has(e.id) && !e.superseded_by) {
       e.superseded_by = '__recovered__';
     }
   }
 
-  // Rebuild any missing vial entries from freeze events (non-superseded, non-correction only)
+  // Rebuild any missing vial entries from non-superseded, non-correction freeze events
   for (const e of state.events) {
     if (e.type !== 'freeze' || e.superseded_by || e.is_correction) continue;
     const existing = state.vials.find(v => v.clone_key === e.clone_key && v.freeze_date === e.date);
@@ -926,11 +905,19 @@ function normaliseState() {
     }
   }
 
-  // Reconcile vial counts with correction events — corrections are the canonical count
-  // Process corrections in chronological order so the latest one wins
+  // Deduplicate vials — if two entries share clone_key+freeze_date, keep the one
+  // with the higher count (prefer explicitly-set over reconstructed)
+  const seen = new Map();
+  for (const v of state.vials) {
+    const k = `${v.clone_key}|${v.freeze_date}`;
+    if (!seen.has(k) || v.count > seen.get(k).count) seen.set(k, v);
+  }
+  state.vials = [...seen.values()];
+
+  // Reconcile vial counts against correction events — latest correction wins
   const corrections = state.events
     .filter(e => e.type === 'freeze' && e.is_correction && !e.superseded_by)
-    .sort((a, b) => a.date.localeCompare(b.date));
+    .sort((a, b) => (a.correction_logged || a.date).localeCompare(b.correction_logged || b.date));
   for (const e of corrections) {
     const vial = state.vials.find(v => v.clone_key === e.clone_key && v.freeze_date === e.date);
     if (vial && e.count != null) {
@@ -1129,7 +1116,7 @@ function updateCorrCloneOptions() {
   el.innerHTML = keys.length
     ? keys.map(k => `<option value="${k}">${cloneNumFromKey(k)}</option>`).join('')
     : '<option value="">— none —</option>';
-  renderCorrectionCandidates();
+  renderCorrectionSnapshot();
 }
 
 // ── Navigation ────────────────────────────────────────────────────────────────
@@ -1151,7 +1138,7 @@ function navigate(view) {
   if (view === 'add-thaw') initThawRows();
   if (view === 'add-passage') initPassageRows();
   if (view === 'import') initImportRows();
-  if (view === 'correct') renderCorrectionCandidates();
+  if (view === 'correct') { updateCorrCloneOptions(); renderCorrectionSnapshot(); }
 }
 
 // ── Filters ───────────────────────────────────────────────────────────────────
@@ -1655,195 +1642,110 @@ function uid() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 }
 
-// ── Correction ────────────────────────────────────────────────────────────────
-let corrSelectedEventId = null;
+// ── Correction (snapshot-based) ───────────────────────────────────────────────
+function renderCorrectionSnapshot() {
+  const key = document.getElementById('corr-filter-clone')?.value;
+  const card = document.getElementById('corr-snapshot-card');
+  const rowsEl = document.getElementById('corr-snapshot-rows');
+  if (!key) { card.style.display = 'none'; return; }
 
-function renderCorrectionCandidates() {
-  const filterClone = document.getElementById('corr-filter-clone')?.value;
-  const filterType = document.getElementById('corr-filter-type').value;
+  const vials = state.vials.filter(v => v.clone_key === key)
+    .sort((a, b) => a.freeze_date.localeCompare(b.freeze_date));
 
-  let evs = state.events.filter(e => e.clone_key === filterClone);
-  if (filterType !== 'all') evs = evs.filter(e => e.type === filterType);
-  evs = [...evs].sort((a, b) => b.date.localeCompare(a.date)); // newest first
-
-  const el = document.getElementById('corr-candidates');
-  if (evs.length === 0) {
-    el.innerHTML = '<div class="empty" style="padding:20px 0;">No events found for this clone.</div>';
-    return;
+  if (vials.length === 0) {
+    card.style.display = 'none';
+    return toast('No vials in tank for this clone.', 'error');
   }
 
-  el.innerHTML = evs.map(e => {
-    const typeCls = { freeze: 'type-freeze', thaw: 'type-thaw', passage: 'type-passage' }[e.type] || '';
-    const typeLabel = { freeze: '❄️ freeze', thaw: '🌡️ thaw', passage: '⬆️ passage' }[e.type] || e.type;
-    let detail = '';
-    if (e.type === 'freeze') detail = `+${e.count} vials`;
-    if (e.type === 'thaw') detail = `−${e.count} vials`;
-    if (e.type === 'passage') detail = e.passage_num != null ? `→ P${e.passage_num}` : '';
-    const isSuperseded = !!e.superseded_by;
-    const supTag = isSuperseded ? `<span class="superseded-tag">superseded</span>` : `<button class="btn btn-sm btn-warn" onclick="loadEventForCorrection('${e.id}')">Select</button>`;
-    return `<div class="corr-candidate ${isSuperseded ? 'superseded' : ''}" id="cand-${e.id}">
-      <span style="color:var(--text-dim)">${fmt(e.date)}</span>
-      <span class="event-type-badge ${typeCls}">${typeLabel}</span>
-      <span style="color:var(--text)">${detail}</span>
-      <span style="color:var(--text-dim);font-size:11px">${e.notes || ''}</span>
-      ${supTag}
-    </div>`;
-  }).join('');
+  rowsEl.innerHTML = `
+    <div style="display:grid;grid-template-columns:120px 70px 80px 1fr;gap:8px;margin-bottom:6px;padding:0 2px;">
+      <span style="font-family:var(--mono);font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;">Freeze Date</span>
+      <span style="font-family:var(--mono);font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;">Count</span>
+      <span style="font-family:var(--mono);font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;">Passage</span>
+      <span style="font-family:var(--mono);font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;">Notes</span>
+    </div>
+    ${vials.map((v, i) => `
+      <div class="batch-row" style="grid-template-columns:120px 70px 80px 1fr;margin-bottom:8px;" data-freeze-date="${v.freeze_date}">
+        <div style="font-family:var(--mono);font-size:13px;color:var(--text-bright);align-self:center;">${fmtDMY(v.freeze_date)}</div>
+        <input class="snap-count" type="number" min="0" value="${v.count}" data-orig="${v.count}">
+        <input class="snap-passage" type="number" min="0" value="${v.passage ?? ''}" placeholder="—" data-orig="${v.passage ?? ''}">
+        <input class="snap-notes" type="text" value="${v.notes || ''}" placeholder="notes" data-orig="${v.notes || ''}">
+      </div>
+    `).join('')}
+  `;
+  card.style.display = 'block';
 }
 
-function loadEventForCorrection(eventId) {
-  const e = state.events.find(ev => ev.id === eventId);
-  if (!e) return;
-  corrSelectedEventId = eventId;
-
-  // Highlight selected
-  document.querySelectorAll('.corr-candidate').forEach(el => el.classList.remove('selected'));
-  const cand = document.getElementById(`cand-${eventId}`);
-  if (cand) cand.classList.add('selected');
-
-  // Show original
-  const origEl = document.getElementById('corr-original-display');
-  origEl.innerHTML = `<span style="color:var(--text-dim)">Original event:</span>&nbsp;&nbsp;` +
-    Object.entries(e)
-      .filter(([k]) => !['id','superseded_by'].includes(k))
-      .map(([k, v]) => `<span style="color:var(--accent2)">${k}</span>=<span style="color:var(--text)">${v ?? '—'}</span>`)
-      .join('  ·  ');
-
-  // Build editable fields depending on event type
-  const fieldsEl = document.getElementById('corr-fields');
-  const dateField = `
-    <div class="form-group">
-      <label>Date</label>
-      <input type="text" id="corr-date" value="${fmtDMY(e.date)}" placeholder="e.g. 13Jun25">
-    </div>`;
-
-  let typeFields = '';
-  if (e.type === 'freeze' || e.type === 'thaw') {
-    typeFields = `
-      <div class="form-group">
-        <label>Vial Count</label>
-        <input type="number" id="corr-count" min="1" value="${e.count ?? ''}">
-      </div>`;
-  }
-  if (e.type === 'freeze' || e.type === 'passage') {
-    typeFields += `
-      <div class="form-group">
-        <label>Passage #</label>
-        <input type="number" id="corr-passage" min="0" value="${e.passage_num ?? ''}">
-      </div>`;
-  }
-  const notesField = `
-    <div class="form-group full">
-      <label>Notes</label>
-      <textarea id="corr-notes">${e.notes || ''}</textarea>
-    </div>`;
-
-  fieldsEl.innerHTML = dateField + typeFields + notesField;
-  document.getElementById('corr-edit-card').style.display = 'block';
-  document.getElementById('corr-reason').value = '';
-  document.getElementById('corr-edit-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-async function applyCorrection() {
-  if (!corrSelectedEventId) return toast('No event selected.', 'error');
+async function applySnapshotCorrection() {
+  const key = document.getElementById('corr-filter-clone')?.value;
   const reason = document.getElementById('corr-reason').value.trim();
   if (!reason) return toast('Please enter a reason for the correction.', 'error');
 
-  const original = state.events.find(e => e.id === corrSelectedEventId);
-  if (!original) return toast('Original event not found.', 'error');
+  const rows = document.querySelectorAll('#corr-snapshot-rows .batch-row');
+  const today_iso = today();
+  let changeCount = 0;
 
-  // Collect corrected values (fall back to originals if field not present)
-  const corrDateRaw = document.getElementById('corr-date')?.value || '';
-  const corrDate = parseDMY(corrDateRaw) || original.date;
-  const corrCount   = document.getElementById('corr-count')?.value != null && document.getElementById('corr-count')?.value !== ''
-                        ? parseInt(document.getElementById('corr-count').value) : original.count;
-  const corrPassage = document.getElementById('corr-passage')?.value !== ''
-                        ? (document.getElementById('corr-passage')?.value ? parseInt(document.getElementById('corr-passage').value) : original.passage_num)
-                        : original.passage_num;
-  const corrNotes   = document.getElementById('corr-notes')?.value ?? original.notes;
+  for (const row of rows) {
+    const freezeDate = row.dataset.freezeDate;
+    const newCount = parseInt(row.querySelector('.snap-count').value);
+    const newPassageVal = row.querySelector('.snap-passage').value;
+    const newPassage = newPassageVal !== '' ? parseInt(newPassageVal) : null;
+    const newNotes = row.querySelector('.snap-notes').value.trim();
 
-  // Mark original as superseded
-  original.superseded_by = uid(); // will match the new event id below
-  const newId = original.superseded_by;
+    const origCount = parseInt(row.querySelector('.snap-count').dataset.orig);
+    const origPassageVal = row.querySelector('.snap-passage').dataset.orig;
+    const origPassage = origPassageVal !== '' ? parseInt(origPassageVal) : null;
+    const origNotes = row.querySelector('.snap-notes').dataset.orig;
 
-  // Build corrected event
-  const corrected = {
-    ...original,
-    id: newId,
-    date: corrDate,
-    count: corrCount,
-    passage_num: corrPassage,
-    notes: corrNotes,
-    is_correction: true,
-    corrects: corrSelectedEventId,
-    correction_reason: reason,
-    correction_logged: new Date().toISOString().slice(0, 10),
-  };
-  delete corrected.superseded_by; // the corrected event itself isn't superseded
+    const changed = newCount !== origCount || newPassage !== origPassage || newNotes !== origNotes;
+    if (!changed) continue;
 
-  state.events.push(corrected);
-
-  // Patch state.vials to reflect the correction
-  if (original.type === 'freeze') {
-    // Match vial by clone_key (with normalisation fallback) and original freeze date
-    const normKey = cloneKey(donorFromKey(original.clone_key), cloneNumFromKey(original.clone_key));
-    const oldVial = state.vials.find(v =>
-      (v.clone_key === original.clone_key || v.clone_key === normKey) &&
-      v.freeze_date === original.date
-    );
-    if (oldVial) {
-      if (corrDate !== original.date) {
-        const existing = state.vials.find(v => v.clone_key === oldVial.clone_key && v.freeze_date === corrDate);
-        if (existing) {
-          existing.count += corrCount;
-          if (oldVial.count <= original.count) {
-            state.vials = state.vials.filter(v => v !== oldVial);
-          } else {
-            oldVial.count -= original.count;
-          }
-        } else {
-          oldVial.freeze_date = corrDate;
-          oldVial.count = corrCount;
-        }
-      } else {
-        // Same date — just set count and other fields directly
-        oldVial.count = corrCount;
-      }
-      if (corrPassage != null) oldVial.passage = corrPassage;
-      if (corrNotes !== original.notes) oldVial.notes = corrNotes;
+    // Update vial in state
+    const vial = state.vials.find(v => v.clone_key === key && v.freeze_date === freezeDate);
+    if (vial) {
+      vial.count = newCount;
+      vial.passage = newPassage;
+      vial.notes = newNotes;
     }
-  } else if (original.type === 'passage') {
-    // Update passage on matching vial batch
-    const normKey = cloneKey(donorFromKey(original.clone_key), cloneNumFromKey(original.clone_key));
-    const matchVials = state.vials.filter(v =>
-      v.clone_key === original.clone_key || v.clone_key === normKey
-    );
-    if (original.freeze_date) {
-      matchVials.filter(v => v.freeze_date === original.freeze_date).forEach(v => { v.passage = corrPassage; });
-    } else {
-      matchVials.forEach(v => { if (corrPassage != null) v.passage = corrPassage; });
-    }
+
+    // Find the most recent non-superseded freeze event for this batch to supersede
+    const originalEvent = [...state.events]
+      .filter(e => e.clone_key === key && e.freeze_date === freezeDate || e.clone_key === key && e.date === freezeDate)
+      .filter(e => e.type === 'freeze' && !e.superseded_by)
+      .sort((a, b) => (b.correction_logged || b.date).localeCompare(a.correction_logged || a.date))[0];
+
+    const newId = uid();
+    if (originalEvent) originalEvent.superseded_by = newId;
+
+    state.events.push({
+      id: newId,
+      type: 'freeze',
+      date: freezeDate,
+      clone_key: key,
+      donor: donorFromKey(key),
+      clone_num: cloneNumFromKey(key),
+      count: newCount,
+      passage_num: newPassage,
+      notes: newNotes,
+      is_correction: true,
+      corrects: originalEvent?.id || null,
+      correction_reason: reason,
+      correction_logged: today_iso,
+    });
+    changeCount++;
   }
 
-  const correctedCloneKey = original.clone_key;
+  if (changeCount === 0) return toast('No changes detected.', 'error');
+
   await saveData();
   renderAll();
-  // Restore the correction filter to the same clone after renderAll repopulates selects
-  const donorEl = document.getElementById('corr-filter-donor');
-  const cloneEl = document.getElementById('corr-filter-clone');
-  if (donorEl) donorEl.value = donorFromKey(correctedCloneKey);
-  updateCorrCloneOptions();
-  if (cloneEl) cloneEl.value = correctedCloneKey;
-  toast(`Correction applied to ${original.clone_key} — original preserved in log`, 'success');
+  toast(`${changeCount} batch${changeCount > 1 ? 'es' : ''} corrected for ${key}`, 'success');
   clearCorrectionForm();
-  renderCorrectionCandidates();
 }
 
 function clearCorrectionForm() {
-  corrSelectedEventId = null;
-  document.getElementById('corr-edit-card').style.display = 'none';
+  document.getElementById('corr-snapshot-card').style.display = 'none';
   document.getElementById('corr-reason').value = '';
-  document.querySelectorAll('.corr-candidate').forEach(el => el.classList.remove('selected'));
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────

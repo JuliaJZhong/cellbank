@@ -102,7 +102,7 @@ class Handler(BaseHTTPRequestHandler):
             msg = payload.get("message", "Update cell tracker data")
             try:
                 repo_root = os.path.dirname(__file__)
-                subprocess.run(["git", "add", "data/"], cwd=repo_root, check=True)
+                subprocess.run(["git", "add", "-A"], cwd=repo_root, check=True)
                 result = subprocess.run(
                     ["git", "commit", "-m", msg],
                     cwd=repo_root,

@@ -566,7 +566,38 @@
       "clone_num": "22",
       "count": 2,
       "passage_num": null,
-      "notes": "[imported] frozen down by RO"
+      "notes": "[imported] frozen down by RO",
+      "superseded_by": "momfipwfd26w"
+    },
+    {
+      "id": "momfipwfd26w",
+      "type": "freeze",
+      "date": "2024-05-03",
+      "clone_key": "F2-22",
+      "donor": "F2",
+      "clone_num": "22",
+      "count": 2,
+      "passage_num": null,
+      "notes": "frozen down by RO",
+      "is_correction": true,
+      "corrects": "momex0ay2aab",
+      "correction_reason": "miscounted for some reason",
+      "correction_logged": "2026-05-01"
+    },
+    {
+      "id": "momfj8zsgeji",
+      "type": "freeze",
+      "date": "2026-04-30",
+      "clone_key": "F5-16a",
+      "donor": "F5",
+      "clone_num": "16a",
+      "count": 4,
+      "passage_num": null,
+      "notes": "not sure if this is 16a, 16c?",
+      "is_correction": true,
+      "corrects": null,
+      "correction_reason": "wrong vial number",
+      "correction_logged": "2026-05-01"
     }
   ]
 }
