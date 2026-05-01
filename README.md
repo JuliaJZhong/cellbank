@@ -15,7 +15,7 @@ A local web app for tracking clonal B cell lines, LN₂ tank inventory, and pass
 | 🌡️ **Thaw** | Log vials being removed from the tank. |
 | ⬆️ **Passage** | Log passage events per clone batch. |
 | 📦 **Import** | One-time bulk setup from lab notebooks (per-row dates in `ddMMMyy` format). |
-| ✏️ **Correction** | Fix the current tank snapshot — edit count, passage, notes, or freeze date for any batch. Logs a correction event to the audit trail. |
+| ✏️ **Correct** | Fix the current tank snapshot — edit count, passage, notes, or freeze date for any batch. Logs a correction event to the audit trail. |
 
 ## Workflow
 
@@ -23,7 +23,7 @@ A local web app for tracking clonal B cell lines, LN₂ tank inventory, and pass
 2. **Every freeze:** Use **Freeze Down** — set date once, add a row per clone frozen.
 3. **Every thaw:** Use **Thaw** to log vials removed.
 4. **Every passage:** Use **Passage** to record passage events per clone batch.
-5. **Made a mistake?** Use **Correction** — pick the clone, edit the batch directly, add a reason. The original is preserved in the log.
+5. **Made a mistake?** Use **Correct** — pick the clone, edit the batch directly, add a reason. The original is preserved in the log.
 6. **After any session:** Click **↑ git commit** (top right) to snapshot everything.
 
 ## Setup (one time)
