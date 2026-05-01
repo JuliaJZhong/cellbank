@@ -464,7 +464,68 @@
     grid-template-columns: 80px 110px 130px 80px 90px 1fr 32px;
   }
 
-  /* CORRECTION */
+  /* RECONSTRUCTION TIMELINE */
+  .timeline {
+    position: relative;
+    padding-left: 32px;
+    margin-bottom: 8px;
+  }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 10px;
+    top: 0; bottom: 0;
+    width: 2px;
+    background: var(--border);
+  }
+  .tl-event {
+    position: relative;
+    margin-bottom: 6px;
+    display: grid;
+    grid-template-columns: 110px 60px 1fr auto;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+  .tl-event::before {
+    content: '';
+    position: absolute;
+    left: -26px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    border: 2px solid var(--border-bright);
+    background: var(--surface);
+  }
+  .tl-event.tl-freeze::before  { background: var(--accent2); border-color: var(--accent2); }
+  .tl-event.tl-passage::before { background: var(--warn); border-color: var(--warn); }
+  .tl-event.tl-anchor::before  { background: var(--accent); border-color: var(--accent); }
+  .tl-event.tl-uncertain { border-color: var(--danger); opacity: 0.85; }
+  .tl-pnum {
+    font-size: 13px;
+    font-weight: 700;
+    font-family: var(--mono);
+    color: var(--warn);
+    min-width: 36px;
+    text-align: right;
+  }
+  .tl-pnum.unknown { color: var(--danger); }
+  .tl-pnum.inferred { color: var(--accent2); }
+  .tl-date { color: var(--text-dim); }
+  .tl-label { color: var(--text); }
+  .tl-note  { color: var(--text-dim); font-size: 11px; }
+  .tl-remove {
+    background: none; border: none; color: var(--text-dim);
+    cursor: pointer; font-size: 14px; padding: 2px 4px;
+    border-radius: 4px;
+  }
+  .tl-remove:hover { color: var(--danger); background: #3a1a1a; }
   .corr-candidate {
     display: grid;
     grid-template-columns: 90px 70px 1fr 1fr auto;
@@ -532,6 +593,9 @@
   </div>
   <div class="nav-item" onclick="navigate('correct')" id="nav-correct">
     <span class="icon">✏️</span> Correct
+  </div>
+  <div class="nav-item" onclick="navigate('reconstruct')" id="nav-reconstruct">
+    <span class="icon">🔍</span> Passage Inference
   </div>
 </aside>
 
@@ -741,6 +805,78 @@
         <button class="btn btn-warn" onclick="applySnapshotCorrection()">Apply Corrections</button>
         <button class="btn btn-secondary" onclick="clearCorrectionForm()">Cancel</button>
       </div>
+    </div>
+  </div>
+
+  <!-- ═══ PASSAGE INFERENCE ═══ -->
+  <div class="view" id="view-reconstruct">
+    <div class="page-title">Passage Inference</div>
+    <div class="page-sub">Reconstruct passage numbers from lab notebook records. Work date by date — enter what happened each day, across all clones.</div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;">
+
+      <!-- LEFT: date entry panel -->
+      <div>
+        <div class="card">
+          <div class="card-title">Log a Lab Day</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Date</label>
+              <input type="text" id="recon-date" placeholder="e.g. 13Jun25" style="max-width:130px;" oninput="renderReconDayPanel()">
+            </div>
+          </div>
+
+          <div id="recon-day-panel" style="display:none;">
+            <!-- Freeze events on this date (auto-detected) -->
+            <div id="recon-freeze-section" style="margin-bottom:14px;"></div>
+
+            <!-- Passage events to add -->
+            <div style="margin-bottom:8px;">
+              <div style="font-family:var(--mono);font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Passage Events This Day</div>
+              <div id="recon-passage-rows"></div>
+              <button class="btn btn-secondary" style="margin-top:6px;" onclick="addReconPassageRow()">+ Add Clone</button>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group full">
+                <label>Notes for this day (optional)</label>
+                <input type="text" id="recon-day-notes" placeholder="e.g. split ratio, observations…">
+              </div>
+            </div>
+
+            <div class="btn-row">
+              <button class="btn btn-primary" onclick="commitReconDay()">Add to Inference</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Logged days summary -->
+        <div class="card" id="recon-days-card" style="display:none;">
+          <div class="card-title">Logged Days</div>
+          <div id="recon-days-list"></div>
+        </div>
+      </div>
+
+      <!-- RIGHT: per-clone timelines -->
+      <div>
+        <div class="card">
+          <div class="card-title">Clone Timelines</div>
+          <div class="filter-row" id="recon-clone-filter" style="flex-wrap:wrap;"></div>
+          <div id="recon-timelines"></div>
+        </div>
+
+        <div class="card" id="recon-apply-card" style="display:none;">
+          <div class="card-title">Apply Inferred Passages</div>
+          <p style="font-size:12px;color:var(--text-dim);margin-bottom:14px;">
+            Writes inferred passage numbers to all vial batches and logs the passage events. Only fully-determined batches are updated.
+          </p>
+          <div id="recon-apply-preview" style="margin-bottom:14px;"></div>
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="applyAllReconPassages()">Apply All to Vials</button>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -1139,6 +1275,7 @@ function navigate(view) {
   if (view === 'add-passage') initPassageRows();
   if (view === 'import') initImportRows();
   if (view === 'correct') { updateCorrCloneOptions(); renderCorrectionSnapshot(); }
+  if (view === 'reconstruct') { renderReconTimelines(); }
 }
 
 // ── Filters ───────────────────────────────────────────────────────────────────
@@ -1749,6 +1886,395 @@ async function applySnapshotCorrection() {
 function clearCorrectionForm() {
   document.getElementById('corr-snapshot-card').style.display = 'none';
   document.getElementById('corr-reason').value = '';
+}
+
+// ── Passage Inference ─────────────────────────────────────────────────────────
+// reconDays: array of { date, passages: [{clone_key, notes}] }
+// keyed and sorted by date
+let reconDays = [];
+let reconPassageRowCount = 0;
+let reconActiveCloneFilter = null; // null = show all
+
+function initReconPage() {
+  reconDays = [];
+  reconPassageRowCount = 0;
+  reconActiveCloneFilter = null;
+  document.getElementById('recon-date').value = '';
+  document.getElementById('recon-day-panel').style.display = 'none';
+  document.getElementById('recon-days-card').style.display = 'none';
+  renderReconDaysList();
+  renderReconTimelines();
+}
+
+// ── Day panel ──
+function renderReconDayPanel() {
+  const rawDate = document.getElementById('recon-date').value.trim();
+  const date = parseDMY(rawDate);
+  const panel = document.getElementById('recon-day-panel');
+  if (!date) { panel.style.display = 'none'; return; }
+  panel.style.display = 'block';
+
+  // Show freeze batches that exist on this date
+  const freezesThisDay = state.vials.filter(v => v.freeze_date === date);
+  const freezeSection = document.getElementById('recon-freeze-section');
+  if (freezesThisDay.length > 0) {
+    freezeSection.innerHTML = `
+      <div style="font-family:var(--mono);font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Freeze Batches on This Date (auto-detected)</div>
+      ${freezesThisDay.map(v => `
+        <div style="display:flex;align-items:center;gap:10px;padding:7px 10px;background:var(--accent2-dim);border:1px solid var(--accent2);border-radius:var(--radius);margin-bottom:4px;font-family:var(--mono);font-size:12px;">
+          <span style="color:var(--accent2)">❄️</span>
+          <span style="color:var(--text-bright);font-weight:600;">${v.clone_key}</span>
+          <span style="color:var(--text-dim)">${v.count} vials${v.notes ? ' — ' + v.notes : ''}</span>
+        </div>
+      `).join('')}
+    `;
+  } else {
+    freezeSection.innerHTML = `<div style="font-family:var(--mono);font-size:12px;color:var(--text-dim);margin-bottom:8px;">No freeze batches recorded on this date.</div>`;
+  }
+}
+
+function addReconPassageRow() {
+  reconPassageRowCount++;
+  const id = `rpr-${reconPassageRowCount}`;
+  const el = document.createElement('div');
+  el.className = 'batch-row';
+  el.id = id;
+  el.style.gridTemplateColumns = '80px 140px 1fr 32px';
+  el.style.marginBottom = '6px';
+
+  const keys = allCloneKeys();
+  el.innerHTML = `
+    <div class="form-group">
+      ${reconPassageRowCount === 1 ? '<label>Donor</label>' : ''}
+      <select class="rpr-donor" onchange="updateReconPassageClone(this)">${donorOptions()}</select>
+    </div>
+    <div class="form-group">
+      ${reconPassageRowCount === 1 ? '<label>Clone #</label>' : ''}
+      <select class="rpr-clone">${reconCloneOpts(donorOptions().match(/value="(\w+)"/)?.[1] || 'F2')}</select>
+    </div>
+    <div class="form-group">
+      ${reconPassageRowCount === 1 ? '<label>Notes</label>' : ''}
+      <input class="rpr-notes" type="text" placeholder="optional">
+    </div>
+    <button class="batch-remove" onclick="document.getElementById('${id}').remove()" title="Remove">×</button>
+  `;
+  document.getElementById('recon-passage-rows').appendChild(el);
+  updateReconPassageClone(el.querySelector('.rpr-donor'));
+}
+
+function reconCloneOpts(donor) {
+  const keys = allCloneKeys().filter(k => donorFromKey(k) === donor);
+  return keys.map(k => `<option value="${k}">${cloneNumFromKey(k)}</option>`).join('');
+}
+
+function updateReconPassageClone(donorEl) {
+  const row = donorEl.closest('.batch-row');
+  const donor = donorEl.value;
+  row.querySelector('.rpr-clone').innerHTML = reconCloneOpts(donor);
+  // default clone donor to prev row
+  const allDonorSels = document.querySelectorAll('#recon-passage-rows .rpr-donor');
+  const idx = [...allDonorSels].indexOf(donorEl);
+  if (idx > 0) {
+    const prevDonor = allDonorSels[idx-1].value;
+    if (donor === prevDonor) {
+      // already matching — fine
+    }
+  }
+}
+
+function commitReconDay() {
+  const rawDate = document.getElementById('recon-date').value.trim();
+  const date = parseDMY(rawDate);
+  if (!date) return toast('Enter a valid date.', 'error');
+
+  const dayNotes = document.getElementById('recon-day-notes').value.trim();
+  const rows = document.querySelectorAll('#recon-passage-rows .batch-row');
+  const passages = [];
+  for (const row of rows) {
+    const key = row.querySelector('.rpr-clone').value;
+    const notes = row.querySelector('.rpr-notes').value.trim();
+    if (key) passages.push({ clone_key: key, notes: [dayNotes, notes].filter(Boolean).join(' — ') });
+  }
+
+  // Merge with existing day entry if date already exists
+  const existing = reconDays.find(d => d.date === date);
+  if (existing) {
+    for (const p of passages) {
+      if (!existing.passages.find(e => e.clone_key === p.clone_key)) existing.passages.push(p);
+    }
+  } else {
+    reconDays.push({ date, passages });
+  }
+  reconDays.sort((a, b) => a.date.localeCompare(b.date));
+
+  // Reset panel
+  document.getElementById('recon-passage-rows').innerHTML = '';
+  reconPassageRowCount = 0;
+  document.getElementById('recon-day-notes').value = '';
+  document.getElementById('recon-date').value = '';
+  document.getElementById('recon-day-panel').style.display = 'none';
+
+  renderReconDaysList();
+  renderReconTimelines();
+  toast(`Added ${passages.length} passage event${passages.length !== 1 ? 's' : ''} for ${fmtDMY(date)}`, 'success');
+}
+
+function removeReconDay(date) {
+  reconDays = reconDays.filter(d => d.date !== date);
+  renderReconDaysList();
+  renderReconTimelines();
+}
+
+function removeReconDayPassage(date, clone_key) {
+  const day = reconDays.find(d => d.date === date);
+  if (!day) return;
+  day.passages = day.passages.filter(p => p.clone_key !== clone_key);
+  if (day.passages.length === 0) reconDays = reconDays.filter(d => d.date !== date);
+  renderReconDaysList();
+  renderReconTimelines();
+}
+
+function renderReconDaysList() {
+  const card = document.getElementById('recon-days-card');
+  const el = document.getElementById('recon-days-list');
+  if (reconDays.length === 0) { card.style.display = 'none'; return; }
+  card.style.display = 'block';
+  el.innerHTML = reconDays.map(d => `
+    <div style="margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+        <span style="font-family:var(--mono);font-size:13px;font-weight:600;color:var(--text-bright);">${fmtDMY(d.date)}</span>
+        <button class="tl-remove" onclick="removeReconDay('${d.date}')" title="Remove day">×</button>
+      </div>
+      ${d.passages.map(p => `
+        <div style="display:flex;align-items:center;gap:8px;padding:5px 8px;background:var(--warn-dim);border:1px solid var(--warn);border-radius:4px;margin-bottom:3px;font-family:var(--mono);font-size:11px;">
+          <span style="color:var(--warn)">⬆️</span>
+          <span style="color:var(--text-bright)">${p.clone_key}</span>
+          <span style="color:var(--text-dim);flex:1">${p.notes || ''}</span>
+          <button class="tl-remove" onclick="removeReconDayPassage('${d.date}','${p.clone_key}')" title="Remove">×</button>
+        </div>
+      `).join('')}
+    </div>
+  `).join('<div style="height:1px;background:var(--border);margin:8px 0;"></div>');
+}
+
+// ── Inference ──
+function inferAllPassages() {
+  // Collect all clone keys that appear in either existing vials or reconDays
+  const keysFromDays = new Set(reconDays.flatMap(d => d.passages.map(p => p.clone_key)));
+  const keysFromVials = new Set(state.vials.map(v => v.clone_key));
+  const allKeys = new Set([...keysFromDays, ...keysFromVials]);
+
+  const results = {};
+  for (const key of allKeys) {
+    results[key] = inferForClone(key);
+  }
+  return results;
+}
+
+function inferForClone(key) {
+  const vials = state.vials.filter(v => v.clone_key === key)
+    .sort((a, b) => a.freeze_date.localeCompare(b.freeze_date));
+
+  // Passages from reconDays for this clone
+  const notebookPassages = reconDays
+    .filter(d => d.passages.some(p => p.clone_key === key))
+    .map(d => ({ date: d.date, notes: d.passages.find(p => p.clone_key === key)?.notes || '', source: 'notebook' }));
+
+  // Already-logged passage events
+  const loggedPassages = state.events
+    .filter(e => e.clone_key === key && e.type === 'passage' && !e.superseded_by)
+    .map(e => ({ date: e.date, notes: e.notes, source: 'logged' }));
+
+  // Merge, deduplicate by date (notebook wins)
+  const allPassages = [...loggedPassages];
+  for (const p of notebookPassages) {
+    if (!allPassages.find(e => e.date === p.date)) allPassages.push(p);
+  }
+  allPassages.sort((a, b) => a.date.localeCompare(b.date));
+
+  // Build timeline items
+  const items = [
+    { type: 'anchor', date: null, label: 'P0 — acquired' },
+    ...allPassages.map(p => ({ type: 'passage', date: p.date, notes: p.notes, source: p.source })),
+    ...vials.map(v => ({ type: 'freeze', date: v.freeze_date, vial: v })),
+  ];
+  items.sort((a, b) => {
+    if (a.type === 'anchor') return -1;
+    if (b.type === 'anchor') return 1;
+    return a.date.localeCompare(b.date);
+  });
+
+  let counter = 0;
+  const warnings = [];
+  for (const item of items) {
+    if (item.type === 'anchor') { item.p = 0; }
+    else if (item.type === 'passage') {
+      item.pBefore = counter;
+      counter++;
+      item.pAfter = counter;
+    } else if (item.type === 'freeze') {
+      item.pBefore = counter;
+      counter++;
+      item.pAssigned = counter;
+      // Check if freeze predates all passage events
+      if (allPassages.length > 0 && item.date < allPassages[0].date) {
+        item.uncertain = true;
+        warnings.push(`⚠️ ${fmtDMY(item.date)} freeze predates all passage events`);
+      }
+    }
+  }
+  return { items, warnings, allPassages };
+}
+
+// ── Render timelines ──
+function renderReconTimelines() {
+  const inferred = inferAllPassages();
+  const allKeys = Object.keys(inferred).sort();
+
+  // Build/update clone filter chips
+  const filterEl = document.getElementById('recon-clone-filter');
+  if (allKeys.length === 0) {
+    filterEl.innerHTML = '';
+    document.getElementById('recon-timelines').innerHTML = '<div class="empty">Add passage events to see timelines.</div>';
+    document.getElementById('recon-apply-card').style.display = 'none';
+    return;
+  }
+
+  filterEl.innerHTML = `<button class="filter-chip ${reconActiveCloneFilter === null ? 'active' : ''}" onclick="setReconFilter(null, this)">All</button>` +
+    allKeys.map(k => `<button class="filter-chip ${reconActiveCloneFilter === k ? 'active' : ''}" onclick="setReconFilter('${k}', this)">${k}</button>`).join('');
+
+  const visibleKeys = reconActiveCloneFilter ? [reconActiveCloneFilter] : allKeys;
+  const tlEl = document.getElementById('recon-timelines');
+
+  tlEl.innerHTML = visibleKeys.map(key => {
+    const { items, warnings } = inferred[key];
+    const tlRows = items.map(item => {
+      if (item.type === 'anchor') {
+        return `<div class="tl-event tl-anchor">
+          <span class="tl-date">—</span>
+          <span class="tl-pnum" style="color:var(--accent)">P0</span>
+          <span class="tl-label">Acquired</span>
+          <span></span>
+        </div>`;
+      }
+      if (item.type === 'passage') {
+        const src = item.source === 'logged'
+          ? `<span style="font-size:10px;color:var(--text-dim)">logged</span>`
+          : `<span style="font-size:10px;color:var(--warn)">notebook</span>`;
+        return `<div class="tl-event tl-passage">
+          <span class="tl-date">${fmtDMY(item.date)}</span>
+          <span class="tl-pnum">P${item.pBefore}→${item.pAfter}</span>
+          <span class="tl-label">Passage <span class="tl-note">${item.notes || ''}</span></span>
+          ${src}
+        </div>`;
+      }
+      if (item.type === 'freeze') {
+        const cls = item.uncertain ? 'tl-freeze tl-uncertain' : 'tl-freeze';
+        const pTag = item.uncertain
+          ? `<span class="tl-pnum unknown">P?</span>`
+          : `<span class="tl-pnum inferred">P${item.pAssigned}</span>`;
+        const cur = item.vial.passage;
+        const matchTag = item.uncertain ? '' : cur != null
+          ? cur === item.pAssigned ? `<span style="font-size:10px;color:var(--accent)">✓</span>` : `<span style="font-size:10px;color:var(--warn)">was P${cur}</span>`
+          : `<span style="font-size:10px;color:var(--text-dim)">unset</span>`;
+        return `<div class="tl-event ${cls}">
+          <span class="tl-date">${fmtDMY(item.date)}</span>
+          ${pTag}
+          <span class="tl-label">Freeze ${item.vial.count}v <span class="tl-note">${item.vial.notes||''}</span></span>
+          ${matchTag}
+        </div>`;
+      }
+      return '';
+    }).join('');
+
+    const warnHtml = warnings.length
+      ? warnings.map(w => `<div style="font-family:var(--mono);font-size:11px;color:var(--danger);margin-top:4px;">${w}</div>`).join('')
+      : '';
+
+    return `<div style="margin-bottom:16px;">
+      <div style="font-family:var(--mono);font-size:13px;font-weight:600;color:var(--text-bright);margin-bottom:8px;">${key}</div>
+      <div class="timeline">${tlRows}</div>
+      ${warnHtml}
+    </div>`;
+  }).join('<div style="height:1px;background:var(--border);margin:12px 0;"></div>');
+
+  // Apply preview
+  const applyCard = document.getElementById('recon-apply-card');
+  const applyEl = document.getElementById('recon-apply-preview');
+  const updates = [];
+  for (const key of allKeys) {
+    const { items } = inferred[key];
+    for (const item of items) {
+      if (item.type === 'freeze' && !item.uncertain && item.vial.passage !== item.pAssigned) {
+        updates.push({ key, date: item.date, pAssigned: item.pAssigned, cur: item.vial.passage });
+      }
+    }
+  }
+  if (updates.length > 0) {
+    applyCard.style.display = 'block';
+    applyEl.innerHTML = updates.map(u =>
+      `<div style="font-family:var(--mono);font-size:12px;margin-bottom:3px;">
+        <span style="color:var(--text-bright)">${u.key}</span>
+        <span style="color:var(--text-dim)"> ${fmtDMY(u.date)}</span>
+        → <span style="color:var(--warn)">P${u.pAssigned}</span>
+        ${u.cur != null ? `<span style="color:var(--text-dim)">(was P${u.cur})</span>` : '<span style="color:var(--accent)">(new)</span>'}
+      </div>`
+    ).join('');
+  } else {
+    applyCard.style.display = reconDays.length > 0 ? 'block' : 'none';
+    applyEl.innerHTML = '<div style="font-size:12px;color:var(--text-dim);">All freeze batches already match — nothing to update.</div>';
+  }
+}
+
+function setReconFilter(key, btn) {
+  reconActiveCloneFilter = key;
+  document.querySelectorAll('#recon-clone-filter .filter-chip').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderReconTimelines();
+}
+
+async function applyAllReconPassages() {
+  const inferred = inferAllPassages();
+  const today_iso = today();
+  let updatedVials = 0;
+  let loggedPassages = 0;
+
+  for (const [key, { items, allPassages }] of Object.entries(inferred)) {
+    // Log notebook passage events not yet in state.events
+    const notebookForKey = reconDays
+      .filter(d => d.passages.some(p => p.clone_key === key))
+      .map(d => ({ date: d.date, notes: d.passages.find(p => p.clone_key === key)?.notes || '' }));
+
+    for (const p of notebookForKey) {
+      const alreadyLogged = state.events.find(e =>
+        e.clone_key === key && e.type === 'passage' && e.date === p.date && !e.superseded_by
+      );
+      if (!alreadyLogged) {
+        state.events.push({
+          id: uid(), type: 'passage', date: p.date, clone_key: key,
+          passage_num: null, notes: p.notes, source: 'reconstructed',
+        });
+        loggedPassages++;
+      }
+    }
+
+    // Update vial passage numbers
+    for (const item of items) {
+      if (item.type !== 'freeze' || item.uncertain) continue;
+      const vial = state.vials.find(v => v.clone_key === key && v.freeze_date === item.date);
+      if (vial && vial.passage !== item.pAssigned) {
+        vial.passage = item.pAssigned;
+        updatedVials++;
+      }
+    }
+  }
+
+  reconDays = [];
+  reconPassageRowCount = 0;
+  await saveData();
+  renderReconTimelines();
+  renderReconDaysList();
+  toast(`Applied: ${updatedVials} vial batches updated, ${loggedPassages} passage events logged`, 'success');
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
