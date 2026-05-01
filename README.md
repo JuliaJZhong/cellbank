@@ -92,21 +92,17 @@ Note: `freeze_date` in bulk JSON uses ISO format (`YYYY-MM-DD`); the UI form use
 ## How It Looks
 
 ### LN₂ Tank
+The tank page shows all vials currently in the LN₂. Clones with multiple freeze batches are grouped together — clone ID and donor appear once on the left spanning all rows, with each batch on its own line showing freeze date, vial count, passage number, and notes. Click any clone ID to open a detail popup with full batch breakdown and event history.
 ![LN₂ Tank page](docs/screenshot-tank.png)
 
-The tank page shows all vials currently in the LN₂. Clones with multiple freeze batches are grouped together — clone ID and donor appear once on the left spanning all rows, with each batch on its own line showing freeze date, vial count, passage number, and notes. Click any clone ID to open a detail popup with full batch breakdown and event history.
-
 ### Freeze Down
+Log a freeze-down session: set the date once at the top, then add a row per clone. Donor defaults to the row above for fast entry. Dates use lab-notebook format (`ddMMMyy`, e.g. `23Apr25`).
 ![Freeze Down page](docs/screenshot-freeze.png)
 
-Log a freeze-down session: set the date once at the top, then add a row per clone. Donor defaults to the row above for fast entry. Dates use lab-notebook format (`ddMMMyy`, e.g. `23Apr25`).
-
 ### Clone Lines
+Card view of every clone line. Shows total vials in tank, current passage (or range if batches differ), and event count. Click any card for the full detail popup.
 ![Clone Lines page](docs/screenshot-clones.png)
 
-Card view of every clone line. Shows total vials in tank, current passage (or range if batches differ), and event count. Click any card for the full detail popup.
-
 ### Event Log
-![Event Log](docs/screenshot-log.png)
-
 Append-only log of every freeze, thaw, passage, and correction event. Filterable by type. Superseded (corrected) entries are struck through; corrections show with an amber badge and reason.
+![Event Log](docs/screenshot-log.png)
