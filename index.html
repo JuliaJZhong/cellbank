@@ -888,16 +888,54 @@ function normaliseState() {
   // Fix any clone_key / clone_num inconsistencies in loaded data
   for (const v of state.vials) {
     const norm = cloneKey(v.donor, v.clone_num || cloneNumFromKey(v.clone_key));
-    if (v.clone_key !== norm) { v.clone_key = norm; }
+    if (v.clone_key !== norm) v.clone_key = norm;
     v.clone_num = normaliseClone(v.clone_num || cloneNumFromKey(v.clone_key));
   }
   for (const e of state.events) {
     if (!e.clone_key) continue;
     const parts = e.clone_key.split('-');
     if (parts.length >= 2) {
-      const donor = parts[0];
-      const clone = parts.slice(1).join('-');
-      e.clone_key = cloneKey(donor, clone);
+      e.clone_key = cloneKey(parts[0], parts.slice(1).join('-'));
+    }
+  }
+
+  // Ensure every event whose id appears as a superseded_by target is actually marked
+  const supersededIds = new Set(state.events.filter(e => e.superseded_by).map(e => e.superseded_by));
+  for (const e of state.events) {
+    if (supersededIds.has(e.id) && !e.superseded_by) {
+      // This event is referenced as superseded but field wasn't saved — mark it
+      // We use a sentinel since we don't know the exact correcting id
+      e.superseded_by = '__recovered__';
+    }
+  }
+
+  // Rebuild any missing vial entries from freeze events (non-superseded, non-correction only)
+  for (const e of state.events) {
+    if (e.type !== 'freeze' || e.superseded_by || e.is_correction) continue;
+    const existing = state.vials.find(v => v.clone_key === e.clone_key && v.freeze_date === e.date);
+    if (!existing) {
+      state.vials.push({
+        clone_key: e.clone_key,
+        donor: e.donor || donorFromKey(e.clone_key),
+        clone_num: e.clone_num || cloneNumFromKey(e.clone_key),
+        freeze_date: e.date,
+        count: e.count || 0,
+        passage: e.passage_num ?? null,
+        notes: (e.notes || '').replace(/^\[imported\]\s*/, '').replace(/^\[bulk import\]\s*/, ''),
+      });
+    }
+  }
+
+  // Reconcile vial counts with correction events — corrections are the canonical count
+  // Process corrections in chronological order so the latest one wins
+  const corrections = state.events
+    .filter(e => e.type === 'freeze' && e.is_correction && !e.superseded_by)
+    .sort((a, b) => a.date.localeCompare(b.date));
+  for (const e of corrections) {
+    const vial = state.vials.find(v => v.clone_key === e.clone_key && v.freeze_date === e.date);
+    if (vial && e.count != null) {
+      vial.count = e.count;
+      if (e.passage_num != null) vial.passage = e.passage_num;
     }
   }
 }
@@ -997,8 +1035,12 @@ function renderTank() {
         <td rowspan="${rowspan}" style="
           font-weight:600;color:var(--text-bright);
           vertical-align:middle;
+          cursor:pointer;
           ${multiRow ? 'border-right:2px solid var(--border-bright);' : ''}
-        ">${key}</td>
+        " onclick="openCloneModal('${key}')"
+           onmouseenter="this.style.color='var(--accent)'"
+           onmouseleave="this.style.color='var(--text-bright)'"
+        >${key}</td>
         <td rowspan="${rowspan}" style="vertical-align:middle;">${donorBadge(donor)}</td>
       ` : '';
 
