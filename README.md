@@ -4,33 +4,27 @@
 
 A local web app for tracking clonal B cell lines, LN₂ tank inventory, and passage history. All data lives as plain JSON files in a git repo — no database, no hosting, no cost.
 
-## Screenshots
+## Pages
 
-### LN₂ Tank
-![LN₂ Tank page](docs/screenshot-tank.png)
+| Page | Purpose |
+|------|---------|
+| 🧊 **LN₂ Tank** | Current vial inventory, grouped by clone. Click a clone to see its detail. |
+| 🔬 **Clone Lines** | Card view per clone, passage tracking, event history popup. |
+| 📋 **Event Log** | Full append-only log of all events. |
+| ❄️ **Freeze Down** | Log new vials into the tank (batch entry, one date, multiple clones). |
+| 🌡️ **Thaw** | Log vials being removed from the tank. |
+| ⬆️ **Passage** | Log passage events per clone batch. |
+| 📦 **Import** | One-time bulk setup from lab notebooks (per-row dates in `ddMMMyy` format). |
+| ✏️ **Correction** | Fix the current tank snapshot — edit count, passage, notes, or freeze date for any batch. Logs a correction event to the audit trail. |
 
-The tank page shows all vials currently in the LN₂. Clones with multiple freeze batches are grouped together — clone ID and donor appear once on the left spanning all rows, with each batch on its own line showing freeze date, vial count, passage number, and notes. Click any clone ID to open a detail popup with full batch breakdown and event history.
+## Workflow
 
-### Freeze Down
-![Freeze Down page](docs/screenshot-freeze.png)
-
-Log a freeze-down session: set the date once at the top, then add a row per clone. Donor defaults to the row above for fast entry. Dates use lab-notebook format (`ddMMMyy`, e.g. `23Apr25`).
-
-### Clone Lines
-![Clone Lines page](docs/screenshot-clones.png)
-
-Card view of every clone line. Shows total vials in tank, current passage (or range if batches differ), and event count. Click any card for the full detail popup.
-
-### Event Log
-![Event Log](docs/screenshot-log.png)
-
-Append-only log of every freeze, thaw, passage, and correction event. Filterable by type. Superseded (corrected) entries are struck through; corrections show with an amber badge and reason.
-
----
-
-> **To add screenshots:** take a screenshot of each page, save into a `docs/` folder in the repo, and name them as above. They'll render here on GitHub automatically.
-
----
+1. **First time:** Use **Import** to enter your current inventory. Each freeze-down event (same clone, same date) is one row.
+2. **Every freeze:** Use **Freeze Down** — set date once, add a row per clone frozen.
+3. **Every thaw:** Use **Thaw** to log vials removed.
+4. **Every passage:** Use **Passage** to record passage events per clone batch.
+5. **Made a mistake?** Use **Correction** — pick the clone, edit the batch directly, add a reason. The original is preserved in the log.
+6. **After any session:** Click **↑ git commit** (top right) to snapshot everything.
 
 ## Setup (one time)
 
@@ -59,28 +53,6 @@ python3 server.py
 ```
 
 No npm, no dependencies, no internet required.
-
-## Pages
-
-| Page | Purpose |
-|------|---------|
-| 🧊 **LN₂ Tank** | Current vial inventory, grouped by clone. Click a clone to see its detail. |
-| 🔬 **Clone Lines** | Card view per clone, passage tracking, event history popup. |
-| 📋 **Event Log** | Full append-only log of all events. |
-| ❄️ **Freeze Down** | Log new vials into the tank (batch entry, one date, multiple clones). |
-| 🌡️ **Thaw** | Log vials being removed from the tank. |
-| ⬆️ **Passage** | Log passage events per clone batch. |
-| 📦 **Import** | One-time bulk setup from lab notebooks (per-row dates in `ddMMMyy` format). |
-| ✏️ **Correction** | Fix the current tank snapshot — edit count, passage, notes, or freeze date for any batch. Logs a correction event to the audit trail. |
-
-## Workflow
-
-1. **First time:** Use **Import** to enter your current inventory. Each freeze-down event (same clone, same date) is one row.
-2. **Every freeze:** Use **Freeze Down** — set date once, add a row per clone frozen.
-3. **Every thaw:** Use **Thaw** to log vials removed.
-4. **Every passage:** Use **Passage** to record passage events per clone batch.
-5. **Made a mistake?** Use **Correction** — pick the clone, edit the batch directly, add a reason. The original is preserved in the log.
-6. **After any session:** Click **↑ git commit** (top right) to snapshot everything.
 
 ## Date format
 
@@ -116,3 +88,25 @@ Paste into **Import → Bulk JSON Import**:
 ```
 
 Note: `freeze_date` in bulk JSON uses ISO format (`YYYY-MM-DD`); the UI form uses `ddMMMyy`.
+
+## How It Looks
+
+### LN₂ Tank
+![LN₂ Tank page](docs/screenshot-tank.png)
+
+The tank page shows all vials currently in the LN₂. Clones with multiple freeze batches are grouped together — clone ID and donor appear once on the left spanning all rows, with each batch on its own line showing freeze date, vial count, passage number, and notes. Click any clone ID to open a detail popup with full batch breakdown and event history.
+
+### Freeze Down
+![Freeze Down page](docs/screenshot-freeze.png)
+
+Log a freeze-down session: set the date once at the top, then add a row per clone. Donor defaults to the row above for fast entry. Dates use lab-notebook format (`ddMMMyy`, e.g. `23Apr25`).
+
+### Clone Lines
+![Clone Lines page](docs/screenshot-clones.png)
+
+Card view of every clone line. Shows total vials in tank, current passage (or range if batches differ), and event count. Click any card for the full detail popup.
+
+### Event Log
+![Event Log](docs/screenshot-log.png)
+
+Append-only log of every freeze, thaw, passage, and correction event. Filterable by type. Superseded (corrected) entries are struck through; corrections show with an amber badge and reason.
