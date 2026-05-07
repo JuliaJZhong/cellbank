@@ -846,14 +846,14 @@
 
             <!-- HISTORICAL FREEZES (batches no longer in tank) -->
             <div style="margin-bottom:12px;">
-              <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">❄️ Historical Freeze Batches (no longer in tank)</div>
+              <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">❄️ Freezes</div>
               <div id="recon-hist-freeze-rows"></div>
               <button class="btn btn-secondary btn-sm" style="margin-top:4px;" onclick="addReconRow('hist-freeze')">+ Add Batch</button>
             </div>
 
             <!-- DISCARDS -->
             <div style="margin-bottom:12px;">
-              <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">🗑️ Discards (culture ended, not frozen)</div>
+              <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">🗑️ Discards</div>
               <div id="recon-discard-rows"></div>
               <button class="btn btn-secondary btn-sm" style="margin-top:4px;" onclick="addReconRow('discard')">+ Add Clone</button>
             </div>
@@ -2016,8 +2016,10 @@ function addReconRow(type) {
 
   const hasNotes = type === 'passage';
   const hasCount = type === 'hist-freeze';
-  const cols = hasNotes ? '70px 110px 1fr auto 32px'
+  const hasInitialThaw = type === 'thaw';
+  const cols = hasNotes ? '70px 110px 1fr auto auto 32px'
     : hasCount ? '70px 110px 64px auto 32px'
+    : hasInitialThaw ? '70px 110px auto auto 32px'
     : '70px 110px auto 32px';
   el.style.cssText = `grid-template-columns:${cols};margin-bottom:4px;align-items:end;`;
 
@@ -2030,6 +2032,11 @@ function addReconRow(type) {
     </div>
     ${hasNotes ? `<div class="form-group"><input class="rr-notes" type="text" placeholder="notes"></div>` : ''}
     ${hasCount ? `<div class="form-group"><input class="rr-count" type="number" min="1" value="1" placeholder="# vials"></div>` : ''}
+    ${hasInitialThaw ? `
+    <div class="form-group" style="display:flex;align-items:center;gap:5px;padding-bottom:6px;">
+      <input type="checkbox" id="${id}-initial" style="accent-color:var(--accent);width:14px;height:14px;cursor:pointer;">
+      <label for="${id}-initial" style="font-family:var(--mono);font-size:10px;color:var(--text-dim);cursor:pointer;white-space:nowrap;">initial thaw?</label>
+    </div>` : ''}
     <div class="form-group" style="display:flex;align-items:center;gap:5px;padding-bottom:6px;">
       <input type="checkbox" id="${id}-ghost" onchange="toggleReconGhost('${id}','${containerId}')"
         style="accent-color:var(--warn);width:14px;height:14px;cursor:pointer;">
@@ -2086,7 +2093,8 @@ function commitReconDay() {
       if (!cloneRaw || !donor) return null;
       const clone_key = ghostInput ? cloneKey(donor, cloneRaw) : cloneRaw;
       const notes = hasNotes ? (row.querySelector('.rr-notes')?.value.trim() || '') : '';
-      return { clone_key, notes: [dayNotes, notes].filter(Boolean).join(' — '), ghost: !!ghostInput };
+      const initial_thaw = row.querySelector('[id$="-initial"]')?.checked || false;
+      return { clone_key, notes: [dayNotes, notes].filter(Boolean).join(' — '), ghost: !!ghostInput, initial_thaw };
     }).filter(Boolean);
   };
 
@@ -2183,6 +2191,8 @@ function renderReconDaysList() {
              background:var(--surface2);border-radius:4px;font-family:var(--mono);font-size:11px;">
           <span style="color:${color[type]}">${icon[type]}</span>
           <span style="color:var(--text-bright)">${e.clone_key}</span>
+          ${e.initial_thaw ? `<span style="font-size:10px;color:var(--accent);background:var(--accent-dim);padding:1px 6px;border-radius:99px;">initial thaw</span>` : ''}
+          ${e.ghost ? `<span style="font-size:10px;color:var(--warn);background:var(--warn-dim);padding:1px 6px;border-radius:99px;">ghost</span>` : ''}
           <span style="color:var(--text-dim);flex:1">${e.notes||''}</span>
           <button class="tl-remove" onclick="removeReconDayEntry('${d.date}','${type}','${e.clone_key}')">×</button>
         </div>`).join('')).join('')}
@@ -2212,7 +2222,7 @@ function buildCultureCycles() {
   const cloneEvents = {}; // clone_key -> [{date, type: 'thaw'|'passage'|'discard'|'freeze', data}]
 
   for (const day of reconDays) {
-    for (const e of day.thaws)    addCloneEvent(cloneEvents, e.clone_key, day.date, 'thaw', {});
+    for (const e of day.thaws)    addCloneEvent(cloneEvents, e.clone_key, day.date, 'thaw', { initial_thaw: e.initial_thaw });
     for (const e of day.passages) addCloneEvent(cloneEvents, e.clone_key, day.date, 'passage', { notes: e.notes });
     for (const e of day.discards) addCloneEvent(cloneEvents, e.clone_key, day.date, 'discard', {});
     for (const e of day.freezes)  addCloneEvent(cloneEvents, e.clone_key, day.date, 'freeze', { count_frozen: e.count_frozen, count_current: e.count_current });
@@ -2260,12 +2270,13 @@ function buildCultureCycles() {
 
     for (const ev of events) {
       if (ev.type === 'thaw') {
-        // Close any open cycle without a freeze (shouldn't happen — discard should close it)
-        // Find source batch: which batch had vials at this point?
         const ambigKey = `${clone_key}|${ev.date}`;
         let sourceBatch;
 
-        if (ambiguityResolutions[ambigKey]) {
+        if (ev.data.initial_thaw) {
+          // Initial thaw always comes from P0
+          sourceBatch = '__P0__';
+        } else if (ambiguityResolutions[ambigKey]) {
           sourceBatch = ambiguityResolutions[ambigKey];
         } else {
           const candidates = Object.entries(batchVials)

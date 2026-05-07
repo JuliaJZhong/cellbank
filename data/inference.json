@@ -14,6 +14,194 @@
       "freezes": []
     },
     {
+      "date": "2023-08-22",
+      "thaws": [
+        {
+          "clone_key": "F5-16a",
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": true
+        },
+        {
+          "clone_key": "F5-24",
+          "notes": "",
+          "ghost": true,
+          "initial_thaw": true
+        },
+        {
+          "clone_key": "F2-02",
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": true
+        },
+        {
+          "clone_key": "F2-11",
+          "notes": "",
+          "ghost": true,
+          "initial_thaw": true
+        },
+        {
+          "clone_key": "F2-21",
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": true
+        }
+      ],
+      "passages": [],
+      "discards": [],
+      "freezes": []
+    },
+    {
+      "date": "2023-09-07",
+      "thaws": [
+        {
+          "clone_key": "F5-16a",
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": false
+        },
+        {
+          "clone_key": "F5-24",
+          "notes": "",
+          "ghost": true,
+          "initial_thaw": false
+        },
+        {
+          "clone_key": "F2-02",
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": false
+        },
+        {
+          "clone_key": "F2-11",
+          "notes": "",
+          "ghost": true,
+          "initial_thaw": false
+        },
+        {
+          "clone_key": "F2-21",
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": false
+        }
+      ],
+      "passages": [],
+      "discards": [],
+      "freezes": []
+    },
+    {
+      "date": "2023-11-03",
+      "thaws": [
+        {
+          "clone_key": "F2-11",
+          "notes": "",
+          "ghost": true,
+          "initial_thaw": false
+        },
+        {
+          "clone_key": "F5-17",
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": false
+        }
+      ],
+      "passages": [],
+      "discards": [],
+      "freezes": []
+    },
+    {
+      "date": "2024-03-19",
+      "thaws": [
+        {
+          "clone_key": "F2-23",
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": true
+        },
+        {
+          "clone_key": "F5-09",
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": true
+        }
+      ],
+      "passages": [],
+      "discards": [],
+      "freezes": []
+    },
+    {
+      "date": "2024-04-04",
+      "thaws": [
+        {
+          "clone_key": "F2-25",
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": true
+        }
+      ],
+      "passages": [],
+      "discards": [],
+      "freezes": []
+    },
+    {
+      "date": "2024-04-22",
+      "thaws": [
+        {
+          "clone_key": "F2-22",
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": true
+        },
+        {
+          "clone_key": "F5-21",
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": true
+        }
+      ],
+      "passages": [],
+      "discards": [],
+      "freezes": []
+    },
+    {
+      "date": "2024-10-01",
+      "thaws": [
+        {
+          "clone_key": "F2-02",
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": false
+        },
+        {
+          "clone_key": "F2-11",
+          "notes": "",
+          "ghost": true,
+          "initial_thaw": false
+        },
+        {
+          "clone_key": "F2-21",
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": false
+        },
+        {
+          "clone_key": "F5-17",
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": false
+        },
+        {
+          "clone_key": "F5-24",
+          "notes": "",
+          "ghost": true,
+          "initial_thaw": false
+        }
+      ],
+      "passages": [],
+      "discards": [],
+      "freezes": []
+    },
+    {
       "date": "2025-02-04",
       "thaws": [
         {
@@ -289,5 +477,5 @@
     }
   ],
   "ambiguityResolutions": {},
-  "last_updated": "2026-05-07T17:40:35.003Z"
+  "last_updated": "2026-05-07T18:02:54.056Z"
 }
