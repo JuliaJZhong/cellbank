@@ -577,14 +577,14 @@
   </div>
 
   <div class="nav-section">Log Event</div>
-  <div class="nav-item" onclick="navigate('add-freeze')" id="nav-add-freeze">
-    <span class="icon">❄️</span> Freeze Down
-  </div>
   <div class="nav-item" onclick="navigate('add-thaw')" id="nav-add-thaw">
     <span class="icon">🌡️</span> Thaw
   </div>
   <div class="nav-item" onclick="navigate('add-passage')" id="nav-add-passage">
     <span class="icon">⬆️</span> Passage
+  </div>
+  <div class="nav-item" onclick="navigate('add-freeze')" id="nav-add-freeze">
+    <span class="icon">❄️</span> Freeze
   </div>
 
   <div class="nav-section">Setup</div>
@@ -655,7 +655,7 @@
 
   <!-- ═══ FREEZE DOWN ═══ -->
   <div class="view" id="view-add-freeze">
-    <div class="page-title">Log Freeze Down</div>
+    <div class="page-title">Freeze</div>
     <div class="page-sub">Record new vials added to the LN₂ tank — add as many clones as you froze that day</div>
     <div class="card">
       <div class="card-title">Freeze Date</div>
@@ -844,18 +844,18 @@
               <button class="btn btn-secondary btn-sm" style="margin-top:4px;" onclick="addReconRow('passage')">+ Add Clone</button>
             </div>
 
-            <!-- DISCARDS -->
-            <div style="margin-bottom:12px;">
-              <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">🗑️ Discards (culture ended, not frozen)</div>
-              <div id="recon-discard-rows"></div>
-              <button class="btn btn-secondary btn-sm" style="margin-top:4px;" onclick="addReconRow('discard')">+ Add Clone</button>
-            </div>
-
             <!-- HISTORICAL FREEZES (batches no longer in tank) -->
             <div style="margin-bottom:12px;">
               <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">❄️ Historical Freeze Batches (no longer in tank)</div>
               <div id="recon-hist-freeze-rows"></div>
               <button class="btn btn-secondary btn-sm" style="margin-top:4px;" onclick="addReconRow('hist-freeze')">+ Add Batch</button>
+            </div>
+
+            <!-- DISCARDS -->
+            <div style="margin-bottom:12px;">
+              <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">🗑️ Discards (culture ended, not frozen)</div>
+              <div id="recon-discard-rows"></div>
+              <button class="btn btn-secondary btn-sm" style="margin-top:4px;" onclick="addReconRow('discard')">+ Add Clone</button>
             </div>
 
             <div class="form-row">
@@ -2014,36 +2014,49 @@ function addReconRow(type) {
   el.className = 'batch-row';
   el.id = id;
 
-  if (type === 'hist-freeze') {
-    el.style.cssText = 'grid-template-columns:70px 110px 70px 32px;margin-bottom:4px;';
-    el.innerHTML = `
-      <div class="form-group">
-        <select class="rr-donor" onchange="updateReconRowClone(this,'${containerId}')">${donorOptions(prevDonor)}</select>
-      </div>
-      <div class="form-group">
-        <select class="rr-clone">${reconCloneOpts(prevDonor)}</select>
-      </div>
-      <div class="form-group">
-        <input class="rr-count" type="number" min="1" value="1" placeholder="# vials">
-      </div>
-      <button class="batch-remove" onclick="document.getElementById('${id}').remove()" title="Remove">×</button>
-    `;
-  } else {
-    const hasNotes = type === 'passage';
-    el.style.cssText = `grid-template-columns:70px 110px ${hasNotes ? '1fr ' : ''}32px;margin-bottom:4px;`;
-    el.innerHTML = `
-      <div class="form-group">
-        <select class="rr-donor" onchange="updateReconRowClone(this,'${containerId}')">${donorOptions(prevDonor)}</select>
-      </div>
-      <div class="form-group">
-        <select class="rr-clone">${reconCloneOpts(prevDonor)}</select>
-      </div>
-      ${hasNotes ? `<div class="form-group"><input class="rr-notes" type="text" placeholder="notes"></div>` : ''}
-      <button class="batch-remove" onclick="document.getElementById('${id}').remove()" title="Remove">×</button>
-    `;
-  }
+  const hasNotes = type === 'passage';
+  const hasCount = type === 'hist-freeze';
+  const cols = hasNotes ? '70px 110px 1fr auto 32px'
+    : hasCount ? '70px 110px 64px auto 32px'
+    : '70px 110px auto 32px';
+  el.style.cssText = `grid-template-columns:${cols};margin-bottom:4px;align-items:end;`;
+
+  el.innerHTML = `
+    <div class="form-group">
+      <select class="rr-donor" onchange="updateReconRowClone(this,'${containerId}',false)">${donorOptions(prevDonor)}</select>
+    </div>
+    <div class="form-group rr-clone-wrap">
+      <select class="rr-clone">${reconCloneOpts(prevDonor)}</select>
+    </div>
+    ${hasNotes ? `<div class="form-group"><input class="rr-notes" type="text" placeholder="notes"></div>` : ''}
+    ${hasCount ? `<div class="form-group"><input class="rr-count" type="number" min="1" value="1" placeholder="# vials"></div>` : ''}
+    <div class="form-group" style="display:flex;align-items:center;gap:5px;padding-bottom:6px;">
+      <input type="checkbox" id="${id}-ghost" onchange="toggleReconGhost('${id}','${containerId}')"
+        style="accent-color:var(--warn);width:14px;height:14px;cursor:pointer;">
+      <label for="${id}-ghost" style="font-family:var(--mono);font-size:10px;color:var(--text-dim);cursor:pointer;white-space:nowrap;">ghost?</label>
+    </div>
+    <button class="batch-remove" onclick="document.getElementById('${id}').remove()" title="Remove">×</button>
+  `;
   container.appendChild(el);
-  updateReconRowClone(el.querySelector('.rr-donor'), containerId);
+  updateReconRowClone(el.querySelector('.rr-donor'), containerId, false);
+}
+
+function toggleReconGhost(rowId, containerId) {
+  const row = document.getElementById(rowId);
+  const isGhost = row.querySelector(`#${rowId}-ghost`).checked;
+  const wrap = row.querySelector('.rr-clone-wrap');
+  const donorSel = row.querySelector('.rr-donor');
+
+  if (isGhost) {
+    // Replace clone select with free-text input
+    wrap.innerHTML = `<input class="rr-clone-ghost" type="text" placeholder="clone # (e.g. 24)"
+      style="font-family:var(--mono);font-size:13px;background:var(--bg);border:1px solid var(--warn);
+             border-radius:var(--radius);color:var(--warn);padding:8px 10px;width:100%;">`;
+    donorSel.style.borderColor = 'var(--warn)';
+  } else {
+    wrap.innerHTML = `<select class="rr-clone">${reconCloneOpts(donorSel.value)}</select>`;
+    donorSel.style.borderColor = '';
+  }
 }
 
 function reconCloneOpts(donor) {
@@ -2051,8 +2064,11 @@ function reconCloneOpts(donor) {
     .map(k => `<option value="${k}">${cloneNumFromKey(k)}</option>`).join('');
 }
 
-function updateReconRowClone(donorEl, containerId) {
-  donorEl.closest('.batch-row').querySelector('.rr-clone').innerHTML = reconCloneOpts(donorEl.value);
+function updateReconRowClone(donorEl, containerId, skipGhostCheck) {
+  const row = donorEl.closest('.batch-row');
+  const isGhost = row.querySelector('[id$="-ghost"]')?.checked;
+  if (isGhost) return; // ghost rows use free-text, don't update select
+  row.querySelector('.rr-clone').innerHTML = reconCloneOpts(donorEl.value);
 }
 
 function commitReconDay() {
@@ -2064,9 +2080,13 @@ function commitReconDay() {
 
   const readRows = (containerId, hasNotes) => {
     return [...document.querySelectorAll(`#${containerId} .batch-row`)].map(row => {
-      const clone_key = row.querySelector('.rr-clone')?.value;
+      const donor = row.querySelector('.rr-donor')?.value;
+      const ghostInput = row.querySelector('.rr-clone-ghost');
+      const cloneRaw = ghostInput ? ghostInput.value.trim() : row.querySelector('.rr-clone')?.value;
+      if (!cloneRaw || !donor) return null;
+      const clone_key = ghostInput ? cloneKey(donor, cloneRaw) : cloneRaw;
       const notes = hasNotes ? (row.querySelector('.rr-notes')?.value.trim() || '') : '';
-      return clone_key ? { clone_key, notes: [dayNotes, notes].filter(Boolean).join(' — ') } : null;
+      return { clone_key, notes: [dayNotes, notes].filter(Boolean).join(' — '), ghost: !!ghostInput };
     }).filter(Boolean);
   };
 
@@ -2083,9 +2103,13 @@ function commitReconDay() {
 
   // Historical freeze batches (no longer in tank)
   const histFreezes = [...document.querySelectorAll('#recon-hist-freeze-rows .batch-row')].map(row => {
-    const clone_key = row.querySelector('.rr-clone')?.value;
+    const donor = row.querySelector('.rr-donor')?.value;
+    const ghostInput = row.querySelector('.rr-clone-ghost');
+    const cloneRaw = ghostInput ? ghostInput.value.trim() : row.querySelector('.rr-clone')?.value;
+    if (!cloneRaw || !donor) return null;
+    const clone_key_val = ghostInput ? cloneKey(donor, cloneRaw) : cloneRaw;
     const count = parseInt(row.querySelector('.rr-count')?.value) || 1;
-    return clone_key ? { clone_key, count_frozen: count, count_current: 0, historical: true } : null;
+    return { clone_key: clone_key_val, count_frozen: count, count_current: 0, historical: true };
   }).filter(Boolean);
 
   // Merge or add
