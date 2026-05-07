@@ -589,13 +589,13 @@
 
   <div class="nav-section">Setup</div>
   <div class="nav-item" onclick="navigate('import')" id="nav-import">
-    <span class="icon">📦</span> Import
+    <span class="icon">📦</span> Import Vials
   </div>
   <div class="nav-item" onclick="navigate('correct')" id="nav-correct">
-    <span class="icon">✏️</span> Correct
+    <span class="icon">✏️</span> Correct Manually
   </div>
   <div class="nav-item" onclick="navigate('reconstruct')" id="nav-reconstruct">
-    <span class="icon">🔍</span> Passage Inference
+    <span class="icon">🔍</span> Infer Passages
   </div>
 </aside>
 
@@ -2162,12 +2162,12 @@ function renderReconDaysList() {
           <span style="color:var(--text-dim);flex:1">${e.notes||''}</span>
           <button class="tl-remove" onclick="removeReconDayEntry('${d.date}','${type}','${e.clone_key}')">×</button>
         </div>`).join('')).join('')}
-      ${d.freezes.filter(f => f.count_frozen !== f.count_current).map(f => `
+      ${d.freezes.map(f => `
         <div style="display:flex;align-items:center;gap:6px;padding:3px 7px;margin-bottom:2px;
              background:var(--accent2-dim);border-radius:4px;font-family:var(--mono);font-size:11px;">
           <span style="color:var(--accent2)">❄️</span>
           <span style="color:var(--text-bright)">${f.clone_key}</span>
-          <span style="color:var(--text-dim)">${f.count_frozen} frozen (${f.count_current} in tank)</span>
+          <span style="color:var(--text-dim)">${f.count_frozen}v frozen${f.count_frozen !== f.count_current ? ` (${f.count_current} in tank)` : ''}</span>
         </div>`).join('')}
     </div>
   `).join('<div style="height:1px;background:var(--border);margin:6px 0;"></div>');
@@ -2378,6 +2378,12 @@ function renderReconTrees() {
   });
 
   const tlEl = document.getElementById('recon-timelines');
+
+  if (!donorFilter && !cloneFilter) {
+    tlEl.innerHTML = '<div class="empty" style="padding:20px 0;">Select a donor or clone from the dropdowns above to view lineage trees.</div>';
+    document.getElementById('recon-apply-card').style.display = 'none';
+    return;
+  }
 
   if (!visibleKeys.length) {
     tlEl.innerHTML = '<div class="empty">No clones match the current filter. Log lab days on the left to build lineage trees.</div>';
