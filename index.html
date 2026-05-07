@@ -2163,7 +2163,11 @@ function removeReconDay(date) {
 function removeReconDayEntry(date, type, clone_key) {
   const day = reconDays.find(d => d.date === date);
   if (!day) return;
-  day[type] = day[type].filter(e => e.clone_key !== clone_key);
+  if (type === 'freezes') {
+    day.freezes = day.freezes.filter(f => f.clone_key !== clone_key);
+  } else {
+    day[type] = day[type].filter(e => e.clone_key !== clone_key);
+  }
   if (!day.thaws.length && !day.passages.length && !day.discards.length && !day.freezes.length)
     reconDays = reconDays.filter(d => d.date !== date);
   renderReconDaysList();
@@ -2201,7 +2205,8 @@ function renderReconDaysList() {
              background:var(--accent2-dim);border-radius:4px;font-family:var(--mono);font-size:11px;">
           <span style="color:var(--accent2)">❄️</span>
           <span style="color:var(--text-bright)">${f.clone_key}</span>
-          <span style="color:var(--text-dim)">${f.count_frozen}v frozen${f.count_frozen !== f.count_current ? ` (${f.count_current} in tank)` : ''}</span>
+          <span style="color:var(--text-dim);flex:1">${f.count_frozen}v frozen${f.count_frozen !== f.count_current ? ` (${f.count_current} in tank)` : ''}</span>
+          <button class="tl-remove" onclick="removeReconDayEntry('${d.date}','freezes','${f.clone_key}')">×</button>
         </div>`).join('')}
     </div>
   `).join('<div style="height:1px;background:var(--border);margin:6px 0;"></div>');
