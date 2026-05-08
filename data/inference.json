@@ -52,6 +52,50 @@
       "freezes": []
     },
     {
+      "date": "2023-08-30",
+      "thaws": [],
+      "passages": [],
+      "discards": [],
+      "freezes": [
+        {
+          "clone_key": "F5-17",
+          "count_frozen": 7,
+          "count_current": 0,
+          "historical": true
+        },
+        {
+          "clone_key": "F5-16a",
+          "count_frozen": 2,
+          "count_current": 0,
+          "historical": true
+        },
+        {
+          "clone_key": "F5-24",
+          "count_frozen": 2,
+          "count_current": 0,
+          "historical": true
+        },
+        {
+          "clone_key": "F2-02",
+          "count_frozen": 2,
+          "count_current": 0,
+          "historical": true
+        },
+        {
+          "clone_key": "F2-11",
+          "count_frozen": 2,
+          "count_current": 0,
+          "historical": true
+        },
+        {
+          "clone_key": "F2-21",
+          "count_frozen": 2,
+          "count_current": 0,
+          "historical": true
+        }
+      ]
+    },
+    {
       "date": "2023-09-07",
       "thaws": [
         {
@@ -202,6 +246,34 @@
       "freezes": []
     },
     {
+      "date": "2024-10-18",
+      "thaws": [],
+      "passages": [],
+      "discards": [],
+      "freezes": [
+        {
+          "clone_key": "F2-21",
+          "count_frozen": 4,
+          "count_current": 4
+        },
+        {
+          "clone_key": "F5-16a",
+          "count_frozen": 4,
+          "count_current": 4
+        },
+        {
+          "clone_key": "F5-17",
+          "count_frozen": 4,
+          "count_current": 4
+        },
+        {
+          "clone_key": "F2-02",
+          "count_frozen": 5,
+          "count_current": 5
+        }
+      ]
+    },
+    {
       "date": "2025-02-04",
       "thaws": [
         {
@@ -224,6 +296,35 @@
       "passages": [],
       "discards": [],
       "freezes": []
+    },
+    {
+      "date": "2025-02-17",
+      "thaws": [],
+      "passages": [],
+      "discards": [],
+      "freezes": [
+        {
+          "clone_key": "F2-09",
+          "count_frozen": 4,
+          "count_current": 3
+        },
+        {
+          "clone_key": "F2-30",
+          "count_frozen": 4,
+          "count_current": 1
+        },
+        {
+          "clone_key": "F2-42",
+          "count_frozen": 4,
+          "count_current": 3
+        },
+        {
+          "clone_key": "F2-10",
+          "count_frozen": 2,
+          "count_current": 0,
+          "historical": true
+        }
+      ]
     },
     {
       "date": "2025-02-18",
@@ -430,6 +531,24 @@
       ]
     },
     {
+      "date": "2025-06-13",
+      "thaws": [],
+      "passages": [],
+      "discards": [],
+      "freezes": [
+        {
+          "clone_key": "F2-30",
+          "count_frozen": 1,
+          "count_current": 1
+        },
+        {
+          "clone_key": "F5-1B",
+          "count_frozen": 1,
+          "count_current": 1
+        }
+      ]
+    },
+    {
       "date": "2025-06-21",
       "thaws": [],
       "passages": [],
@@ -476,6 +595,12 @@
       ]
     }
   ],
-  "ambiguityResolutions": {},
-  "last_updated": "2026-05-07T18:02:54.056Z"
+  "ambiguityResolutions": {
+    "F2-24|2025-03-04": "2024-03-29",
+    "F2-36|2025-03-04": "2024-03-05",
+    "F2-20|2025-03-04": "2024-03-15",
+    "F5-07|2025-03-05": "2024-03-15",
+    "F5-12|2025-03-05": "2024-03-05"
+  },
+  "last_updated": "2026-05-08T03:08:31.680Z"
 }
