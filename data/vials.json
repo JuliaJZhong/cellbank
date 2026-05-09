@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-05-01T04:50:08.812Z",
+  "last_updated": "2026-05-09T13:41:28.565Z",
   "vials": [
     {
       "clone_key": "F2-02",
@@ -63,15 +63,6 @@
       "count": 1,
       "passage": null,
       "notes": "frozen down by RO"
-    },
-    {
-      "clone_key": "F2-20",
-      "donor": "F2",
-      "clone_num": "20",
-      "freeze_date": "2025-03-25",
-      "count": 1,
-      "passage": null,
-      "notes": ""
     },
     {
       "clone_key": "F2-21",
@@ -182,15 +173,6 @@
       "notes": ""
     },
     {
-      "clone_key": "F5-1B",
-      "donor": "F5",
-      "clone_num": "1B",
-      "freeze_date": "2025-06-13",
-      "count": 1,
-      "passage": null,
-      "notes": ""
-    },
-    {
       "clone_key": "F5-02",
       "donor": "F5",
       "clone_num": "02",
@@ -290,15 +272,6 @@
       "notes": "not sure if this is 16a, 16c?"
     },
     {
-      "clone_key": "F5-16c",
-      "donor": "F5",
-      "clone_num": "16c",
-      "freeze_date": "2025-02-28",
-      "count": 1,
-      "passage": null,
-      "notes": "there are multiple \"16\". can we figure out which?"
-    },
-    {
       "clone_key": "F5-17",
       "donor": "F5",
       "clone_num": "17",
@@ -324,15 +297,6 @@
       "count": 3,
       "passage": null,
       "notes": "[imported] frozen down by RO"
-    },
-    {
-      "clone_key": "F5-25",
-      "donor": "F5",
-      "clone_num": "25",
-      "freeze_date": "2025-10-26",
-      "count": 1,
-      "passage": null,
-      "notes": ""
     },
     {
       "clone_key": "F2-02",
