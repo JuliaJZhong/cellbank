@@ -650,6 +650,42 @@
       "count": 1,
       "vial_freeze_date": "2025-10-26",
       "notes": ""
+    },
+    {
+      "id": "mpg0g6444hw4",
+      "type": "passage",
+      "date": "2026-05-20",
+      "clone_key": "F5-1B",
+      "freeze_date": "2025-06-13",
+      "passage_num": 1,
+      "notes": "553.3e5 vc/mL in 30mL -> 2 flasks"
+    },
+    {
+      "id": "mpg0g6440pp6",
+      "type": "passage",
+      "date": "2026-05-20",
+      "clone_key": "F5-16c",
+      "freeze_date": "2025-02-28",
+      "passage_num": 1,
+      "notes": "785e5 vc/mL in 30 mL -> 2 flasks"
+    },
+    {
+      "id": "mpg0g6447t8v",
+      "type": "passage",
+      "date": "2026-05-20",
+      "clone_key": "F2-20",
+      "freeze_date": "2025-03-25",
+      "passage_num": 1,
+      "notes": "880e5 vc/mL in 30 mL -> 2 flasks"
+    },
+    {
+      "id": "mpg0g644zdnx",
+      "type": "passage",
+      "date": "2026-05-20",
+      "clone_key": "F5-25",
+      "freeze_date": "2025-10-26",
+      "passage_num": 1,
+      "notes": "826.6e5 vc/mL in 30 mL -> 2 flasks"
     }
   ]
 }
