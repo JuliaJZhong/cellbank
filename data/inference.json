@@ -154,6 +154,26 @@
       "freezes": []
     },
     {
+      "date": "2023-09-20",
+      "thaws": [],
+      "passages": [],
+      "discards": [],
+      "freezes": [
+        {
+          "clone_key": "F2-11",
+          "count_frozen": 2,
+          "count_current": 0,
+          "historical": true
+        },
+        {
+          "clone_key": "F2-21",
+          "count_frozen": 2,
+          "count_current": 0,
+          "historical": true
+        }
+      ]
+    },
+    {
       "date": "2023-11-03",
       "thaws": [
         {
@@ -172,6 +192,42 @@
       "passages": [],
       "discards": [],
       "freezes": []
+    },
+    {
+      "date": "2024-03-05",
+      "thaws": [],
+      "passages": [],
+      "discards": [],
+      "freezes": [
+        {
+          "clone_key": "F2-36",
+          "count_frozen": 4,
+          "count_current": 3
+        },
+        {
+          "clone_key": "F5-12",
+          "count_frozen": 2,
+          "count_current": 1
+        }
+      ]
+    },
+    {
+      "date": "2024-03-15",
+      "thaws": [],
+      "passages": [],
+      "discards": [],
+      "freezes": [
+        {
+          "clone_key": "F2-20",
+          "count_frozen": 2,
+          "count_current": 1
+        },
+        {
+          "clone_key": "F5-07",
+          "count_frozen": 2,
+          "count_current": 1
+        }
+      ]
     },
     {
       "date": "2024-03-19",
@@ -194,6 +250,29 @@
       "freezes": []
     },
     {
+      "date": "2024-03-29",
+      "thaws": [],
+      "passages": [],
+      "discards": [],
+      "freezes": [
+        {
+          "clone_key": "F2-23",
+          "count_frozen": 4,
+          "count_current": 3
+        },
+        {
+          "clone_key": "F2-24",
+          "count_frozen": 3,
+          "count_current": 2
+        },
+        {
+          "clone_key": "F5-09",
+          "count_frozen": 4,
+          "count_current": 3
+        }
+      ]
+    },
+    {
       "date": "2024-04-04",
       "thaws": [
         {
@@ -206,6 +285,40 @@
       "passages": [],
       "discards": [],
       "freezes": []
+    },
+    {
+      "date": "2024-04-05",
+      "thaws": [],
+      "passages": [],
+      "discards": [],
+      "freezes": [
+        {
+          "clone_key": "F5-16a",
+          "count_frozen": 3,
+          "count_current": 0,
+          "historical": true
+        }
+      ]
+    },
+    {
+      "date": "2024-04-19",
+      "thaws": [],
+      "passages": [],
+      "discards": [],
+      "freezes": [
+        {
+          "clone_key": "F2-25",
+          "count_frozen": 3,
+          "count_current": 0,
+          "historical": true
+        },
+        {
+          "clone_key": "F5-02",
+          "count_frozen": 3,
+          "count_current": 0,
+          "historical": true
+        }
+      ]
     },
     {
       "date": "2024-04-22",
@@ -226,6 +339,24 @@
       "passages": [],
       "discards": [],
       "freezes": []
+    },
+    {
+      "date": "2024-05-03",
+      "thaws": [],
+      "passages": [],
+      "discards": [],
+      "freezes": [
+        {
+          "clone_key": "F2-22",
+          "count_frozen": 3,
+          "count_current": 2
+        },
+        {
+          "clone_key": "F5-21",
+          "count_frozen": 4,
+          "count_current": 3
+        }
+      ]
     },
     {
       "date": "2024-10-01",
@@ -529,6 +660,12 @@
           "clone_key": "F5-12",
           "count_frozen": 4,
           "count_current": 3
+        },
+        {
+          "clone_key": "F2-10",
+          "count_frozen": 2,
+          "count_current": 0,
+          "historical": true
         }
       ]
     },
@@ -622,5 +759,5 @@
     "F5-07|2025-03-05": "2024-03-15",
     "F5-12|2025-03-05": "2024-03-05"
   },
-  "last_updated": "2026-05-08T03:16:08.901Z"
+  "last_updated": "2026-05-30T20:14:46.695Z"
 }
