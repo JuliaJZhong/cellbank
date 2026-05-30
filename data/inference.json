@@ -194,8 +194,41 @@
       "freezes": []
     },
     {
+      "date": "2024-02-20",
+      "thaws": [
+        {
+          "clone_key": "F5-12",
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": true
+        },
+        {
+          "clone_key": "F2-36",
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": true
+        }
+      ],
+      "passages": [],
+      "discards": [],
+      "freezes": []
+    },
+    {
       "date": "2024-03-05",
-      "thaws": [],
+      "thaws": [
+        {
+          "clone_key": "F2-20",
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": true
+        },
+        {
+          "clone_key": "F5-07",
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": true
+        }
+      ],
       "passages": [],
       "discards": [],
       "freezes": [
@@ -210,6 +243,26 @@
           "count_current": 1
         }
       ]
+    },
+    {
+      "date": "2024-03-12",
+      "thaws": [
+        {
+          "clone_key": "F5-11",
+          "notes": "",
+          "ghost": true,
+          "initial_thaw": true
+        },
+        {
+          "clone_key": "F2-24",
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": true
+        }
+      ],
+      "passages": [],
+      "discards": [],
+      "freezes": []
     },
     {
       "date": "2024-03-15",
@@ -250,6 +303,50 @@
       "freezes": []
     },
     {
+      "date": "2024-03-23",
+      "thaws": [
+        {
+          "clone_key": "F2-02",
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": false
+        },
+        {
+          "clone_key": "F2-11",
+          "notes": "",
+          "ghost": true,
+          "initial_thaw": false
+        },
+        {
+          "clone_key": "F2-21",
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": false
+        },
+        {
+          "clone_key": "F5-16a",
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": false
+        },
+        {
+          "clone_key": "F5-17",
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": false
+        },
+        {
+          "clone_key": "F5-24",
+          "notes": "",
+          "ghost": true,
+          "initial_thaw": false
+        }
+      ],
+      "passages": [],
+      "discards": [],
+      "freezes": []
+    },
+    {
       "date": "2024-03-29",
       "thaws": [],
       "passages": [],
@@ -273,20 +370,6 @@
       ]
     },
     {
-      "date": "2024-04-04",
-      "thaws": [
-        {
-          "clone_key": "F2-25",
-          "notes": "",
-          "ghost": false,
-          "initial_thaw": true
-        }
-      ],
-      "passages": [],
-      "discards": [],
-      "freezes": []
-    },
-    {
       "date": "2024-04-05",
       "thaws": [],
       "passages": [],
@@ -299,6 +382,26 @@
           "historical": true
         }
       ]
+    },
+    {
+      "date": "2024-04-09",
+      "thaws": [
+        {
+          "clone_key": "F2-25",
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": true
+        },
+        {
+          "clone_key": "F5-02",
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": true
+        }
+      ],
+      "passages": [],
+      "discards": [],
+      "freezes": []
     },
     {
       "date": "2024-04-19",
@@ -390,6 +493,12 @@
           "notes": "",
           "ghost": true,
           "initial_thaw": false
+        },
+        {
+          "clone_key": "F5-16a",
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": false
         }
       ],
       "passages": [],
@@ -429,19 +538,27 @@
       "thaws": [
         {
           "clone_key": "F2-09",
-          "notes": ""
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": true
         },
         {
           "clone_key": "F2-10",
-          "notes": ""
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": true
         },
         {
           "clone_key": "F2-30",
-          "notes": ""
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": true
         },
         {
           "clone_key": "F2-42",
-          "notes": ""
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": true
         }
       ],
       "passages": [],
@@ -482,19 +599,27 @@
       "thaws": [
         {
           "clone_key": "F5-25",
-          "notes": ""
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": true
         },
         {
           "clone_key": "F5-04",
-          "notes": ""
-        },
-        {
-          "clone_key": "F5-06",
-          "notes": ""
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": true
         },
         {
           "clone_key": "F5-16c",
-          "notes": ""
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": true
+        },
+        {
+          "clone_key": "F5-06",
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": true
         }
       ],
       "passages": [],
@@ -629,6 +754,66 @@
           "clone_key": "F5-24",
           "notes": "",
           "ghost": true
+        },
+        {
+          "clone_key": "F2-09",
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": false
+        },
+        {
+          "clone_key": "F2-10",
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": false
+        },
+        {
+          "clone_key": "F2-20",
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": false
+        },
+        {
+          "clone_key": "F2-22",
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": false
+        },
+        {
+          "clone_key": "F2-23",
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": false
+        },
+        {
+          "clone_key": "F2-24",
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": false
+        },
+        {
+          "clone_key": "F2-25",
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": false
+        },
+        {
+          "clone_key": "F2-30",
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": false
+        },
+        {
+          "clone_key": "F2-36",
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": false
+        },
+        {
+          "clone_key": "F2-42",
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": false
         }
       ],
       "passages": [],
@@ -668,6 +853,100 @@
           "historical": true
         }
       ]
+    },
+    {
+      "date": "2025-05-16",
+      "thaws": [
+        {
+          "clone_key": "F2-13",
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": true
+        },
+        {
+          "clone_key": "F2-17",
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": true
+        },
+        {
+          "clone_key": "F2-27",
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": true
+        },
+        {
+          "clone_key": "F2-29",
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": true
+        }
+      ],
+      "passages": [],
+      "discards": [],
+      "freezes": []
+    },
+    {
+      "date": "2025-05-23",
+      "thaws": [
+        {
+          "clone_key": "F5-1B",
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": true
+        },
+        {
+          "clone_key": "F5-05",
+          "notes": "",
+          "ghost": true,
+          "initial_thaw": true
+        },
+        {
+          "clone_key": "F2-02",
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": false
+        },
+        {
+          "clone_key": "F2-11",
+          "notes": "",
+          "ghost": true,
+          "initial_thaw": false
+        },
+        {
+          "clone_key": "F2-21",
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": false
+        },
+        {
+          "clone_key": "F5-16a",
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": false
+        },
+        {
+          "clone_key": "F5-17",
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": false
+        },
+        {
+          "clone_key": "F5-24",
+          "notes": "",
+          "ghost": true,
+          "initial_thaw": false
+        },
+        {
+          "clone_key": "F2-30",
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": false
+        }
+      ],
+      "passages": [],
+      "discards": [],
+      "freezes": []
     },
     {
       "date": "2025-06-09",
@@ -724,6 +1003,68 @@
       ]
     },
     {
+      "date": "2025-09-30",
+      "thaws": [
+        {
+          "clone_key": "F2-02",
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": false
+        },
+        {
+          "clone_key": "F2-10",
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": false
+        },
+        {
+          "clone_key": "F2-30",
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": false
+        },
+        {
+          "clone_key": "F5-12",
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": false
+        },
+        {
+          "clone_key": "F5-16c",
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": false
+        },
+        {
+          "clone_key": "F5-25",
+          "notes": "",
+          "ghost": false,
+          "initial_thaw": false
+        }
+      ],
+      "passages": [],
+      "discards": [],
+      "freezes": []
+    },
+    {
+      "date": "2025-10-24",
+      "thaws": [],
+      "passages": [],
+      "discards": [],
+      "freezes": [
+        {
+          "clone_key": "F2-02",
+          "count_frozen": 2,
+          "count_current": 2
+        },
+        {
+          "clone_key": "F5-16c",
+          "count_frozen": 2,
+          "count_current": 2
+        }
+      ]
+    },
+    {
       "date": "2025-10-26",
       "thaws": [],
       "passages": [],
@@ -759,5 +1100,5 @@
     "F5-07|2025-03-05": "2024-03-15",
     "F5-12|2025-03-05": "2024-03-05"
   },
-  "last_updated": "2026-05-30T20:14:46.695Z"
+  "last_updated": "2026-05-30T20:44:42.279Z"
 }
