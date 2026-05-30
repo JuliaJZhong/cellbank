@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-05-21T21:36:21.748Z",
+  "last_updated": "2026-05-28T19:14:26.654Z",
   "vials": [
     {
       "clone_key": "F2-02",
@@ -314,6 +314,42 @@
       "freeze_date": "2025-10-24",
       "count": 2,
       "passage": null,
+      "notes": ""
+    },
+    {
+      "clone_key": "F5-1B",
+      "donor": "F5",
+      "clone_num": "1B",
+      "freeze_date": "2026-05-27",
+      "count": 16,
+      "passage": 2,
+      "notes": ""
+    },
+    {
+      "clone_key": "F5-16c",
+      "donor": "F5",
+      "clone_num": "16c",
+      "freeze_date": "2026-05-27",
+      "count": 14,
+      "passage": 2,
+      "notes": ""
+    },
+    {
+      "clone_key": "F2-20",
+      "donor": "F2",
+      "clone_num": "20",
+      "freeze_date": "2026-05-27",
+      "count": 15,
+      "passage": 2,
+      "notes": ""
+    },
+    {
+      "clone_key": "F5-25",
+      "donor": "F5",
+      "clone_num": "25",
+      "freeze_date": "2026-05-27",
+      "count": 16,
+      "passage": 2,
       "notes": ""
     }
   ]
