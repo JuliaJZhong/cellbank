@@ -298,6 +298,7 @@
   .badge-f2 { background: var(--accent2-dim); color: var(--accent2); }
   .badge-f5 { background: var(--accent-dim); color: var(--accent); }
   .badge-other { background: var(--surface2); color: var(--text-dim); border: 1px solid var(--border); }
+  .badge-jassage { background: var(--surface2); color: var(--text); border: 1px solid var(--border-bright); }
 
   .passage-tag {
     font-family: var(--mono);
@@ -610,10 +611,19 @@
 
     <div class="card">
       <div class="card-title">Vials in Tank</div>
-      <div class="filter-row" id="tank-filters">
+      <div class="filter-row" id="tank-filters" style="align-items:center;gap:8px;flex-wrap:wrap;">
         <button class="filter-chip active" onclick="setTankFilter('all', this)">All</button>
         <button class="filter-chip" onclick="setTankFilter('F2', this)">Donor F2</button>
         <button class="filter-chip" onclick="setTankFilter('F5', this)">Donor F5</button>
+        <div style="height:16px;width:1px;background:var(--border);margin:0 4px;"></div>
+        <select id="tank-passage-filter" onchange="renderTank()"
+          style="font-family:var(--mono);font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:99px;color:var(--text-dim);padding:4px 10px;cursor:pointer;">
+          <option value="">Passage: all</option>
+        </select>
+        <select id="tank-jassage-filter" onchange="renderTank()"
+          style="font-family:var(--mono);font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:99px;color:var(--text-dim);padding:4px 10px;cursor:pointer;">
+          <option value="">Jassage: all</option>
+        </select>
       </div>
       <div class="table-wrap">
         <table>
@@ -624,6 +634,7 @@
               <th>Freeze Date</th>
               <th>Vials</th>
               <th>Passage</th>
+              <th>Jassage</th>
               <th>Notes</th>
             </tr>
           </thead>
@@ -637,6 +648,20 @@
   <div class="view" id="view-clones">
     <div class="page-title">Clone Lines</div>
     <div class="page-sub">History and passage tracking per clonal B cell line</div>
+    <div class="filter-row" style="align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+      <button class="filter-chip active" onclick="setCloneFilter('all', this)">All</button>
+      <button class="filter-chip" onclick="setCloneFilter('F2', this)">Donor F2</button>
+      <button class="filter-chip" onclick="setCloneFilter('F5', this)">Donor F5</button>
+      <div style="height:16px;width:1px;background:var(--border);margin:0 4px;"></div>
+      <select id="clone-passage-filter" onchange="renderClones()"
+        style="font-family:var(--mono);font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:99px;color:var(--text-dim);padding:4px 10px;cursor:pointer;">
+        <option value="">Passage: all</option>
+      </select>
+      <select id="clone-jassage-filter" onchange="renderClones()"
+        style="font-family:var(--mono);font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:99px;color:var(--text-dim);padding:4px 10px;cursor:pointer;">
+        <option value="">Jassage: all</option>
+      </select>
+    </div>
     <div class="clone-grid" id="clone-grid"></div>
   </div>
 
@@ -943,13 +968,19 @@
 </div>
 
 <!-- CLONE DETAIL MODAL -->
-<div class="modal-overlay" id="clone-modal">
-  <div class="modal" style="max-width:560px;">
+<div class="modal-overlay" id="clone-modal" onclick="handleCloneModalOverlayClick(event)">
+  <div class="modal" style="max-width:560px;position:relative;">
+    <button onclick="closeCloneModal()" style="
+      position:absolute;top:12px;right:12px;
+      width:28px;height:28px;border-radius:50%;
+      background:var(--surface2);border:1px solid var(--border);
+      color:var(--text-dim);font-size:16px;line-height:1;
+      cursor:pointer;display:flex;align-items:center;justify-content:center;
+      transition:all 0.15s;
+    " onmouseenter="this.style.borderColor='var(--danger)';this.style.color='var(--danger)'"
+       onmouseleave="this.style.borderColor='var(--border)';this.style.color='var(--text-dim)'">×</button>
     <div class="modal-title" id="clone-modal-title">Clone Detail</div>
     <div id="clone-modal-body"></div>
-    <div class="btn-row">
-      <button class="btn btn-secondary" onclick="closeCloneModal()">Close</button>
-    </div>
   </div>
 </div>
 
@@ -960,6 +991,7 @@ const API = 'http://localhost:8787';
 let state = { vials: [], events: [] };
 let tankFilter = 'all';
 let logFilter = 'all';
+let cloneFilter = 'all';
 
 // ── Data loading ──────────────────────────────────────────────────────────────
 async function loadData() {
@@ -1174,6 +1206,20 @@ function normaliseState() {
   }
   // Remove zero-count vials (fully thawed out)
   state.vials = state.vials.filter(v => v.count > 0);
+
+  // Jassage migration: vials frozen on/after 07May2026 with passage set but no jassage
+  // → move passage value to jassage, clear passage (pre_jassage stays null = '...')
+  const J0_DATE = '2026-05-07';
+  for (const v of state.vials) {
+    if (v.jassage == null && v.passage != null && v.freeze_date >= J0_DATE) {
+      v.jassage = v.passage;
+      v.pre_jassage = null;
+      v.passage = null;
+    }
+    // Ensure new fields exist on all vials
+    if (!('jassage' in v)) v.jassage = null;
+    if (!('pre_jassage' in v)) v.pre_jassage = null;
+  }
 }
 
 function donorFromKey(key) { return key.split('-')[0]; }
@@ -1212,6 +1258,44 @@ function fmtDMY(isoStr) {
   return `${String(d.getDate()).padStart(2,'0')}${mon}${String(d.getFullYear()).slice(2)}`;
 }
 
+// Format passage display for a vial
+// Returns HTML string showing passage/jassage state
+// Passage column display for a vial
+function passageTag(v) {
+  const j = v.jassage;
+  const pre = v.pre_jassage;
+  const p = v.passage;
+  if (j == null && p == null) return '<span style="color:var(--text-dim)">—</span>';
+  if (j == null) return `<span class="passage-tag">P${p}</span>`;
+  // Has jassage — show derived absolute passage under Passage column
+  const absP = pre != null ? pre + j : null;
+  if (absP != null) return `<span class="passage-tag">P${absP}</span>`;
+  const preStr = pre != null ? `${pre}` : '…';
+  return `<span style="font-family:var(--mono);font-size:12px;color:var(--text-dim);">P(${preStr}+${j})</span>`;
+}
+
+// Jassage column display for a vial
+function jassageTag(v) {
+  if (v.jassage == null) return '<span style="color:var(--text-dim)">—</span>';
+  return `<span class="badge badge-jassage">J${v.jassage}</span>`;
+}
+
+// Get current jassage for an active culture by walking events since its thaw
+function getJassageForCulture(clone_key, thaw_date) {
+  const relevant = state.events
+    .filter(e => e.clone_key === clone_key && !e.superseded_by && e.date >= thaw_date)
+    .sort((a, b) => a.date.localeCompare(b.date));
+  let j = 0;
+  let inCulture = false;
+  for (const e of relevant) {
+    if (e.type === 'thaw' && e.date === thaw_date) { inCulture = true; continue; }
+    if (!inCulture) continue;
+    if (e.type === 'passage') j++;
+    if (e.type === 'freeze' || e.type === 'discard') break;
+  }
+  return j;
+}
+
 function donorBadge(donor) {
   const cls = donor === 'F2' ? 'badge-f2' : donor === 'F5' ? 'badge-f5' : 'badge-other';
   return `<span class="badge ${cls}">${donor}</span>`;
@@ -1223,11 +1307,17 @@ function renderAll() {
   renderClones();
   renderLog();
   populateCloneSelects();
+  populatePassageJassageFilters();
 }
 
 function renderTank() {
   let vials = state.vials;
   if (tankFilter !== 'all') vials = vials.filter(v => v.donor === tankFilter);
+
+  const pf = document.getElementById('tank-passage-filter')?.value;
+  const jf = document.getElementById('tank-jassage-filter')?.value;
+  if (pf) vials = vials.filter(v => String(v.passage) === pf);
+  if (jf) vials = vials.filter(v => String(v.jassage) === jf);
 
   const totalVials = vials.reduce((s, v) => s + (v.count || 0), 0);
   const cloneKeys = new Set(vials.map(v => v.clone_key));
@@ -1263,8 +1353,6 @@ function renderTank() {
     const multiRow = rowspan > 1;
 
     return batches.map((v, i) => {
-      const p = v.passage;
-      const pTag = p != null ? `<span class="passage-tag">P${p}</span>` : '<span style="color:var(--text-dim)">—</span>';
       const isLast = i === rowspan - 1;
 
       const sharedCells = i === 0 ? `
@@ -1281,12 +1369,15 @@ function renderTank() {
       ` : '';
 
       const borderStyle = multiRow && !isLast ? 'border-bottom:1px dashed var(--border);' : '';
+      const pCell = v.passage != null ? `<span class="passage-tag">P${v.passage}</span>` : passageTag(v);
+      const jCell = jassageTag(v);
 
       return `<tr style="${borderStyle}">
         ${sharedCells}
         <td>${fmtDMY(v.freeze_date)}</td>
         <td style="color:var(--accent);font-weight:600">${v.count}</td>
-        <td>${pTag}</td>
+        <td>${pCell}</td>
+        <td>${jCell}</td>
         <td style="color:var(--text-dim);font-size:11px">${v.notes || ''}</td>
       </tr>`;
     }).join('');
@@ -1294,10 +1385,15 @@ function renderTank() {
 }
 
 function renderClones() {
-  const keys = allCloneKeys();
+  const pf = document.getElementById('clone-passage-filter')?.value;
+  const jf = document.getElementById('clone-jassage-filter')?.value;
+  let keys = allCloneKeys();
+  if (cloneFilter !== 'all') keys = keys.filter(k => donorFromKey(k) === cloneFilter);
+  if (pf) keys = keys.filter(k => state.vials.some(v => v.clone_key === k && String(v.passage) === pf));
+  if (jf) keys = keys.filter(k => state.vials.some(v => v.clone_key === k && String(v.jassage) === jf));
   const grid = document.getElementById('clone-grid');
   if (keys.length === 0) {
-    grid.innerHTML = '<div class="empty">No clones yet. Add vials via Import or Freeze Down.</div>';
+    grid.innerHTML = '<div class="empty">No clones match the current filter.</div>';
     return;
   }
   grid.innerHTML = keys.map(key => {
@@ -1307,16 +1403,19 @@ function renderClones() {
     const vialCount = cloneVials.reduce((s, v) => s + (v.count || 0), 0);
     const evCount = state.events.filter(e => e.clone_key === key && !e.superseded_by).length;
     const passages = cloneVials.map(v => v.passage).filter(p => p != null);
+    const jassages = cloneVials.map(v => v.jassage).filter(j => j != null);
     const passageDisplay = passages.length === 0 ? '<span style="color:var(--text-dim)">Passage unknown</span>'
       : passages.length === 1 || Math.min(...passages) === Math.max(...passages)
         ? `<span class="clone-passage">P${passages[0]}</span>`
         : `<span class="clone-passage">P${Math.min(...passages)}–P${Math.max(...passages)}</span>`;
+    const jassageDisplay = jassages.length === 0 ? ''
+      : `<br><span class="badge badge-jassage">J${Math.min(...jassages)}${jassages.length > 1 && Math.min(...jassages) !== Math.max(...jassages) ? '–'+Math.max(...jassages) : ''}</span>`;
     return `<div class="clone-card" onclick="openCloneModal('${key}')">
       <div class="clone-id">${key}</div>
       <div class="clone-meta">
         ${donorBadge(donor)}<br>
         <span style="color:var(--text)">🧊 ${vialCount} vials in tank</span><br>
-        ${passageDisplay}<br>
+        ${passageDisplay}${jassageDisplay}<br>
         <span>${evCount} events logged</span>
       </div>
     </div>`;
@@ -1405,12 +1504,41 @@ function setTankFilter(f, btn) {
   btn.classList.add('active');
   renderTank();
 }
+function setCloneFilter(f, btn) {
+  cloneFilter = f;
+  document.querySelectorAll('#view-clones .filter-chip').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderClones();
+}
 function setLogFilter(f, btn) {
   logFilter = f;
-  document.querySelectorAll('#event-list').forEach(() => {});
   document.querySelectorAll('.filter-row .filter-chip').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   renderLog();
+}
+
+function handleCloneModalOverlayClick(e) {
+  if (e.target === document.getElementById('clone-modal')) closeCloneModal();
+}
+
+function populatePassageJassageFilters() {
+  const passages = [...new Set(state.vials.map(v => v.passage).filter(p => p != null))].sort((a,b)=>a-b);
+  const jassages = [...new Set(state.vials.map(v => v.jassage).filter(j => j != null))].sort((a,b)=>a-b);
+
+  ['tank-passage-filter','clone-passage-filter'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const cur = el.value;
+    el.innerHTML = '<option value="">Passage: all</option>' +
+      passages.map(p => `<option value="${p}" ${String(p)===cur?'selected':''}>P${p}</option>`).join('');
+  });
+  ['tank-jassage-filter','clone-jassage-filter'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const cur = el.value;
+    el.innerHTML = '<option value="">Jassage: all</option>' +
+      jassages.map(j => `<option value="${j}" ${String(j)===cur?'selected':''}>J${j}</option>`).join('');
+  });
 }
 
 // ── Batch row management ──────────────────────────────────────────────────────
@@ -1582,15 +1710,22 @@ function updatePassageHint(el) {
   const row = el.closest('.batch-row');
   const key = row.querySelector('.pr-clone').value;
   if (!key) return;
-  // Passage hint: use the source batch from the active thaw event
+  const J0_DATE = '2026-05-07';
   const active = getActiveCultures().find(c => c.clone_key === key);
-  const sourceFreezeDate = active?.source_freeze_date;
+  const thawDate = active?.thaw_date || null;
+  const isJassageEra = thawDate && thawDate >= J0_DATE;
+  const sourceFreezeDate = active?.source_freeze_date || null;
   const cloneVials = state.vials.filter(v => v.clone_key === key);
   const sourceVial = sourceFreezeDate ? cloneVials.find(v => v.freeze_date === sourceFreezeDate) : null;
-  const passages = cloneVials.map(v => v.passage).filter(p => p != null);
-  const current = sourceVial?.passage ?? (passages.length ? Math.max(...passages) : null);
   const numInput = row.querySelector('.pr-num');
-  numInput.placeholder = current != null ? `auto → P${current + 1}` : 'auto → P1';
+  if (isJassageEra) {
+    const currentJ = sourceVial?.jassage ?? getJassageForCulture(key, thawDate);
+    numInput.placeholder = `auto → J${currentJ + 1}`;
+  } else {
+    const passages = cloneVials.map(v => v.passage).filter(p => p != null);
+    const current = sourceVial?.passage ?? (passages.length ? Math.max(...passages) : null);
+    numInput.placeholder = current != null ? `auto → P${current + 1}` : 'auto → P1';
+  }
 }
 
 // ── Events ────────────────────────────────────────────────────────────────────
@@ -1622,15 +1757,33 @@ async function logEndCulture() {
     entries.push({ key, action, count, passage, notes });
   }
 
+  const J0_DATE = '2026-05-07';
   let freezeCount = 0, discardCount = 0;
   for (const { key, action, count, passage, notes } of entries) {
     const donor = donorFromKey(key);
     const normClone = normaliseClone(cloneNumFromKey(key));
+
+    // Is this culture in the jassage era?
+    const activeCulture = getActiveCultures().find(c => c.clone_key === key);
+    const thawDate = activeCulture?.thaw_date || null;
+    const isJassageEra = thawDate && thawDate >= J0_DATE;
+
     if (action === 'freeze') {
-      state.events.push({ id: uid(), type: 'freeze', date, clone_key: key, donor, clone_num: normClone, count, passage_num: passage ? parseInt(passage) : null, notes });
+      // Jassage: freeze = +1 from current jassage
+      const currentJ = isJassageEra ? getJassageForCulture(key, thawDate) : null;
+      const newJ = isJassageEra ? (currentJ + 1) : null;
+      const newP = !isJassageEra && passage ? parseInt(passage) : null;
+
+      state.events.push({ id: uid(), type: 'freeze', date, clone_key: key, donor, clone_num: normClone, count,
+        passage_num: newP, jassage_num: newJ, notes });
       const existing = state.vials.find(v => v.clone_key === key && v.freeze_date === date);
-      if (existing) { existing.count += count; } else {
-        state.vials.push({ clone_key: key, donor, clone_num: normClone, freeze_date: date, count, passage: passage ? parseInt(passage) : null, notes });
+      if (existing) {
+        existing.count += count;
+        if (newJ != null) existing.jassage = newJ;
+        if (newP != null) existing.passage = newP;
+      } else {
+        state.vials.push({ clone_key: key, donor, clone_num: normClone, freeze_date: date, count,
+          passage: newP, jassage: newJ, pre_jassage: null, notes });
       }
       freezeCount++;
     } else {
@@ -1748,6 +1901,7 @@ async function logPassage() {
   const rows = document.querySelectorAll('#passage-rows .batch-row');
   if (rows.length === 0) return toast('Add at least one clone row.', 'error');
 
+  const J0_DATE = '2026-05-07';
   const entries = [];
   for (const row of rows) {
     const key = row.querySelector('.pr-clone').value;
@@ -1757,21 +1911,41 @@ async function logPassage() {
 
     // Use source freeze batch from active culture thaw event
     const activeCulture = getActiveCultures().find(c => c.clone_key === key);
+    const thawDate = activeCulture?.thaw_date || null;
     const sourceFreezeDate = activeCulture?.source_freeze_date || null;
+
+    // Is this culture in the jassage era? (thawed on/after J0_DATE)
+    const isJassageEra = thawDate && thawDate >= J0_DATE;
 
     const cloneVials = state.vials.filter(v => v.clone_key === key);
     const sourceVial = sourceFreezeDate ? cloneVials.find(v => v.freeze_date === sourceFreezeDate) : null;
-    const passages = cloneVials.map(v => v.passage).filter(p => p != null);
-    const currentP = sourceVial?.passage ?? (passages.length ? Math.max(...passages) : null);
-    const newP = pNumVal ? parseInt(pNumVal) : (currentP != null ? currentP + 1 : 1);
 
-    // Update passage on the source vial batch specifically
-    if (sourceVial) sourceVial.passage = newP;
-    entries.push({ key, sourceFreezeDate, newP, notes });
+    if (isJassageEra) {
+      // Increment jassage
+      const currentJ = sourceVial?.jassage ?? getJassageForCulture(key, thawDate);
+      const newJ = pNumVal ? parseInt(pNumVal) : currentJ + 1;
+      if (sourceVial) {
+        sourceVial.jassage = newJ;
+        // Update absolute passage if pre_jassage known
+        if (sourceVial.pre_jassage != null) sourceVial.passage = sourceVial.pre_jassage + newJ;
+      }
+      entries.push({ key, sourceFreezeDate, newJ, isJassageEra: true, notes });
+    } else {
+      // Increment absolute passage
+      const passages = cloneVials.map(v => v.passage).filter(p => p != null);
+      const currentP = sourceVial?.passage ?? (passages.length ? Math.max(...passages) : null);
+      const newP = pNumVal ? parseInt(pNumVal) : (currentP != null ? currentP + 1 : 1);
+      if (sourceVial) sourceVial.passage = newP;
+      entries.push({ key, sourceFreezeDate, newP, isJassageEra: false, notes });
+    }
   }
 
-  for (const { key, sourceFreezeDate, newP, notes } of entries) {
-    state.events.push({ id: uid(), type: 'passage', date, clone_key: key, freeze_date: sourceFreezeDate, passage_num: newP, notes });
+  for (const e of entries) {
+    state.events.push({ id: uid(), type: 'passage', date, clone_key: e.key,
+      freeze_date: e.sourceFreezeDate,
+      passage_num: e.isJassageEra ? null : e.newP,
+      jassage_num: e.isJassageEra ? e.newJ : null,
+      notes: e.notes });
   }
 
   await saveData();
@@ -1905,18 +2079,19 @@ function openCloneModal(key) {
     </div>
     <h3>Vials in Tank</h3>
     <table style="margin-bottom:16px;">
-      <thead><tr><th>Freeze Date</th><th>Count</th><th>Passage</th><th>Notes</th></tr></thead>
+      <thead><tr><th>Freeze Date</th><th>Count</th><th>Passage</th><th>Jassage</th><th>Notes</th></tr></thead>
       <tbody>${vials.length ? vials.sort((a,b) => a.freeze_date.localeCompare(b.freeze_date)).map(v => `<tr>
         <td>${fmtDMY(v.freeze_date)}</td>
         <td style="color:var(--accent);font-weight:600">${v.count}</td>
-        <td>${v.passage != null ? '<span class="passage-tag">P'+v.passage+'</span>' : '—'}</td>
+        <td>${v.passage != null ? '<span class="passage-tag">P'+v.passage+'</span>' : passageTag(v)}</td>
+        <td>${jassageTag(v)}</td>
         <td style="color:var(--text-dim);font-size:11px">${v.notes || ''}</td>
       </tr>`).join('') + (vials.length > 1 ? `<tr style="border-top:1px solid var(--border-bright)">
         <td style="color:var(--text-dim);font-size:11px">TOTAL</td>
         <td style="color:var(--accent);font-weight:700">${totalVials}</td>
-        <td colspan="2"></td>
+        <td colspan="3"></td>
       </tr>` : '')
-      : '<tr><td colspan="4" style="color:var(--text-dim)">None in tank</td></tr>'}</tbody>
+      : '<tr><td colspan="5" style="color:var(--text-dim)">None in tank</td></tr>'}</tbody>
     </table>
     <h3>Event History</h3>
     <div class="event-list" style="gap:6px;">
