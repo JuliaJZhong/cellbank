@@ -616,13 +616,11 @@
         <button class="filter-chip" onclick="setTankFilter('F2', this)">Donor F2</button>
         <button class="filter-chip" onclick="setTankFilter('F5', this)">Donor F5</button>
         <div style="height:16px;width:1px;background:var(--border);margin:0 4px;"></div>
-        <select id="tank-passage-filter" onchange="renderTank()"
-          style="font-family:var(--mono);font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:99px;color:var(--text-dim);padding:4px 10px;cursor:pointer;">
-          <option value="">Passage: all</option>
+        <select id="tank-passage-filter" onchange="renderTank()" style="font-family:var(--mono);font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:99px;color:var(--text-dim);padding:4px 12px;cursor:pointer;appearance:none;-webkit-appearance:none;">
+         <option value="">Passage</option>
         </select>
-        <select id="tank-jassage-filter" onchange="renderTank()"
-          style="font-family:var(--mono);font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:99px;color:var(--text-dim);padding:4px 10px;cursor:pointer;">
-          <option value="">Jassage: all</option>
+        <select id="tank-jassage-filter" onchange="renderTank()" style="font-family:var(--mono);font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:99px;color:var(--text-dim);padding:4px 12px;cursor:pointer;appearance:none;-webkit-appearance:none;">
+         <option value="">Jassage</option>
         </select>
       </div>
       <div class="table-wrap">
@@ -653,13 +651,11 @@
       <button class="filter-chip" onclick="setCloneFilter('F2', this)">Donor F2</button>
       <button class="filter-chip" onclick="setCloneFilter('F5', this)">Donor F5</button>
       <div style="height:16px;width:1px;background:var(--border);margin:0 4px;"></div>
-      <select id="clone-passage-filter" onchange="renderClones()"
-        style="font-family:var(--mono);font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:99px;color:var(--text-dim);padding:4px 10px;cursor:pointer;">
-        <option value="">Passage: all</option>
+      <select id="clone-passage-filter" onchange="renderClones()" style="font-family:var(--mono);font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:99px;color:var(--text-dim);padding:4px 12px;cursor:pointer;appearance:none;-webkit-appearance:none;">
+        <option value="">Passage</option>
       </select>
-      <select id="clone-jassage-filter" onchange="renderClones()"
-        style="font-family:var(--mono);font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:99px;color:var(--text-dim);padding:4px 10px;cursor:pointer;">
-        <option value="">Jassage: all</option>
+      <select id="clone-jassage-filter" onchange="renderClones()" style="font-family:var(--mono);font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:99px;color:var(--text-dim);padding:4px 12px;cursor:pointer;appearance:none;-webkit-appearance:none;">
+        <option value="">Jassage</option>
       </select>
     </div>
     <div class="clone-grid" id="clone-grid"></div>
@@ -1529,14 +1525,14 @@ function populatePassageJassageFilters() {
     const el = document.getElementById(id);
     if (!el) return;
     const cur = el.value;
-    el.innerHTML = '<option value="">Passage: all</option>' +
+    el.innerHTML = '<option value="">Passage</option>' +
       passages.map(p => `<option value="${p}" ${String(p)===cur?'selected':''}>P${p}</option>`).join('');
   });
   ['tank-jassage-filter','clone-jassage-filter'].forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
     const cur = el.value;
-    el.innerHTML = '<option value="">Jassage: all</option>' +
+    el.innerHTML = '<option value="">Jassage</option>' +
       jassages.map(j => `<option value="${j}" ${String(j)===cur?'selected':''}>J${j}</option>`).join('');
   });
 }
