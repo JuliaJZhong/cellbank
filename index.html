@@ -671,7 +671,7 @@
       <button class="filter-chip" onclick="setLogFilter('freeze', this)">❄️ Freeze</button>
       <button class="filter-chip" onclick="setLogFilter('thaw', this)">🌡️ Thaw</button>
       <button class="filter-chip" onclick="setLogFilter('passage', this)">⬆️ Passage</button>
-      <button class="filter-chip" id="corrections-toggle" onclick="toggleCorrections(this)">✏️ Corrections</button>
+      <button class="filter-chip active" id="corrections-toggle" onclick="toggleCorrections(this)">↩ Superseded</button>
     </div>
     <div class="event-list" id="event-list"></div>
   </div>
@@ -1012,7 +1012,7 @@ let state = { vials: [], events: [] };
 let tankFilter = 'all';
 let logFilter = 'all';
 let cloneFilter = 'all';
-let showCorrections = false;
+let showCorrections = true;
 
 // ── Data loading ──────────────────────────────────────────────────────────────
 async function loadData() {
@@ -1440,7 +1440,6 @@ function renderClones() {
         ${passageDisplay}${jassageDisplay}<br>
         <span>${evCount} events logged</span>
       </div>
-      <button class="btn btn-sm btn-secondary" style="margin-top:10px;width:100%;" onclick="event.stopPropagation();openEditModal('${key}')">✏️ Edit batches</button>
     </div>`;
   }).join('');
 }
@@ -1448,7 +1447,7 @@ function renderClones() {
 function renderLog() {
   let evs = [...state.events].reverse();
   if (logFilter !== 'all') evs = evs.filter(e => e.type === logFilter);
-  if (!showCorrections) evs = evs.filter(e => !e.is_correction && !e.superseded_by);
+  if (!showCorrections) evs = evs.filter(e => !e.superseded_by);
   const el = document.getElementById('event-list');
   if (evs.length === 0) {
     el.innerHTML = '<div class="empty">No events logged yet.</div>';
@@ -2199,6 +2198,9 @@ function openCloneModal(key) {
       </tr>` : '')
       : '<tr><td colspan="6" style="color:var(--text-dim)">None in tank</td></tr>'}</tbody>
     </table>
+    <div class="btn-row" style="margin-bottom:16px;">
+      <button class="btn btn-sm btn-secondary" onclick="openEditModal('${key}')">✏️ Edit batches</button>
+    </div>
     <h3>Event History <button class="btn btn-sm btn-secondary" style="margin-left:8px;font-size:10px;" onclick="toggleCloneModalCorrections(this, '${key}')">✏️ Show corrections</button></h3>
     <div class="event-list" id="clone-modal-events" style="gap:6px;">
       ${renderEventRows(events)}
