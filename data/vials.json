@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-05-28T19:14:26.654Z",
+  "last_updated": "2026-05-31T20:57:53.433Z",
   "vials": [
     {
       "clone_key": "F2-02",
@@ -8,7 +8,9 @@
       "freeze_date": "2025-10-24",
       "count": 2,
       "passage": null,
-      "notes": ""
+      "notes": "",
+      "jassage": null,
+      "pre_jassage": null
     },
     {
       "clone_key": "F2-09",
@@ -17,7 +19,9 @@
       "freeze_date": "2025-02-17",
       "count": 3,
       "passage": null,
-      "notes": "frozen down by RO"
+      "notes": "frozen down by RO",
+      "jassage": null,
+      "pre_jassage": null
     },
     {
       "clone_key": "F2-10",
@@ -26,7 +30,9 @@
       "freeze_date": "2025-03-24",
       "count": 2,
       "passage": null,
-      "notes": ""
+      "notes": "",
+      "jassage": null,
+      "pre_jassage": null
     },
     {
       "clone_key": "F2-10",
@@ -35,7 +41,9 @@
       "freeze_date": "2025-10-26",
       "count": 2,
       "passage": null,
-      "notes": ""
+      "notes": "",
+      "jassage": null,
+      "pre_jassage": null
     },
     {
       "clone_key": "F2-13",
@@ -44,7 +52,9 @@
       "freeze_date": "2025-06-09",
       "count": 2,
       "passage": null,
-      "notes": ""
+      "notes": "",
+      "jassage": null,
+      "pre_jassage": null
     },
     {
       "clone_key": "F2-17",
@@ -53,7 +63,9 @@
       "freeze_date": "2025-06-21",
       "count": 4,
       "passage": null,
-      "notes": ""
+      "notes": "",
+      "jassage": null,
+      "pre_jassage": null
     },
     {
       "clone_key": "F2-20",
@@ -62,7 +74,9 @@
       "freeze_date": "2024-03-15",
       "count": 1,
       "passage": null,
-      "notes": "frozen down by RO"
+      "notes": "frozen down by RO",
+      "jassage": null,
+      "pre_jassage": null
     },
     {
       "clone_key": "F2-21",
@@ -71,7 +85,9 @@
       "freeze_date": "2024-10-18",
       "count": 4,
       "passage": null,
-      "notes": ""
+      "notes": "",
+      "jassage": null,
+      "pre_jassage": null
     },
     {
       "clone_key": "F2-22",
@@ -80,7 +96,9 @@
       "freeze_date": "2024-05-03",
       "count": 2,
       "passage": null,
-      "notes": "frozen down by RO"
+      "notes": "frozen down by RO",
+      "jassage": null,
+      "pre_jassage": null
     },
     {
       "clone_key": "F2-23",
@@ -89,7 +107,9 @@
       "freeze_date": "2024-03-29",
       "count": 3,
       "passage": null,
-      "notes": "frozen down by RO"
+      "notes": "frozen down by RO",
+      "jassage": null,
+      "pre_jassage": null
     },
     {
       "clone_key": "F2-24",
@@ -98,7 +118,9 @@
       "freeze_date": "2024-03-29",
       "count": 2,
       "passage": null,
-      "notes": "frozen down by RO"
+      "notes": "frozen down by RO",
+      "jassage": null,
+      "pre_jassage": null
     },
     {
       "clone_key": "F2-25",
@@ -107,7 +129,9 @@
       "freeze_date": "2025-04-19",
       "count": 2,
       "passage": null,
-      "notes": ""
+      "notes": "",
+      "jassage": null,
+      "pre_jassage": null
     },
     {
       "clone_key": "F2-27",
@@ -116,7 +140,9 @@
       "freeze_date": "2025-06-09",
       "count": 3,
       "passage": null,
-      "notes": ""
+      "notes": "",
+      "jassage": null,
+      "pre_jassage": null
     },
     {
       "clone_key": "F2-29",
@@ -125,7 +151,9 @@
       "freeze_date": "2025-06-21",
       "count": 3,
       "passage": null,
-      "notes": ""
+      "notes": "",
+      "jassage": null,
+      "pre_jassage": null
     },
     {
       "clone_key": "F2-30",
@@ -134,7 +162,9 @@
       "freeze_date": "2025-02-17",
       "count": 1,
       "passage": null,
-      "notes": ""
+      "notes": "",
+      "jassage": null,
+      "pre_jassage": null
     },
     {
       "clone_key": "F2-30",
@@ -143,7 +173,9 @@
       "freeze_date": "2025-06-13",
       "count": 1,
       "passage": null,
-      "notes": ""
+      "notes": "",
+      "jassage": null,
+      "pre_jassage": null
     },
     {
       "clone_key": "F2-30",
@@ -152,7 +184,9 @@
       "freeze_date": "2025-10-26",
       "count": 4,
       "passage": null,
-      "notes": ""
+      "notes": "",
+      "jassage": null,
+      "pre_jassage": null
     },
     {
       "clone_key": "F2-36",
@@ -161,7 +195,9 @@
       "freeze_date": "2024-03-05",
       "count": 3,
       "passage": null,
-      "notes": ""
+      "notes": "",
+      "jassage": null,
+      "pre_jassage": null
     },
     {
       "clone_key": "F2-42",
@@ -170,7 +206,9 @@
       "freeze_date": "2025-02-17",
       "count": 3,
       "passage": null,
-      "notes": ""
+      "notes": "",
+      "jassage": null,
+      "pre_jassage": null
     },
     {
       "clone_key": "F5-02",
@@ -179,7 +217,9 @@
       "freeze_date": "2025-04-19",
       "count": 2,
       "passage": null,
-      "notes": ""
+      "notes": "",
+      "jassage": null,
+      "pre_jassage": null
     },
     {
       "clone_key": "F5-04",
@@ -188,7 +228,9 @@
       "freeze_date": "2025-02-28",
       "count": 1,
       "passage": null,
-      "notes": ""
+      "notes": "",
+      "jassage": null,
+      "pre_jassage": null
     },
     {
       "clone_key": "F5-06",
@@ -197,7 +239,9 @@
       "freeze_date": "2025-03-03",
       "count": 5,
       "passage": null,
-      "notes": ""
+      "notes": "",
+      "jassage": null,
+      "pre_jassage": null
     },
     {
       "clone_key": "F5-04",
@@ -206,7 +250,9 @@
       "freeze_date": "2025-03-25",
       "count": 3,
       "passage": null,
-      "notes": ""
+      "notes": "",
+      "jassage": null,
+      "pre_jassage": null
     },
     {
       "clone_key": "F5-07",
@@ -215,7 +261,9 @@
       "freeze_date": "2024-03-15",
       "count": 1,
       "passage": null,
-      "notes": "frozen down by RO"
+      "notes": "frozen down by RO",
+      "jassage": null,
+      "pre_jassage": null
     },
     {
       "clone_key": "F5-07",
@@ -224,7 +272,9 @@
       "freeze_date": "2025-03-25",
       "count": 3,
       "passage": null,
-      "notes": ""
+      "notes": "",
+      "jassage": null,
+      "pre_jassage": null
     },
     {
       "clone_key": "F5-09",
@@ -233,7 +283,9 @@
       "freeze_date": "2024-03-29",
       "count": 3,
       "passage": null,
-      "notes": "frozen down by RO"
+      "notes": "frozen down by RO",
+      "jassage": null,
+      "pre_jassage": null
     },
     {
       "clone_key": "F5-12",
@@ -242,7 +294,9 @@
       "freeze_date": "2024-03-05",
       "count": 1,
       "passage": null,
-      "notes": ""
+      "notes": "",
+      "jassage": null,
+      "pre_jassage": null
     },
     {
       "clone_key": "F5-12",
@@ -251,7 +305,9 @@
       "freeze_date": "2025-03-25",
       "count": 3,
       "passage": null,
-      "notes": ""
+      "notes": "",
+      "jassage": null,
+      "pre_jassage": null
     },
     {
       "clone_key": "F5-12",
@@ -260,7 +316,9 @@
       "freeze_date": "2025-10-26",
       "count": 4,
       "passage": null,
-      "notes": ""
+      "notes": "",
+      "jassage": null,
+      "pre_jassage": null
     },
     {
       "clone_key": "F5-16a",
@@ -269,7 +327,10 @@
       "freeze_date": "2024-10-18",
       "count": 4,
       "passage": null,
-      "notes": "not sure if this is 16a, 16c?"
+      "notes": "",
+      "jassage": null,
+      "pre_jassage": null,
+      "location": null
     },
     {
       "clone_key": "F5-17",
@@ -278,7 +339,9 @@
       "freeze_date": "2024-03-26",
       "count": 2,
       "passage": null,
-      "notes": ""
+      "notes": "",
+      "jassage": null,
+      "pre_jassage": null
     },
     {
       "clone_key": "F5-17",
@@ -287,7 +350,9 @@
       "freeze_date": "2024-10-18",
       "count": 4,
       "passage": null,
-      "notes": ""
+      "notes": "",
+      "jassage": null,
+      "pre_jassage": null
     },
     {
       "clone_key": "F5-21",
@@ -296,7 +361,9 @@
       "freeze_date": "2024-05-03",
       "count": 3,
       "passage": null,
-      "notes": "[imported] frozen down by RO"
+      "notes": "[imported] frozen down by RO",
+      "jassage": null,
+      "pre_jassage": null
     },
     {
       "clone_key": "F2-02",
@@ -305,7 +372,9 @@
       "freeze_date": "2024-10-18",
       "count": 5,
       "passage": null,
-      "notes": ""
+      "notes": "",
+      "jassage": null,
+      "pre_jassage": null
     },
     {
       "clone_key": "F5-16c",
@@ -314,7 +383,9 @@
       "freeze_date": "2025-10-24",
       "count": 2,
       "passage": null,
-      "notes": ""
+      "notes": "",
+      "jassage": null,
+      "pre_jassage": null
     },
     {
       "clone_key": "F5-1B",
@@ -322,8 +393,10 @@
       "clone_num": "1B",
       "freeze_date": "2026-05-27",
       "count": 16,
-      "passage": 2,
-      "notes": ""
+      "passage": null,
+      "notes": "",
+      "jassage": 2,
+      "pre_jassage": null
     },
     {
       "clone_key": "F5-16c",
@@ -331,8 +404,10 @@
       "clone_num": "16c",
       "freeze_date": "2026-05-27",
       "count": 14,
-      "passage": 2,
-      "notes": ""
+      "passage": null,
+      "notes": "",
+      "jassage": 2,
+      "pre_jassage": null
     },
     {
       "clone_key": "F2-20",
@@ -340,8 +415,10 @@
       "clone_num": "20",
       "freeze_date": "2026-05-27",
       "count": 15,
-      "passage": 2,
-      "notes": ""
+      "passage": null,
+      "notes": "",
+      "jassage": 2,
+      "pre_jassage": null
     },
     {
       "clone_key": "F5-25",
@@ -349,8 +426,10 @@
       "clone_num": "25",
       "freeze_date": "2026-05-27",
       "count": 16,
-      "passage": 2,
-      "notes": ""
+      "passage": null,
+      "notes": "",
+      "jassage": 2,
+      "pre_jassage": null
     }
   ]
 }

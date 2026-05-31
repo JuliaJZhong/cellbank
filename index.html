@@ -633,6 +633,7 @@
               <th>Vials</th>
               <th>Passage</th>
               <th>Jassage</th>
+              <th>Location (rack.box)</th>
               <th>Notes</th>
             </tr>
           </thead>
@@ -670,6 +671,7 @@
       <button class="filter-chip" onclick="setLogFilter('freeze', this)">❄️ Freeze</button>
       <button class="filter-chip" onclick="setLogFilter('thaw', this)">🌡️ Thaw</button>
       <button class="filter-chip" onclick="setLogFilter('passage', this)">⬆️ Passage</button>
+      <button class="filter-chip" id="corrections-toggle" onclick="toggleCorrections(this)">✏️ Corrections</button>
     </div>
     <div class="event-list" id="event-list"></div>
   </div>
@@ -980,6 +982,28 @@
   </div>
 </div>
 
+<!-- EDIT BATCHES MODAL -->
+<div class="modal-overlay" id="edit-modal" onclick="if(event.target===this)closeEditModal()">
+  <div class="modal" style="max-width:600px;position:relative;">
+    <button onclick="closeEditModal()" style="
+      position:absolute;top:12px;right:12px;
+      width:28px;height:28px;border-radius:50%;
+      background:var(--surface2);border:1px solid var(--border);
+      color:var(--text-dim);font-size:16px;line-height:1;
+      cursor:pointer;display:flex;align-items:center;justify-content:center;
+      transition:all 0.15s;
+    " onmouseenter="this.style.borderColor='var(--danger)';this.style.color='var(--danger)'"
+       onmouseleave="this.style.borderColor='var(--border)';this.style.color='var(--text-dim)'">×</button>
+    <div class="modal-title" id="edit-modal-title">Edit Batches</div>
+    <p style="font-size:12px;color:var(--text-dim);margin-bottom:14px;">Edit location and notes for each freeze batch.</p>
+    <div id="edit-modal-body"></div>
+    <div class="btn-row" style="margin-top:16px;">
+      <button class="btn btn-primary" onclick="saveEditModal()">Save</button>
+      <button class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
@@ -988,6 +1012,7 @@ let state = { vials: [], events: [] };
 let tankFilter = 'all';
 let logFilter = 'all';
 let cloneFilter = 'all';
+let showCorrections = false;
 
 // ── Data loading ──────────────────────────────────────────────────────────────
 async function loadData() {
@@ -1374,6 +1399,7 @@ function renderTank() {
         <td style="color:var(--accent);font-weight:600">${v.count}</td>
         <td>${pCell}</td>
         <td>${jCell}</td>
+        <td style="font-family:var(--mono);font-size:11px;color:var(--text-dim)">${v.location || '—'}</td>
         <td style="color:var(--text-dim);font-size:11px">${v.notes || ''}</td>
       </tr>`;
     }).join('');
@@ -1414,6 +1440,7 @@ function renderClones() {
         ${passageDisplay}${jassageDisplay}<br>
         <span>${evCount} events logged</span>
       </div>
+      <button class="btn btn-sm btn-secondary" style="margin-top:10px;width:100%;" onclick="event.stopPropagation();openEditModal('${key}')">✏️ Edit batches</button>
     </div>`;
   }).join('');
 }
@@ -1421,6 +1448,7 @@ function renderClones() {
 function renderLog() {
   let evs = [...state.events].reverse();
   if (logFilter !== 'all') evs = evs.filter(e => e.type === logFilter);
+  if (!showCorrections) evs = evs.filter(e => !e.is_correction && !e.superseded_by);
   const el = document.getElementById('event-list');
   if (evs.length === 0) {
     el.innerHTML = '<div class="empty">No events logged yet.</div>';
@@ -1510,6 +1538,12 @@ function setLogFilter(f, btn) {
   logFilter = f;
   document.querySelectorAll('.filter-row .filter-chip').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
+  renderLog();
+}
+
+function toggleCorrections(btn) {
+  showCorrections = !showCorrections;
+  btn.classList.toggle('active', showCorrections);
   renderLog();
 }
 
@@ -2053,12 +2087,87 @@ async function bulkImport() {
 }
 
 // ── Clone modal ───────────────────────────────────────────────────────────────
+function renderEventRows(events) {
+  return events.map(e => {
+    const typeCls = { freeze: 'type-freeze', thaw: 'type-thaw', passage: 'type-passage', discard: 'type-thaw' }[e.type] || '';
+    const typeLabel = { freeze: '❄️ freeze', thaw: '🌡️ thaw', passage: '⬆️ passage', discard: '🗑️ discard' }[e.type] || e.type;
+    let detail = '';
+    if (e.type === 'freeze') detail = `+${e.count} vials`;
+    if (e.type === 'thaw') detail = `−${e.count} vials`;
+    if (e.type === 'passage') detail = e.jassage_num != null ? `→ J${e.jassage_num}` : e.passage_num != null ? `→ P${e.passage_num}` : '';
+    if (e.type === 'discard') detail = 'discarded';
+    const corrTag = e.is_correction ? `<span style="font-size:10px;color:var(--warn);background:var(--warn-dim);border-radius:99px;padding:1px 7px;margin-left:6px;">correction</span>` : '';
+    return `<div class="event-item" style="grid-template-columns:90px 80px 1fr 1fr;">
+      <span class="event-date">${fmt(e.date)}</span>
+      <span class="event-type-badge ${typeCls}">${typeLabel}</span>
+      <span style="font-family:var(--mono);font-size:12px;color:var(--text)">${detail}${corrTag}</span>
+      <span style="font-size:11px;color:var(--text-dim)">${e.is_correction ? `✏️ ${e.correction_reason}` : (e.notes || '')}</span>
+    </div>`;
+  }).join('') || '<div class="empty">No events yet.</div>';
+}
+
+function toggleCloneModalCorrections(btn, key) {
+  const allEvents = state.events.filter(e => e.clone_key === key).sort((a, b) => a.date.localeCompare(b.date));
+  const showingCorrections = btn.textContent.includes('Hide');
+  const events = showingCorrections
+    ? allEvents.filter(e => !e.superseded_by && !e.is_correction)
+    : allEvents.filter(e => !e.superseded_by);
+  btn.textContent = showingCorrections ? '✏️ Show corrections' : '✏️ Hide corrections';
+  document.getElementById('clone-modal-events').innerHTML = renderEventRows(events);
+}
+
+// ── Edit batches modal ────────────────────────────────────────────────────────
+let editModalKey = null;
+
+function openEditModal(key) {
+  editModalKey = key;
+  const vials = state.vials.filter(v => v.clone_key === key)
+    .sort((a, b) => a.freeze_date.localeCompare(b.freeze_date));
+  document.getElementById('edit-modal-title').textContent = `Edit Batches — ${key}`;
+  document.getElementById('edit-modal-body').innerHTML = vials.map((v, i) => `
+    <div style="margin-bottom:14px;padding:12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);">
+      <div style="font-family:var(--mono);font-size:12px;font-weight:600;color:var(--text-bright);margin-bottom:10px;">
+        ${fmtDMY(v.freeze_date)} · ${v.count} vials
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Location (rack.box)</label>
+          <input type="text" id="edit-loc-${i}" value="${v.location || ''}" placeholder="e.g. 4.2">
+        </div>
+        <div class="form-group full">
+          <label>Notes</label>
+          <input type="text" id="edit-notes-${i}" value="${v.notes || ''}" placeholder="optional">
+        </div>
+      </div>
+    </div>
+  `).join('');
+  document.getElementById('edit-modal').classList.add('open');
+}
+
+function closeEditModal() {
+  document.getElementById('edit-modal').classList.remove('open');
+  editModalKey = null;
+}
+
+async function saveEditModal() {
+  if (!editModalKey) return;
+  const vials = state.vials.filter(v => v.clone_key === editModalKey)
+    .sort((a, b) => a.freeze_date.localeCompare(b.freeze_date));
+  vials.forEach((v, i) => {
+    v.location = document.getElementById(`edit-loc-${i}`)?.value.trim() || null;
+    v.notes = document.getElementById(`edit-notes-${i}`)?.value.trim() || '';
+  });
+  await saveData();
+  toast(`Saved edits for ${editModalKey}`, 'success');
+  closeEditModal();
+}
+
 function openCloneModal(key) {
   const donor = donorFromKey(key);
   const cloneNum = cloneNumFromKey(key);
   const vials = state.vials.filter(v => v.clone_key === key);
   const allEvents = state.events.filter(e => e.clone_key === key).sort((a, b) => a.date.localeCompare(b.date));
-  const events = allEvents.filter(e => !e.superseded_by);
+  const events = allEvents.filter(e => !e.superseded_by && !e.is_correction);
   const evCount = events.length;
   const totalVials = vials.reduce((s, v) => s + v.count, 0);
   const passages = vials.map(v => v.passage).filter(p => p != null);
@@ -2075,37 +2184,24 @@ function openCloneModal(key) {
     </div>
     <h3>Vials in Tank</h3>
     <table style="margin-bottom:16px;">
-      <thead><tr><th>Freeze Date</th><th>Count</th><th>Passage</th><th>Jassage</th><th>Notes</th></tr></thead>
+      <thead><tr><th>Freeze Date</th><th>Count</th><th>Passage</th><th>Jassage</th><th>Location (rack.box)</th><th>Notes</th></tr></thead>
       <tbody>${vials.length ? vials.sort((a,b) => a.freeze_date.localeCompare(b.freeze_date)).map(v => `<tr>
         <td>${fmtDMY(v.freeze_date)}</td>
         <td style="color:var(--accent);font-weight:600">${v.count}</td>
         <td>${v.passage != null ? '<span class="passage-tag">P'+v.passage+'</span>' : passageTag(v)}</td>
         <td>${jassageTag(v)}</td>
+        <td style="font-family:var(--mono);font-size:11px;color:var(--text-dim)">${v.location || '—'}</td>
         <td style="color:var(--text-dim);font-size:11px">${v.notes || ''}</td>
       </tr>`).join('') + (vials.length > 1 ? `<tr style="border-top:1px solid var(--border-bright)">
         <td style="color:var(--text-dim);font-size:11px">TOTAL</td>
         <td style="color:var(--accent);font-weight:700">${totalVials}</td>
-        <td colspan="3"></td>
+        <td colspan="4"></td>
       </tr>` : '')
-      : '<tr><td colspan="5" style="color:var(--text-dim)">None in tank</td></tr>'}</tbody>
+      : '<tr><td colspan="6" style="color:var(--text-dim)">None in tank</td></tr>'}</tbody>
     </table>
-    <h3>Event History</h3>
-    <div class="event-list" style="gap:6px;">
-      ${events.map(e => {
-        const typeCls = { freeze: 'type-freeze', thaw: 'type-thaw', passage: 'type-passage' }[e.type] || '';
-        const typeLabel = { freeze: '❄️ freeze', thaw: '🌡️ thaw', passage: '⬆️ passage' }[e.type] || e.type;
-        let detail = '';
-        if (e.type === 'freeze') detail = `+${e.count} vials`;
-        if (e.type === 'thaw') detail = `−${e.count} vials`;
-        if (e.type === 'passage') detail = e.passage_num != null ? `→ P${e.passage_num}` : '';
-        const corrTag = e.is_correction ? `<span style="font-size:10px;color:var(--warn);background:var(--warn-dim);border-radius:99px;padding:1px 7px;margin-left:4px;">correction</span>` : '';
-        return `<div class="event-item" style="grid-template-columns:90px 80px 1fr 1fr;">
-          <span class="event-date">${fmt(e.date)}</span>
-          <span class="event-type-badge ${typeCls}">${typeLabel}</span>
-          <span style="font-family:var(--mono);font-size:12px;color:var(--text)">${detail}${corrTag}</span>
-          <span style="font-size:11px;color:var(--text-dim)">${e.is_correction ? `✏️ ${e.correction_reason}` : (e.notes || '')}</span>
-        </div>`;
-      }).join('') || '<div class="empty">No events yet.</div>'}
+    <h3>Event History <button class="btn btn-sm btn-secondary" style="margin-left:8px;font-size:10px;" onclick="toggleCloneModalCorrections(this, '${key}')">✏️ Show corrections</button></h3>
+    <div class="event-list" id="clone-modal-events" style="gap:6px;">
+      ${renderEventRows(events)}
     </div>
   `;
   document.getElementById('clone-modal').classList.add('open');
