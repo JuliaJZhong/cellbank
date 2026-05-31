@@ -2097,16 +2097,6 @@ function renderEventRows(events) {
   }).join('') || '<div class="empty">No events yet.</div>';
 }
 
-function toggleCloneModalCorrections(btn, key) {
-  const allEvents = state.events.filter(e => e.clone_key === key).sort((a, b) => a.date.localeCompare(b.date));
-  const showingCorrections = btn.textContent.includes('Hide');
-  const events = showingCorrections
-    ? allEvents.filter(e => !e.superseded_by)
-    : allEvents.filter(e => !e.superseded_by && !e.is_correction);
-  btn.textContent = showingCorrections ? '✏️ Show corrections' : '✏️ Hide corrections';
-  document.getElementById('clone-modal-events').innerHTML = renderEventRows(events);
-}
-
 // ── Edit batches modal ────────────────────────────────────────────────────────
 let editModalKey = null;
 
@@ -2193,7 +2183,7 @@ function openCloneModal(key) {
     <div class="btn-row" style="margin-bottom:16px;">
       <button class="btn btn-sm btn-secondary" onclick="openEditModal('${key}')">✏️ Edit batches</button>
     </div>
-    <h3>Event History <button class="btn btn-sm btn-secondary" style="margin-left:8px;font-size:10px;" onclick="toggleCloneModalCorrections(this, '${key}')">✏️ Show corrections</button></h3>
+    <h3>Event History</h3>
     <div class="event-list" id="clone-modal-events" style="gap:6px;">
       ${renderEventRows(events)}
     </div>
