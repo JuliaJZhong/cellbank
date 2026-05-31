@@ -1238,6 +1238,8 @@ function normaliseState() {
     // Ensure new fields exist on all vials
     if (!('jassage' in v)) v.jassage = null;
     if (!('pre_jassage' in v)) v.pre_jassage = null;
+    // Assign J0 to any freeze batch with null jassage
+    if (v.jassage == null) v.jassage = 0;
   }
 }
 
