@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-05-31T20:57:53.433Z",
+  "last_updated": "2026-07-01T19:05:31.552Z",
   "vials": [
     {
       "clone_key": "F2-02",
@@ -9,7 +9,7 @@
       "count": 2,
       "passage": null,
       "notes": "",
-      "jassage": null,
+      "jassage": 0,
       "pre_jassage": null
     },
     {
@@ -17,10 +17,10 @@
       "donor": "F2",
       "clone_num": "09",
       "freeze_date": "2025-02-17",
-      "count": 3,
+      "count": 2,
       "passage": null,
       "notes": "frozen down by RO",
-      "jassage": null,
+      "jassage": 0,
       "pre_jassage": null
     },
     {
@@ -31,7 +31,7 @@
       "count": 2,
       "passage": null,
       "notes": "",
-      "jassage": null,
+      "jassage": 0,
       "pre_jassage": null
     },
     {
@@ -42,7 +42,7 @@
       "count": 2,
       "passage": null,
       "notes": "",
-      "jassage": null,
+      "jassage": 0,
       "pre_jassage": null
     },
     {
@@ -53,7 +53,7 @@
       "count": 2,
       "passage": null,
       "notes": "",
-      "jassage": null,
+      "jassage": 0,
       "pre_jassage": null
     },
     {
@@ -64,7 +64,7 @@
       "count": 4,
       "passage": null,
       "notes": "",
-      "jassage": null,
+      "jassage": 0,
       "pre_jassage": null
     },
     {
@@ -75,7 +75,7 @@
       "count": 1,
       "passage": null,
       "notes": "frozen down by RO",
-      "jassage": null,
+      "jassage": 0,
       "pre_jassage": null
     },
     {
@@ -86,7 +86,7 @@
       "count": 4,
       "passage": null,
       "notes": "",
-      "jassage": null,
+      "jassage": 0,
       "pre_jassage": null
     },
     {
@@ -97,7 +97,7 @@
       "count": 2,
       "passage": null,
       "notes": "frozen down by RO",
-      "jassage": null,
+      "jassage": 0,
       "pre_jassage": null
     },
     {
@@ -108,7 +108,7 @@
       "count": 3,
       "passage": null,
       "notes": "frozen down by RO",
-      "jassage": null,
+      "jassage": 0,
       "pre_jassage": null
     },
     {
@@ -119,7 +119,7 @@
       "count": 2,
       "passage": null,
       "notes": "frozen down by RO",
-      "jassage": null,
+      "jassage": 0,
       "pre_jassage": null
     },
     {
@@ -130,7 +130,7 @@
       "count": 2,
       "passage": null,
       "notes": "",
-      "jassage": null,
+      "jassage": 0,
       "pre_jassage": null
     },
     {
@@ -141,7 +141,7 @@
       "count": 3,
       "passage": null,
       "notes": "",
-      "jassage": null,
+      "jassage": 0,
       "pre_jassage": null
     },
     {
@@ -149,10 +149,10 @@
       "donor": "F2",
       "clone_num": "29",
       "freeze_date": "2025-06-21",
-      "count": 3,
+      "count": 2,
       "passage": null,
       "notes": "",
-      "jassage": null,
+      "jassage": 0,
       "pre_jassage": null
     },
     {
@@ -163,7 +163,7 @@
       "count": 1,
       "passage": null,
       "notes": "",
-      "jassage": null,
+      "jassage": 0,
       "pre_jassage": null
     },
     {
@@ -174,7 +174,7 @@
       "count": 1,
       "passage": null,
       "notes": "",
-      "jassage": null,
+      "jassage": 0,
       "pre_jassage": null
     },
     {
@@ -185,7 +185,7 @@
       "count": 4,
       "passage": null,
       "notes": "",
-      "jassage": null,
+      "jassage": 0,
       "pre_jassage": null
     },
     {
@@ -196,7 +196,7 @@
       "count": 3,
       "passage": null,
       "notes": "",
-      "jassage": null,
+      "jassage": 0,
       "pre_jassage": null
     },
     {
@@ -207,7 +207,7 @@
       "count": 3,
       "passage": null,
       "notes": "",
-      "jassage": null,
+      "jassage": 0,
       "pre_jassage": null
     },
     {
@@ -218,7 +218,7 @@
       "count": 2,
       "passage": null,
       "notes": "",
-      "jassage": null,
+      "jassage": 0,
       "pre_jassage": null
     },
     {
@@ -229,7 +229,7 @@
       "count": 1,
       "passage": null,
       "notes": "",
-      "jassage": null,
+      "jassage": 0,
       "pre_jassage": null
     },
     {
@@ -240,7 +240,7 @@
       "count": 5,
       "passage": null,
       "notes": "",
-      "jassage": null,
+      "jassage": 0,
       "pre_jassage": null
     },
     {
@@ -251,18 +251,7 @@
       "count": 3,
       "passage": null,
       "notes": "",
-      "jassage": null,
-      "pre_jassage": null
-    },
-    {
-      "clone_key": "F5-07",
-      "donor": "F5",
-      "clone_num": "07",
-      "freeze_date": "2024-03-15",
-      "count": 1,
-      "passage": null,
-      "notes": "frozen down by RO",
-      "jassage": null,
+      "jassage": 0,
       "pre_jassage": null
     },
     {
@@ -273,7 +262,7 @@
       "count": 3,
       "passage": null,
       "notes": "",
-      "jassage": null,
+      "jassage": 0,
       "pre_jassage": null
     },
     {
@@ -284,7 +273,7 @@
       "count": 3,
       "passage": null,
       "notes": "frozen down by RO",
-      "jassage": null,
+      "jassage": 0,
       "pre_jassage": null
     },
     {
@@ -295,7 +284,7 @@
       "count": 1,
       "passage": null,
       "notes": "",
-      "jassage": null,
+      "jassage": 0,
       "pre_jassage": null
     },
     {
@@ -306,7 +295,7 @@
       "count": 3,
       "passage": null,
       "notes": "",
-      "jassage": null,
+      "jassage": 0,
       "pre_jassage": null
     },
     {
@@ -317,7 +306,7 @@
       "count": 4,
       "passage": null,
       "notes": "",
-      "jassage": null,
+      "jassage": 0,
       "pre_jassage": null
     },
     {
@@ -328,7 +317,7 @@
       "count": 4,
       "passage": null,
       "notes": "",
-      "jassage": null,
+      "jassage": 0,
       "pre_jassage": null,
       "location": null
     },
@@ -340,7 +329,7 @@
       "count": 2,
       "passage": null,
       "notes": "",
-      "jassage": null,
+      "jassage": 0,
       "pre_jassage": null
     },
     {
@@ -351,7 +340,7 @@
       "count": 4,
       "passage": null,
       "notes": "",
-      "jassage": null,
+      "jassage": 0,
       "pre_jassage": null
     },
     {
@@ -362,7 +351,7 @@
       "count": 3,
       "passage": null,
       "notes": "[imported] frozen down by RO",
-      "jassage": null,
+      "jassage": 0,
       "pre_jassage": null
     },
     {
@@ -373,7 +362,7 @@
       "count": 5,
       "passage": null,
       "notes": "",
-      "jassage": null,
+      "jassage": 0,
       "pre_jassage": null
     },
     {
@@ -384,7 +373,7 @@
       "count": 2,
       "passage": null,
       "notes": "",
-      "jassage": null,
+      "jassage": 0,
       "pre_jassage": null
     },
     {
