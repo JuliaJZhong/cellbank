@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-07-01T19:05:31.552Z",
+  "last_updated": "2026-07-03T01:46:00.081Z",
   "vials": [
     {
       "clone_key": "F2-02",
@@ -19,9 +19,10 @@
       "freeze_date": "2025-02-17",
       "count": 2,
       "passage": null,
-      "notes": "frozen down by RO",
+      "notes": "",
       "jassage": 0,
-      "pre_jassage": null
+      "pre_jassage": null,
+      "location": null
     },
     {
       "clone_key": "F2-10",

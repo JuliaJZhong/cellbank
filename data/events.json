@@ -757,6 +757,17 @@
       "count": 1,
       "vial_freeze_date": "2024-03-15",
       "notes": ""
+    },
+    {
+      "id": "mr49uzgxy2ce",
+      "type": "freeze",
+      "date": "2025-02-17",
+      "clone_key": "F2-09",
+      "donor": "F2",
+      "clone_num": "09",
+      "count": 1,
+      "passage_num": null,
+      "notes": "[imported] "
     }
   ]
 }
