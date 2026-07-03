@@ -768,6 +768,33 @@
       "count": 1,
       "passage_num": null,
       "notes": "[imported] "
+    },
+    {
+      "id": "mr49x8wdtmc0",
+      "type": "thaw",
+      "date": "2026-07-02",
+      "clone_key": "F2-22",
+      "count": 1,
+      "vial_freeze_date": "2024-05-03",
+      "notes": ""
+    },
+    {
+      "id": "mr49x8wdiryb",
+      "type": "thaw",
+      "date": "2026-07-02",
+      "clone_key": "F2-30",
+      "count": 1,
+      "vial_freeze_date": "2025-02-17",
+      "notes": ""
+    },
+    {
+      "id": "mr49x8wdtygs",
+      "type": "thaw",
+      "date": "2026-07-02",
+      "clone_key": "F5-09",
+      "count": 1,
+      "vial_freeze_date": "2024-03-29",
+      "notes": ""
     }
   ]
 }
