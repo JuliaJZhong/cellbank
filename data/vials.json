@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-07-03T01:47:45.613Z",
+  "last_updated": "2026-07-05T00:59:56.061Z",
   "vials": [
     {
       "clone_key": "F2-02",
@@ -11,18 +11,6 @@
       "notes": "",
       "jassage": 0,
       "pre_jassage": null
-    },
-    {
-      "clone_key": "F2-09",
-      "donor": "F2",
-      "clone_num": "09",
-      "freeze_date": "2025-02-17",
-      "count": 2,
-      "passage": null,
-      "notes": "",
-      "jassage": 0,
-      "pre_jassage": null,
-      "location": null
     },
     {
       "clone_key": "F2-10",
@@ -117,7 +105,7 @@
       "donor": "F2",
       "clone_num": "24",
       "freeze_date": "2024-03-29",
-      "count": 2,
+      "count": 1,
       "passage": null,
       "notes": "frozen down by RO",
       "jassage": 0,
@@ -206,17 +194,6 @@
       "clone_num": "02",
       "freeze_date": "2025-04-19",
       "count": 2,
-      "passage": null,
-      "notes": "",
-      "jassage": 0,
-      "pre_jassage": null
-    },
-    {
-      "clone_key": "F5-04",
-      "donor": "F5",
-      "clone_num": "04",
-      "freeze_date": "2025-02-28",
-      "count": 1,
       "passage": null,
       "notes": "",
       "jassage": 0,
@@ -316,7 +293,7 @@
       "donor": "F5",
       "clone_num": "17",
       "freeze_date": "2024-03-26",
-      "count": 2,
+      "count": 1,
       "passage": null,
       "notes": "",
       "jassage": 0,
