@@ -1156,7 +1156,7 @@ function normaliseState() {
 
   // Rebuild any missing vial entries from non-superseded, non-correction freeze events
   for (const e of state.events) {
-    if (e.type !== 'freeze' || e.superseded_by || e.is_correction) continue;
+    if (e.type !== 'freeze' || e.superseded_by) continue;
     const existing = state.vials.find(v => v.clone_key === e.clone_key && v.freeze_date === e.date);
     if (!existing) {
       state.vials.push({
