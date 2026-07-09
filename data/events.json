@@ -453,8 +453,7 @@
       "is_correction": true,
       "corrects": "mokno9z43rno",
       "correction_reason": "forgot to mark who froze down",
-      "correction_logged": "2026-04-30",
-      "superseded_by": "__recovered__"
+      "correction_logged": "2026-04-30"
     },
     {
       "id": "mokqrf6zu76c",
@@ -767,7 +766,8 @@
       "clone_num": "09",
       "count": 1,
       "passage_num": null,
-      "notes": "[imported] "
+      "notes": "[imported] ",
+      "superseded_by": "__recovered__"
     },
     {
       "id": "mr49x8wdtmc0",
