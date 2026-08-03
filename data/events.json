@@ -737,7 +737,7 @@
       "clone_key": "F2-09",
       "count": 1,
       "vial_freeze_date": "2025-02-17",
-      "notes": "very unhappy, eventually killed this culture. from cdw notebook, perhaps only 2e6 vc in this vial"
+      "notes": "(A) very unhappy, eventually killed this culture. from cdw notebook, perhaps only 2e6 vc in this vial"
     },
     {
       "id": "mr2g449surdl",
@@ -746,7 +746,7 @@
       "clone_key": "F2-29",
       "count": 1,
       "vial_freeze_date": "2025-06-21",
-      "notes": ""
+      "notes": "(A)"
     },
     {
       "id": "mr2g449s4ugp",
@@ -755,7 +755,7 @@
       "clone_key": "F5-07",
       "count": 1,
       "vial_freeze_date": "2024-03-15",
-      "notes": ""
+      "notes": "(A)"
     },
     {
       "id": "mr49uzgxy2ce",
@@ -776,7 +776,7 @@
       "clone_key": "F2-22",
       "count": 1,
       "vial_freeze_date": "2024-05-03",
-      "notes": ""
+      "notes": "(B)"
     },
     {
       "id": "mr49x8wdiryb",
@@ -785,7 +785,7 @@
       "clone_key": "F2-30",
       "count": 1,
       "vial_freeze_date": "2025-02-17",
-      "notes": ""
+      "notes": "(B)"
     },
     {
       "id": "mr49x8wdtygs",
@@ -794,7 +794,7 @@
       "clone_key": "F5-09",
       "count": 1,
       "vial_freeze_date": "2024-03-29",
-      "notes": ""
+      "notes": "(B)"
     },
     {
       "id": "mr733g2kaasd",
@@ -803,7 +803,7 @@
       "clone_key": "F2-24",
       "count": 1,
       "vial_freeze_date": "2024-03-29",
-      "notes": ""
+      "notes": "(D)"
     },
     {
       "id": "mr733g2kbs0f",
@@ -812,7 +812,7 @@
       "clone_key": "F5-04",
       "count": 1,
       "vial_freeze_date": "2025-02-28",
-      "notes": ""
+      "notes": "(D)"
     },
     {
       "id": "mr733g2krl19",
@@ -821,7 +821,7 @@
       "clone_key": "F5-17",
       "count": 1,
       "vial_freeze_date": "2024-03-26",
-      "notes": ""
+      "notes": "(D)"
     },
     {
       "id": "msdpgi7wcyso",
@@ -830,7 +830,7 @@
       "clone_key": "F2-23",
       "count": 1,
       "vial_freeze_date": "2024-03-29",
-      "notes": ""
+      "notes": "(C)"
     },
     {
       "id": "msdpgi7wm098",
@@ -839,7 +839,7 @@
       "clone_key": "F5-02",
       "count": 1,
       "vial_freeze_date": "2025-04-19",
-      "notes": ""
+      "notes": "(C)"
     },
     {
       "id": "msdpgi7wdp3o",
@@ -848,7 +848,7 @@
       "clone_key": "F5-12",
       "count": 1,
       "vial_freeze_date": "2024-03-05",
-      "notes": ""
+      "notes": "(C)"
     },
     {
       "id": "msdphpw9vxw2",
@@ -857,7 +857,7 @@
       "clone_key": "F2-10",
       "count": 1,
       "vial_freeze_date": "2025-03-24",
-      "notes": "clone used in sex hormone pilot, not clonal though"
+      "notes": "(E) clone used in sex hormone pilot, not clonal though"
     },
     {
       "id": "msdphpw9tbkl",
@@ -866,7 +866,7 @@
       "clone_key": "F2-25",
       "count": 1,
       "vial_freeze_date": "2025-04-19",
-      "notes": ""
+      "notes": "(E)"
     },
     {
       "id": "msdphpw9wyn5",
@@ -875,7 +875,7 @@
       "clone_key": "F5-06",
       "count": 1,
       "vial_freeze_date": "2025-03-03",
-      "notes": ""
+      "notes": "(E)"
     }
   ]
 }
