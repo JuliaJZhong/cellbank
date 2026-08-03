@@ -318,7 +318,7 @@
   .event-list { display: flex; flex-direction: column; gap: 8px; }
   .event-item {
     display: grid;
-    grid-template-columns: 100px 80px 1fr auto;
+    grid-template-columns: 100px 80px 1fr 1fr auto;
     align-items: center;
     gap: 12px;
     padding: 10px 14px;
@@ -1008,6 +1008,49 @@
   </div>
 </div>
 
+<!-- EVENT EDIT MODAL -->
+<div class="modal-overlay" id="event-edit-modal" onclick="if(event.target===this)closeEventEditModal()">
+  <div class="modal" style="max-width:480px;position:relative;">
+    <button onclick="closeEventEditModal()" style="position:absolute;top:12px;right:12px;width:28px;height:28px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);color:var(--text-dim);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;"
+      onmouseenter="this.style.borderColor='var(--danger)';this.style.color='var(--danger)'"
+      onmouseleave="this.style.borderColor='var(--border)';this.style.color='var(--text-dim)'">×</button>
+    <div class="modal-title">Edit Event</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Date</label>
+        <input type="text" id="eem-date" placeholder="e.g. 13Jun25" style="max-width:130px;">
+      </div>
+      <div class="form-group">
+        <label>Clone</label>
+        <select id="eem-clone"></select>
+      </div>
+    </div>
+    <div class="form-row" id="eem-extra-fields"></div>
+    <div class="form-row">
+      <div class="form-group full">
+        <label>Notes</label>
+        <textarea id="eem-notes" style="min-height:50px;"></textarea>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="saveEventEdit()">Save</button>
+      <button class="btn btn-secondary" onclick="closeEventEditModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE CONFIRM MODAL -->
+<div class="modal-overlay" id="delete-confirm-modal" onclick="if(event.target===this)closeDeleteConfirm()">
+  <div class="modal" style="max-width:360px;position:relative;">
+    <div class="modal-title" style="color:var(--danger);">Delete Event?</div>
+    <p style="font-size:13px;color:var(--text-dim);margin-bottom:20px;">This permanently removes the event from the log. This cannot be undone.</p>
+    <div class="btn-row">
+      <button class="btn btn-danger" onclick="executeDeleteEvent()" style="background:transparent;border-color:var(--danger);color:var(--danger);">Yes, delete</button>
+      <button class="btn btn-secondary" onclick="closeDeleteConfirm()">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
@@ -1156,7 +1199,7 @@ function normaliseState() {
 
   // Rebuild any missing vial entries from non-superseded, non-correction freeze events
   for (const e of state.events) {
-    if (e.type !== 'freeze' || e.superseded_by) continue;
+    if (e.type !== 'freeze' || e.superseded_by || e.is_correction) continue;
     const existing = state.vials.find(v => v.clone_key === e.clone_key && v.freeze_date === e.date);
     if (!existing) {
       state.vials.push({
@@ -1456,7 +1499,7 @@ function renderClones() {
 }
 
 function renderLog() {
-  let evs = [...state.events].reverse();
+  let evs = [...state.events].sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id));
   if (logFilter !== 'all') evs = evs.filter(e => e.type === logFilter);
   evs = evs.filter(e => !e.superseded_by);
   const el = document.getElementById('event-list');
@@ -1483,6 +1526,10 @@ function renderLog() {
       <span class="event-type-badge ${typeCls}">${typeLabel}</span>
       <span class="event-detail">${detail}${corrTag}${supTag}</span>
       <span class="event-note">${e.is_correction ? `✏️ ${e.correction_reason}` : (e.notes || '')}</span>
+      <span style="display:flex;gap:4px;flex-shrink:0;">
+        <button class="btn btn-sm btn-secondary" onclick="openEventEditModal('${e.id}')" style="padding:3px 8px;font-size:11px;">✏️</button>
+        <button class="btn btn-sm btn-danger" onclick="confirmDeleteEvent('${e.id}')" style="padding:3px 8px;font-size:11px;background:transparent;border-color:var(--danger);color:var(--danger);">🗑</button>
+      </span>
     </div>`;
   }).join('');
 }
@@ -1687,14 +1734,65 @@ function updateEndCultureRow(actionSel) {
 let passageRowCount = 0;
 function initPassageRows() {
   passageRowCount = 0;
-  document.getElementById('passage-rows').innerHTML = '';
-  // Auto-populate with active cultures
+  const container = document.getElementById('passage-rows');
+  container.innerHTML = '';
   const active = getActiveCultures();
-  if (active.length) {
-    for (const c of active) addPassageRow(c.clone_key);
-  } else {
-    addPassageRow();
+  if (!active.length) {
+    container.innerHTML = '<div class="empty" style="padding:12px 0;">No active cultures. Thaw a vial first.</div>';
+    return;
   }
+  // Show checkboxes for each active culture — none selected by default
+  container.innerHTML = `
+    <div style="font-family:var(--mono);font-size:11px;color:var(--text-dim);margin-bottom:8px;">
+      Select clones to passage, then optionally override the jassage/passage number per clone.
+    </div>
+    ${active.map(c => {
+      const J0_DATE = '2026-05-07';
+      const isJassageEra = c.thaw_date && c.thaw_date >= J0_DATE;
+      const cloneVials = state.vials.filter(v => v.clone_key === c.clone_key);
+      const sourceVial = c.source_freeze_date ? cloneVials.find(v => v.freeze_date === c.source_freeze_date) : null;
+      const currentJ = sourceVial?.jassage ?? getJassageForCulture(c.clone_key, c.thaw_date);
+      const currentP = sourceVial?.passage ?? (cloneVials.map(v=>v.passage).filter(p=>p!=null).reduce((a,b)=>Math.max(a,b), null));
+      const hint = isJassageEra ? `J${currentJ} → J${currentJ+1}` : currentP != null ? `P${currentP} → P${currentP+1}` : '→ P1';
+      return `<div class="batch-row" style="grid-template-columns:24px 130px 120px 1fr;align-items:center;margin-bottom:6px;" id="prow-${c.clone_key}">
+        <input type="checkbox" class="pr-check" data-clone="${c.clone_key}"
+          style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer;"
+          onchange="togglePassageRow('${c.clone_key}')">
+        <span style="font-family:var(--mono);font-size:13px;font-weight:600;color:var(--text-bright);">${c.clone_key}</span>
+        <span style="font-family:var(--mono);font-size:11px;color:var(--text-dim);">${hint}</span>
+        <input class="pr-num" type="number" min="0" placeholder="override #"
+          style="opacity:0.3;pointer-events:none;" disabled
+          data-clone="${c.clone_key}">
+      </div>`;
+    }).join('')}
+    <div style="margin-top:8px;display:flex;gap:8px;">
+      <button class="btn btn-secondary btn-sm" onclick="selectAllPassageRows()">Select all</button>
+      <button class="btn btn-secondary btn-sm" onclick="deselectAllPassageRows()">Deselect all</button>
+    </div>
+  `;
+}
+
+function togglePassageRow(cloneKey) {
+  const row = document.getElementById(`prow-${cloneKey}`);
+  const checked = row.querySelector('.pr-check').checked;
+  const numInput = row.querySelector('.pr-num');
+  numInput.disabled = !checked;
+  numInput.style.opacity = checked ? '1' : '0.3';
+  numInput.style.pointerEvents = checked ? '' : 'none';
+}
+
+function selectAllPassageRows() {
+  document.querySelectorAll('.pr-check').forEach(cb => {
+    cb.checked = true;
+    togglePassageRow(cb.dataset.clone);
+  });
+}
+
+function deselectAllPassageRows() {
+  document.querySelectorAll('.pr-check').forEach(cb => {
+    cb.checked = false;
+    togglePassageRow(cb.dataset.clone);
+  });
 }
 
 function activeCloneOpts(selected) {
@@ -1932,45 +2030,38 @@ async function logPassage() {
   const date = parseDMY(document.getElementById('passage-date').value.trim());
   if (!date) return toast('Enter a valid date, e.g. 13Jun25.', 'error');
 
-  const rows = document.querySelectorAll('#passage-rows .batch-row');
-  if (rows.length === 0) return toast('Add at least one clone row.', 'error');
+  const checked = [...document.querySelectorAll('.pr-check:checked')];
+  if (checked.length === 0) return toast('Select at least one clone to passage.', 'error');
 
   const J0_DATE = '2026-05-07';
   const entries = [];
-  for (const row of rows) {
-    const key = row.querySelector('.pr-clone').value;
-    const pNumVal = row.querySelector('.pr-num').value;
-    const notes = row.querySelector('.pr-notes').value.trim();
-    if (!key) continue;
 
-    // Use source freeze batch from active culture thaw event
+  for (const cb of checked) {
+    const key = cb.dataset.clone;
+    const row = document.getElementById(`prow-${key}`);
+    const pNumVal = row?.querySelector('.pr-num')?.value || '';
+
     const activeCulture = getActiveCultures().find(c => c.clone_key === key);
     const thawDate = activeCulture?.thaw_date || null;
     const sourceFreezeDate = activeCulture?.source_freeze_date || null;
-
-    // Is this culture in the jassage era? (thawed on/after J0_DATE)
     const isJassageEra = thawDate && thawDate >= J0_DATE;
-
     const cloneVials = state.vials.filter(v => v.clone_key === key);
     const sourceVial = sourceFreezeDate ? cloneVials.find(v => v.freeze_date === sourceFreezeDate) : null;
 
     if (isJassageEra) {
-      // Increment jassage
       const currentJ = sourceVial?.jassage ?? getJassageForCulture(key, thawDate);
       const newJ = pNumVal ? parseInt(pNumVal) : currentJ + 1;
       if (sourceVial) {
         sourceVial.jassage = newJ;
-        // Update absolute passage if pre_jassage known
         if (sourceVial.pre_jassage != null) sourceVial.passage = sourceVial.pre_jassage + newJ;
       }
-      entries.push({ key, sourceFreezeDate, newJ, isJassageEra: true, notes });
+      entries.push({ key, sourceFreezeDate, newJ, isJassageEra: true, notes: '' });
     } else {
-      // Increment absolute passage
       const passages = cloneVials.map(v => v.passage).filter(p => p != null);
       const currentP = sourceVial?.passage ?? (passages.length ? Math.max(...passages) : null);
       const newP = pNumVal ? parseInt(pNumVal) : (currentP != null ? currentP + 1 : 1);
       if (sourceVial) sourceVial.passage = newP;
-      entries.push({ key, sourceFreezeDate, newP, isJassageEra: false, notes });
+      entries.push({ key, sourceFreezeDate, newP, isJassageEra: false, notes: '' });
     }
   }
 
@@ -3006,6 +3097,86 @@ async function applyAllReconPassages() {
   toast(`Applied: ${updatedVials} vial batches updated, ${loggedPassages} passage events logged`, 'success');
 }
 
+
+// ── Event edit / delete ────────────────────────────────────────────────────────
+let eventEditId = null;
+let deleteEventId = null;
+
+function openEventEditModal(id) {
+  const e = state.events.find(ev => ev.id === id);
+  if (!e) return;
+  eventEditId = id;
+
+  // Populate clone select
+  const keys = allCloneKeys();
+  document.getElementById('eem-clone').innerHTML = keys.map(k =>
+    `<option value="${k}" ${k === e.clone_key ? 'selected' : ''}>${k}</option>`).join('');
+
+  document.getElementById('eem-date').value = fmtDMY(e.date);
+  document.getElementById('eem-notes').value = e.notes || '';
+
+  // Extra fields depending on type
+  let extra = '';
+  if (e.type === 'freeze' || e.type === 'thaw') {
+    extra += `<div class="form-group"><label>Count</label><input type="number" id="eem-count" min="0" value="${e.count ?? ''}"></div>`;
+  }
+  if (e.type === 'passage') {
+    extra += `<div class="form-group"><label>Passage #</label><input type="number" id="eem-passage" min="0" value="${e.passage_num ?? ''}"></div>`;
+    extra += `<div class="form-group"><label>Jassage #</label><input type="number" id="eem-jassage" min="0" value="${e.jassage_num ?? ''}"></div>`;
+  }
+  if (e.type === 'freeze') {
+    extra += `<div class="form-group"><label>Passage #</label><input type="number" id="eem-passage" min="0" value="${e.passage_num ?? ''}"></div>`;
+  }
+  document.getElementById('eem-extra-fields').innerHTML = extra;
+  document.getElementById('event-edit-modal').classList.add('open');
+}
+
+function closeEventEditModal() {
+  document.getElementById('event-edit-modal').classList.remove('open');
+  eventEditId = null;
+}
+
+async function saveEventEdit() {
+  const e = state.events.find(ev => ev.id === eventEditId);
+  if (!e) return;
+
+  const newDate = parseDMY(document.getElementById('eem-date').value.trim());
+  if (!newDate) return toast('Enter a valid date.', 'error');
+
+  e.date = newDate;
+  e.clone_key = document.getElementById('eem-clone').value;
+  e.notes = document.getElementById('eem-notes').value.trim();
+
+  const countEl = document.getElementById('eem-count');
+  if (countEl) e.count = parseInt(countEl.value) || e.count;
+
+  const passageEl = document.getElementById('eem-passage');
+  if (passageEl) e.passage_num = passageEl.value !== '' ? parseInt(passageEl.value) : null;
+
+  const jassageEl = document.getElementById('eem-jassage');
+  if (jassageEl) e.jassage_num = jassageEl.value !== '' ? parseInt(jassageEl.value) : null;
+
+  await saveData();
+  toast('Event updated', 'success');
+  closeEventEditModal();
+}
+
+function confirmDeleteEvent(id) {
+  deleteEventId = id;
+  document.getElementById('delete-confirm-modal').classList.add('open');
+}
+
+function closeDeleteConfirm() {
+  document.getElementById('delete-confirm-modal').classList.remove('open');
+  deleteEventId = null;
+}
+
+async function executeDeleteEvent() {
+  state.events = state.events.filter(e => e.id !== deleteEventId);
+  await saveData();
+  toast('Event deleted', 'success');
+  closeDeleteConfirm();
+}
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 loadData();
