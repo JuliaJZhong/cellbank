@@ -737,7 +737,7 @@
       "clone_key": "F2-09",
       "count": 1,
       "vial_freeze_date": "2025-02-17",
-      "notes": ""
+      "notes": "very unhappy, eventually killed this culture. from cdw notebook, perhaps only 2e6 vc in this vial"
     },
     {
       "id": "mr2g449surdl",
@@ -821,6 +821,60 @@
       "clone_key": "F5-17",
       "count": 1,
       "vial_freeze_date": "2024-03-26",
+      "notes": ""
+    },
+    {
+      "id": "msdpgi7wcyso",
+      "type": "thaw",
+      "date": "2026-07-03",
+      "clone_key": "F2-23",
+      "count": 1,
+      "vial_freeze_date": "2024-03-29",
+      "notes": ""
+    },
+    {
+      "id": "msdpgi7wm098",
+      "type": "thaw",
+      "date": "2026-07-03",
+      "clone_key": "F5-02",
+      "count": 1,
+      "vial_freeze_date": "2025-04-19",
+      "notes": ""
+    },
+    {
+      "id": "msdpgi7wdp3o",
+      "type": "thaw",
+      "date": "2026-07-03",
+      "clone_key": "F5-12",
+      "count": 1,
+      "vial_freeze_date": "2024-03-05",
+      "notes": ""
+    },
+    {
+      "id": "msdphpw9vxw2",
+      "type": "thaw",
+      "date": "2026-07-05",
+      "clone_key": "F2-10",
+      "count": 1,
+      "vial_freeze_date": "2025-03-24",
+      "notes": "clone used in sex hormone pilot, not clonal though"
+    },
+    {
+      "id": "msdphpw9tbkl",
+      "type": "thaw",
+      "date": "2026-07-05",
+      "clone_key": "F2-25",
+      "count": 1,
+      "vial_freeze_date": "2025-04-19",
+      "notes": ""
+    },
+    {
+      "id": "msdphpw9wyn5",
+      "type": "thaw",
+      "date": "2026-07-05",
+      "clone_key": "F5-06",
+      "count": 1,
+      "vial_freeze_date": "2025-03-03",
       "notes": ""
     }
   ]
