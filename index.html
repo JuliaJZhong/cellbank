@@ -695,7 +695,7 @@
     </div>
     <div class="card">
       <div class="card-title">Active Cultures</div>
-      <p style="font-size:12px;color:var(--text-dim);margin-bottom:14px;">Select clones whose culture you are ending. Choose to <strong style="color:var(--accent2)">freeze</strong> or <strong style="color:var(--danger)">discard</strong> for each selected clone.</p>
+      <p style="font-size:12px;color:var(--text-dim);margin-bottom:14px;">Only clones currently in culture are shown. For each, choose to <strong style="color:var(--accent2)">freeze</strong> or <strong style="color:var(--danger)">discard</strong>.</p>
       <div id="freeze-rows"></div>
       <div class="btn-row" style="margin-top:12px;">
         <button class="btn btn-secondary" onclick="addFreezeRow()">+ Add Manually</button>
@@ -1439,7 +1439,7 @@ function renderTank() {
         " onclick="openCloneModal('${key}')"
            onmouseenter="this.style.color='var(--accent)'"
            onmouseleave="this.style.color='var(--text-bright)'"
-        >${key}</td>
+        >${key} <span onclick="event.stopPropagation();openEditModal('${key}')" title="Edit batches" style="font-size:11px;color:var(--text-dim);cursor:pointer;margin-left:4px;" onmouseenter="this.style.color='var(--accent)'" onmouseleave="this.style.color='var(--text-dim)'">✏️</span></td>
         <td rowspan="${rowspan}" style="vertical-align:middle;">${donorBadge(donor)}</td>
       ` : '';
 
@@ -1487,7 +1487,13 @@ function renderClones() {
     const jassageDisplay = jassages.length === 0 ? ''
       : `<br><span class="badge ${jassageCls(Math.min(...jassages))}">J${Math.min(...jassages)}${jassages.length > 1 && Math.min(...jassages) !== Math.max(...jassages) ? '–'+Math.max(...jassages) : ''}</span>`;
     return `<div class="clone-card" onclick="openCloneModal('${key}')">
-      <div class="clone-id">${key}</div>
+      <div class="clone-id" style="display:flex;align-items:center;justify-content:space-between;">
+        <span>${key}</span>
+        <span onclick="event.stopPropagation();openEditModal('${key}')" title="Edit batches"
+          style="font-size:13px;color:var(--text-dim);cursor:pointer;"
+          onmouseenter="this.style.color='var(--accent)'"
+          onmouseleave="this.style.color='var(--text-dim)'">✏️</span>
+      </div>
       <div class="clone-meta">
         ${donorBadge(donor)}<br>
         <span style="color:var(--text)">🧊 ${vialCount} vials in tank</span><br>
@@ -1637,105 +1643,52 @@ function initFreezeRows() {
   freezeRowCount = 0;
   const container = document.getElementById('freeze-rows');
   container.innerHTML = '';
+  // Auto-populate with active cultures
   const active = getActiveCultures();
-  if (!active.length) {
-    container.innerHTML = '<div class="empty" style="padding:12px 0;">No active cultures. Thaw a vial first.</div>';
-    return;
-  }
-  container.innerHTML = `
-    <div style="font-family:var(--mono);font-size:11px;color:var(--text-dim);margin-bottom:8px;">
-      Select clones to end culture for. Expand each to set action, vial count, and notes.
-    </div>
-    ${active.map(c => `
-      <div id="ecrow-${c.clone_key}" style="margin-bottom:6px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">
-        <div style="display:grid;grid-template-columns:24px 1fr auto;align-items:center;gap:10px;padding:9px 12px;background:var(--surface2);cursor:pointer;"
-             onclick="toggleEndCultureExpand('${c.clone_key}')">
-          <input type="checkbox" class="ec-check" data-clone="${c.clone_key}"
-            style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer;"
-            onclick="event.stopPropagation();toggleEndCultureRow('${c.clone_key}')">
-          <span style="font-family:var(--mono);font-size:13px;font-weight:600;color:var(--text-bright);">${c.clone_key}</span>
-          <span style="font-family:var(--mono);font-size:11px;color:var(--text-dim);" id="ec-hint-${c.clone_key}">click to expand</span>
-        </div>
-        <div id="ec-detail-${c.clone_key}" style="display:none;padding:12px;background:var(--bg);border-top:1px solid var(--border);">
-          <div style="display:grid;grid-template-columns:100px 80px 90px;gap:8px;margin-bottom:10px;">
-            <div class="form-group">
-              <label>Action</label>
-              <select class="ec-action" data-clone="${c.clone_key}" onchange="updateEndCultureRowVisibility('${c.clone_key}')">
-                <option value="freeze">❄️ Freeze</option>
-                <option value="discard">🗑️ Discard</option>
-              </select>
-            </div>
-            <div class="form-group ec-count-wrap-${c.clone_key}">
-              <label>Vials</label>
-              <input class="ec-count" type="number" min="1" value="1" data-clone="${c.clone_key}">
-            </div>
-            <div class="form-group ec-passage-wrap-${c.clone_key}">
-              <label>Passage #</label>
-              <input class="ec-passage" type="number" min="0" placeholder="optional" data-clone="${c.clone_key}">
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Notes</label>
-            <textarea class="ec-notes" data-clone="${c.clone_key}" rows="3"
-              style="width:100%;resize:vertical;min-height:60px;" placeholder="observations, cell density, viability…"></textarea>
-          </div>
-        </div>
-      </div>
-    `).join('')}
-    <div style="margin-top:8px;display:flex;gap:8px;">
-      <button class="btn btn-secondary btn-sm" onclick="selectAllEndCulture()">Select all</button>
-      <button class="btn btn-secondary btn-sm" onclick="deselectAllEndCulture()">Deselect all</button>
-    </div>
-  `;
-}
-
-function toggleEndCultureExpand(cloneKey) {
-  const detail = document.getElementById(`ec-detail-${cloneKey}`);
-  const cb = document.querySelector(`#ecrow-${cloneKey} .ec-check`);
-  const isOpen = detail.style.display !== 'none';
-  detail.style.display = isOpen ? 'none' : 'block';
-  // Auto-check when expanding
-  if (!isOpen && cb && !cb.checked) {
-    cb.checked = true;
-    toggleEndCultureRow(cloneKey);
-  }
-}
-
-function toggleEndCultureRow(cloneKey) {
-  const cb = document.querySelector(`#ecrow-${cloneKey} .ec-check`);
-  const detail = document.getElementById(`ec-detail-${cloneKey}`);
-  if (cb.checked) {
-    detail.style.display = 'block';
+  if (active.length) {
+    for (const c of active) addEndCultureRow(c.clone_key);
   } else {
-    detail.style.display = 'none';
+    addFreezeRow();
   }
 }
 
-function updateEndCultureRowVisibility(cloneKey) {
-  const action = document.querySelector(`#ecrow-${cloneKey} .ec-action`)?.value;
-  const isDiscard = action === 'discard';
-  document.querySelector(`.ec-count-wrap-${cloneKey}`).style.display = isDiscard ? 'none' : '';
-  document.querySelector(`.ec-passage-wrap-${cloneKey}`).style.display = isDiscard ? 'none' : '';
+function addEndCultureRow(clone_key) {
+  // Add a pre-filled row for an active culture
+  freezeRowCount++;
+  const id = `fr-${freezeRowCount}`;
+  const el = document.createElement('div');
+  el.className = 'batch-row';
+  el.id = id;
+  el.style.gridTemplateColumns = '130px 90px 80px 80px 1fr 32px';
+  el.innerHTML = `
+    <div style="font-family:var(--mono);font-size:13px;font-weight:600;color:var(--text-bright);align-self:center;">${clone_key}</div>
+    <div class="form-group">
+      ${freezeRowCount === 1 ? '<label>Action</label>' : ''}
+      <select class="fr-action" onchange="updateEndCultureRow(this)">
+        <option value="freeze">❄️ Freeze</option>
+        <option value="discard">🗑️ Discard</option>
+      </select>
+    </div>
+    <div class="fr-count-wrap form-group">
+      ${freezeRowCount === 1 ? '<label>Vials</label>' : ''}
+      <input class="fr-count" type="number" min="1" value="1">
+    </div>
+    <div class="fr-passage-wrap form-group">
+      ${freezeRowCount === 1 ? '<label>Passage #</label>' : ''}
+      <input class="fr-passage" type="number" min="0" placeholder="optional">
+    </div>
+    <div class="form-group">
+      ${freezeRowCount === 1 ? '<label>Notes</label>' : ''}
+      <input class="fr-notes" type="text" placeholder="optional notes">
+    </div>
+    <button class="batch-remove" onclick="removeBatchRow('${id}')" title="Remove">×</button>
+    <input type="hidden" class="fr-clone" value="${clone_key}">
+  `;
+  document.getElementById('freeze-rows').appendChild(el);
 }
-
-function selectAllEndCulture() {
-  document.querySelectorAll('.ec-check').forEach(cb => {
-    cb.checked = true;
-    toggleEndCultureRow(cb.dataset.clone);
-  });
-}
-
-function deselectAllEndCulture() {
-  document.querySelectorAll('.ec-check').forEach(cb => {
-    cb.checked = false;
-    toggleEndCultureRow(cb.dataset.clone);
-  });
-}
-
-function addEndCultureRow(clone_key) { initFreezeRows(); } // kept for compat
 
 function addFreezeRow() {
-  // Manual add — appends a simple row for non-auto-detected cultures
+  // Manual add — shows donor/clone inputs (for cultures not auto-detected)
   freezeRowCount++;
   const id = `fr-${freezeRowCount}`;
   const el = document.createElement('div');
@@ -1746,31 +1699,31 @@ function addFreezeRow() {
   const prevDonor = prevRows.length ? prevRows[prevRows.length - 1].value : 'F2';
   el.innerHTML = `
     <div class="form-group">
-      <label>Donor</label>
+      ${freezeRowCount === 1 ? '<label>Donor</label>' : ''}
       <select class="fr-donor">${donorOptions(prevDonor)}</select>
     </div>
     <div class="form-group">
-      <label>Clone #</label>
+      ${freezeRowCount === 1 ? '<label>Clone #</label>' : ''}
       <input class="fr-clone-input" type="text" placeholder="e.g. 17">
     </div>
     <div class="form-group">
-      <label>Action</label>
+      ${freezeRowCount === 1 ? '<label>Action</label>' : ''}
       <select class="fr-action" onchange="updateEndCultureRow(this)">
         <option value="freeze">❄️ Freeze</option>
         <option value="discard">🗑️ Discard</option>
       </select>
     </div>
     <div class="fr-count-wrap form-group">
-      <label>Vials</label>
+      ${freezeRowCount === 1 ? '<label>Vials</label>' : ''}
       <input class="fr-count" type="number" min="1" value="1">
     </div>
     <div class="fr-passage-wrap form-group">
-      <label>Passage #</label>
+      ${freezeRowCount === 1 ? '<label>Passage #</label>' : ''}
       <input class="fr-passage" type="number" min="0" placeholder="optional">
     </div>
     <div class="form-group">
-      <label>Notes</label>
-      <textarea class="fr-notes" rows="2" style="resize:vertical;min-height:44px;" placeholder="optional notes"></textarea>
+      ${freezeRowCount === 1 ? '<label>Notes</label>' : ''}
+      <input class="fr-notes" type="text" placeholder="optional notes">
     </div>
     <button class="batch-remove" onclick="removeBatchRow('${id}')" title="Remove">×</button>
   `;
@@ -1804,7 +1757,7 @@ function initPassageRows() {
       const isJassageEra = c.thaw_date && c.thaw_date >= J0_DATE;
       const cloneVials = state.vials.filter(v => v.clone_key === c.clone_key);
       const sourceVial = c.source_freeze_date ? cloneVials.find(v => v.freeze_date === c.source_freeze_date) : null;
-      const currentJ = sourceVial?.jassage ?? getJassageForCulture(c.clone_key, c.thaw_date);
+      const currentJ = getJassageForCulture(c.clone_key, c.thaw_date);
       const currentP = sourceVial?.passage ?? (cloneVials.map(v=>v.passage).filter(p=>p!=null).reduce((a,b)=>Math.max(a,b), null));
       const hint = isJassageEra ? `J${currentJ} → J${currentJ+1}` : currentP != null ? `P${currentP} → P${currentP+1}` : '→ P1';
       return `<div class="batch-row" style="grid-template-columns:24px 130px 120px 1fr;align-items:center;margin-bottom:6px;" id="prow-${c.clone_key}">
@@ -1904,7 +1857,7 @@ function updatePassageHint(el) {
   const sourceVial = sourceFreezeDate ? cloneVials.find(v => v.freeze_date === sourceFreezeDate) : null;
   const numInput = row.querySelector('.pr-num');
   if (isJassageEra) {
-    const currentJ = sourceVial?.jassage ?? getJassageForCulture(key, thawDate);
+    const currentJ = getJassageForCulture(key, thawDate);
     numInput.placeholder = `auto → J${currentJ + 1}`;
   } else {
     const passages = cloneVials.map(v => v.passage).filter(p => p != null);
@@ -1918,49 +1871,47 @@ async function logEndCulture() {
   const date = parseDMY(document.getElementById('freeze-date').value.trim());
   if (!date) return toast('Enter a valid date, e.g. 13Jun25.', 'error');
 
+  const rows = document.querySelectorAll('#freeze-rows .batch-row');
+  if (rows.length === 0) return toast('Add at least one row.', 'error');
+
   const entries = [];
-
-  // Read checkbox rows (auto-populated active cultures)
-  const checked = [...document.querySelectorAll('.ec-check:checked')];
-  for (const cb of checked) {
-    const key = cb.dataset.clone;
-    const action = document.querySelector(`#ecrow-${key} .ec-action`)?.value || 'freeze';
-    const count = parseInt(document.querySelector(`#ecrow-${key} .ec-count`)?.value || '1');
-    const passage = document.querySelector(`#ecrow-${key} .ec-passage`)?.value || '';
-    const notes = document.querySelector(`#ecrow-${key} .ec-notes`)?.value.trim() || '';
-    if (action === 'freeze' && (!count || count < 1)) return toast(`Fill in vial count for ${key}.`, 'error');
-    entries.push({ key, action, count, passage, notes });
-  }
-
-  // Read any manually-added rows
-  for (const row of document.querySelectorAll('#freeze-rows .batch-row')) {
+  for (const row of rows) {
     const action = row.querySelector('.fr-action')?.value || 'freeze';
-    const donor = row.querySelector('.fr-donor')?.value;
-    const cloneInput = row.querySelector('.fr-clone-input')?.value.trim();
-    if (!donor || !cloneInput) continue;
-    const key = cloneKey(donor, cloneInput);
-    const count = parseInt(row.querySelector('.fr-count')?.value || '1');
-    const passage = row.querySelector('.fr-passage')?.value || '';
+    // Clone key: either from hidden input (auto-populated) or donor+clone inputs (manual)
+    let key;
+    const hiddenClone = row.querySelector('input.fr-clone');
+    if (hiddenClone) {
+      key = hiddenClone.value;
+    } else {
+      const donor = row.querySelector('.fr-donor')?.value;
+      const cloneInput = row.querySelector('.fr-clone-input')?.value.trim();
+      if (!donor || !cloneInput) return toast('Fill in donor and clone # for every row.', 'error');
+      key = cloneKey(donor, cloneInput);
+    }
+    const count = action === 'freeze' ? parseInt(row.querySelector('.fr-count')?.value || '1') : 0;
+    const passage = row.querySelector('.fr-passage')?.value;
     const notes = row.querySelector('.fr-notes')?.value.trim() || '';
-    if (action === 'freeze' && (!count || count < 1)) return toast(`Fill in vial count for ${key}.`, 'error');
+    if (action === 'freeze' && (!count || count < 1)) return toast('Fill in vial count for freeze rows.', 'error');
     entries.push({ key, action, count, passage, notes });
   }
-
-  if (entries.length === 0) return toast('Select at least one clone.', 'error');
 
   const J0_DATE = '2026-05-07';
   let freezeCount = 0, discardCount = 0;
   for (const { key, action, count, passage, notes } of entries) {
     const donor = donorFromKey(key);
     const normClone = normaliseClone(cloneNumFromKey(key));
+
+    // Is this culture in the jassage era?
     const activeCulture = getActiveCultures().find(c => c.clone_key === key);
     const thawDate = activeCulture?.thaw_date || null;
     const isJassageEra = thawDate && thawDate >= J0_DATE;
 
     if (action === 'freeze') {
+      // Jassage: freeze = +1 from current jassage
       const currentJ = isJassageEra ? getJassageForCulture(key, thawDate) : null;
       const newJ = isJassageEra ? (currentJ + 1) : null;
       const newP = !isJassageEra && passage ? parseInt(passage) : null;
+
       state.events.push({ id: uid(), type: 'freeze', date, clone_key: key, donor, clone_num: normClone, count,
         passage_num: newP, jassage_num: newJ, notes });
       const existing = state.vials.find(v => v.clone_key === key && v.freeze_date === date);
@@ -1984,7 +1935,8 @@ async function logEndCulture() {
   if (freezeCount) parts.push(`${freezeCount} freeze${freezeCount > 1 ? 's' : ''}`);
   if (discardCount) parts.push(`${discardCount} discard${discardCount > 1 ? 's' : ''}`);
   toast(`Logged ${parts.join(' + ')} for ${fmtDMY(date)}`, 'success');
-  navigate('tank');
+  initFreezeRows();
+  document.getElementById('freeze-date').value = fmtDMY(today());
 }
 
 // Keep logFreeze as alias for backwards compatibility (Import still uses it indirectly via importVials)
@@ -2104,12 +2056,9 @@ async function logPassage() {
     const sourceVial = sourceFreezeDate ? cloneVials.find(v => v.freeze_date === sourceFreezeDate) : null;
 
     if (isJassageEra) {
-      const currentJ = sourceVial?.jassage ?? getJassageForCulture(key, thawDate);
+      const currentJ = getJassageForCulture(key, thawDate);
       const newJ = pNumVal ? parseInt(pNumVal) : currentJ + 1;
-      if (sourceVial) {
-        sourceVial.jassage = newJ;
-        if (sourceVial.pre_jassage != null) sourceVial.passage = sourceVial.pre_jassage + newJ;
-      }
+      // Don't mutate sourceVial.jassage — jassage on frozen vials is set only at freeze time
       entries.push({ key, sourceFreezeDate, newJ, isJassageEra: true, notes: '' });
     } else {
       const passages = cloneVials.map(v => v.passage).filter(p => p != null);
@@ -2130,7 +2079,8 @@ async function logPassage() {
 
   await saveData();
   toast(`Logged ${entries.length} passage event${entries.length > 1 ? 's' : ''} for ${fmtDMY(date)}`, 'success');
-  navigate('clones');
+  document.getElementById('passage-date').value = fmtDMY(today());
+  initPassageRows();
 }
 
 // ── Import ────────────────────────────────────────────────────────────────────
