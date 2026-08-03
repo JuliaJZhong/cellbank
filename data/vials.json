@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-08-03T21:00:18.359Z",
+  "last_updated": "2026-08-03T20:54:36.314Z",
   "vials": [
     {
       "clone_key": "F2-02",
@@ -374,6 +374,17 @@
       "passage": null,
       "notes": "",
       "jassage": 2,
+      "pre_jassage": null
+    },
+    {
+      "clone_key": "F2-09",
+      "donor": "F2",
+      "clone_num": "09",
+      "freeze_date": "2025-02-17",
+      "count": 2,
+      "passage": null,
+      "notes": "frozen down by RO",
+      "jassage": 0,
       "pre_jassage": null
     }
   ]
