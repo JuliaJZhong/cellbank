@@ -1,2 +1,3 @@
 - new flask object for active cultures -> NVM. this sucked.
 - hit claude limit again lol. make it so that num_thaw must == num_end_culture in order for a culture to be inactive. or whatever. claude was literally about to wrap up that implementation and then hit limit booooo
+- make clone cards editable. aka if i want to specify rack and box!
