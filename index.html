@@ -710,7 +710,7 @@
   <!-- ═══ THAW ═══ -->
   <div class="view" id="view-add-thaw">
     <div class="page-title">Log Thaw</div>
-    <div class="page-sub">Record vials being removed from the tank — add multiple clones if you thawed several on the same day</div>
+    <div class="page-sub">Record vials removed from the tank. Each thaw row can optionally seed a new flask.</div>
     <div class="card">
       <div class="card-title">Thaw Date</div>
       <div class="form-row">
@@ -952,7 +952,42 @@
 
     </div>
   </div>
+
 </main>
+
+<!-- CREATE FLASK MODAL -->
+<div class="modal-overlay" id="create-flask-modal" onclick="if(event.target===this)closeCreateFlaskModal()">
+  <div class="modal" style="max-width:500px;position:relative;">
+    <button onclick="closeCreateFlaskModal()" style="position:absolute;top:12px;right:12px;width:28px;height:28px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);color:var(--text-dim);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;"
+      onmouseenter="this.style.borderColor='var(--danger)';this.style.color='var(--danger)'"
+      onmouseleave="this.style.borderColor='var(--border)';this.style.color='var(--text-dim)'">×</button>
+    <div class="modal-title">Create Flask</div>
+    <p style="font-size:12px;color:var(--text-dim);margin-bottom:14px;">Use this to manually seed a flask from existing vials without logging a new thaw event — e.g. if you already logged the thaw separately.</p>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Clone</label>
+        <select id="cf-clone" onchange="updateFlaskSourceOptions()"></select>
+      </div>
+      <div class="form-group">
+        <label>Seeded Date</label>
+        <input type="text" id="cf-date" placeholder="e.g. 13Jun25" style="max-width:130px;">
+      </div>
+    </div>
+    <div style="font-family:var(--mono);font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;margin-top:8px;">Source Vials</div>
+    <div id="cf-sources"></div>
+    <button class="btn btn-secondary btn-sm" style="margin-top:6px;" onclick="addFlaskSource()">+ Add Source Vial</button>
+    <div class="form-row" style="margin-top:12px;">
+      <div class="form-group full">
+        <label>Notes</label>
+        <textarea id="cf-notes" rows="2" style="resize:vertical;"></textarea>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="saveCreateFlask()">Create Flask</button>
+      <button class="btn btn-secondary" onclick="closeCreateFlaskModal()">Cancel</button>
+    </div>
+  </div>
+</div>
 
 <!-- COMMIT MODAL -->
 <div class="modal-overlay" id="commit-modal">
@@ -1055,7 +1090,7 @@
 
 <script>
 const API = 'http://localhost:8787';
-let state = { vials: [], events: [] };
+let state = { vials: [], events: [], flasks: [] };
 let tankFilter = 'all';
 let logFilter = 'all';
 let cloneFilter = 'all';
@@ -1063,13 +1098,15 @@ let cloneFilter = 'all';
 // ── Data loading ──────────────────────────────────────────────────────────────
 async function loadData() {
   try {
-    const [v, e, inf] = await Promise.all([
+    const [v, e, inf, fl] = await Promise.all([
       fetch(`${API}/data/vials.json`).then(r => r.json()),
       fetch(`${API}/data/events.json`).then(r => r.json()),
       fetch(`${API}/data/inference.json`).then(r => r.json()).catch(() => ({})),
+      fetch(`${API}/data/flasks.json`).then(r => r.json()).catch(() => ({ flasks: [] })),
     ]);
     state.vials = v.vials || [];
     state.events = e.events || [];
+    state.flasks = fl.flasks || [];
     reconDays = inf.reconDays || [];
     ambiguityResolutions = inf.ambiguityResolutions || {};
     normaliseState();
@@ -1094,7 +1131,12 @@ async function saveData() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ file: 'events.json', data: { events: state.events } })
-      })
+      }),
+      fetch(`${API}/api/save`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ file: 'flasks.json', data: { flasks: state.flasks } })
+      }),
     ]);
   } catch(err) {
     console.error('saveData fetch failed:', err);
@@ -1159,18 +1201,38 @@ function allCloneKeys() {
 // Returns clones currently in active culture:
 // thawed but not yet frozen or discarded
 function getActiveCultures() {
+  // Legacy: derive from events (used for backward compat in old data)
   const active = {};
-  // Walk events in chronological order
   const sorted = [...state.events].filter(e => !e.superseded_by).sort((a, b) => a.date.localeCompare(b.date));
   for (const e of sorted) {
     if (!e.clone_key) continue;
-    if (e.type === 'thaw') {
+    if (e.type === 'thaw' && !e.flask_id) {
       active[e.clone_key] = { clone_key: e.clone_key, thaw_date: e.date, source_freeze_date: e.vial_freeze_date || null };
     } else if (e.type === 'freeze' || e.type === 'discard') {
-      delete active[e.clone_key];
+      if (!e.flask_id) delete active[e.clone_key];
     }
   }
   return Object.values(active);
+}
+
+function getActiveFlasks() {
+  return state.flasks.filter(f => f.status === 'active');
+}
+
+function getJassageForFlask(flask) {
+  // Count passage events for this flask
+  const passages = state.events.filter(e =>
+    e.flask_id === flask.id && e.type === 'passage' && !e.superseded_by
+  ).length;
+  return (flask.starting_jassage ?? 0) + passages;
+}
+
+function flaskLabel(flask) {
+  return `${flask.clone_key} <span style="color:var(--text-dim);font-size:10px;">(seeded ${fmtDMY(flask.seeded_date)})</span>`;
+}
+
+function flaskShortLabel(flask) {
+  return `${flask.clone_key} · seeded ${fmtDMY(flask.seeded_date)}`;
 }
 
 function normaliseState() {
@@ -1439,7 +1501,7 @@ function renderTank() {
         " onclick="openCloneModal('${key}')"
            onmouseenter="this.style.color='var(--accent)'"
            onmouseleave="this.style.color='var(--text-bright)'"
-        >${key} <span onclick="event.stopPropagation();openEditModal('${key}')" title="Edit batches" style="font-size:11px;color:var(--text-dim);cursor:pointer;margin-left:4px;" onmouseenter="this.style.color='var(--accent)'" onmouseleave="this.style.color='var(--text-dim)'">✏️</span></td>
+        >${key}</td>
         <td rowspan="${rowspan}" style="vertical-align:middle;">${donorBadge(donor)}</td>
       ` : '';
 
@@ -1487,13 +1549,7 @@ function renderClones() {
     const jassageDisplay = jassages.length === 0 ? ''
       : `<br><span class="badge ${jassageCls(Math.min(...jassages))}">J${Math.min(...jassages)}${jassages.length > 1 && Math.min(...jassages) !== Math.max(...jassages) ? '–'+Math.max(...jassages) : ''}</span>`;
     return `<div class="clone-card" onclick="openCloneModal('${key}')">
-      <div class="clone-id" style="display:flex;align-items:center;justify-content:space-between;">
-        <span>${key}</span>
-        <span onclick="event.stopPropagation();openEditModal('${key}')" title="Edit batches"
-          style="font-size:13px;color:var(--text-dim);cursor:pointer;"
-          onmouseenter="this.style.color='var(--accent)'"
-          onmouseleave="this.style.color='var(--text-dim)'">✏️</span>
-      </div>
+      <div class="clone-id">${key}</div>
       <div class="clone-meta">
         ${donorBadge(donor)}<br>
         <span style="color:var(--text)">🧊 ${vialCount} vials in tank</span><br>
@@ -1643,49 +1699,104 @@ function initFreezeRows() {
   freezeRowCount = 0;
   const container = document.getElementById('freeze-rows');
   container.innerHTML = '';
-  // Auto-populate with active cultures
-  const active = getActiveCultures();
-  if (active.length) {
-    for (const c of active) addEndCultureRow(c.clone_key);
-  } else {
-    addFreezeRow();
+
+  const activeFlasks = getActiveFlasks();
+  const legacyCultures = getActiveCultures();
+
+  if (!activeFlasks.length && !legacyCultures.length) {
+    container.innerHTML = '<div class="empty" style="padding:12px 0;">No active flasks or cultures.</div>';
+    return;
   }
+
+  const items = [
+    ...activeFlasks.map(f => ({ type: 'flask', key: f.id, label: flaskShortLabel(f), clone_key: f.clone_key })),
+    ...legacyCultures.map(c => ({ type: 'legacy', key: c.clone_key, label: c.clone_key, clone_key: c.clone_key })),
+  ];
+
+  container.innerHTML = `
+    <div style="font-family:var(--mono);font-size:11px;color:var(--text-dim);margin-bottom:8px;">
+      Select flasks/cultures to end. Expand each to choose action and details.
+    </div>
+    ${items.map(item => {
+      const safeKey = item.key.replace(/[^a-zA-Z0-9_-]/g, '_');
+      return `<div id="ecrow-${safeKey}" style="margin-bottom:6px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">
+        <div style="display:grid;grid-template-columns:24px 1fr auto;align-items:center;gap:10px;padding:9px 12px;background:var(--surface2);cursor:pointer;"
+             onclick="toggleEndCultureExpand('${safeKey}')">
+          <input type="checkbox" class="ec-check" data-key="${item.key}" data-type="${item.type}"
+            style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer;"
+            onclick="event.stopPropagation();toggleEndCultureRow('${safeKey}')">
+          <span style="font-family:var(--mono);font-size:12px;font-weight:600;color:var(--text-bright);">${item.label}</span>
+          <span style="font-family:var(--mono);font-size:11px;color:var(--text-dim);">click to expand</span>
+        </div>
+        <div id="ec-detail-${safeKey}" style="display:none;padding:12px;background:var(--bg);border-top:1px solid var(--border);">
+          <div style="display:grid;grid-template-columns:100px 80px 90px;gap:8px;margin-bottom:10px;">
+            <div class="form-group">
+              <label>Action</label>
+              <select class="ec-action" data-key="${safeKey}" onchange="updateEndCultureRowVisibility('${safeKey}')">
+                <option value="freeze">❄️ Freeze</option>
+                <option value="discard">🗑️ Discard</option>
+              </select>
+            </div>
+            <div class="form-group ec-count-wrap-${safeKey}">
+              <label>Vials</label>
+              <input class="ec-count" type="number" min="1" value="1" data-key="${safeKey}">
+            </div>
+            <div class="form-group ec-passage-wrap-${safeKey}">
+              <label>Passage #</label>
+              <input class="ec-passage" type="number" min="0" placeholder="optional" data-key="${safeKey}">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Notes</label>
+            <textarea class="ec-notes" data-key="${safeKey}" rows="3"
+              style="width:100%;resize:vertical;min-height:60px;" placeholder="observations…"></textarea>
+          </div>
+        </div>
+      </div>`;
+    }).join('')}
+    <div style="margin-top:8px;display:flex;gap:8px;">
+      <button class="btn btn-secondary btn-sm" onclick="selectAllEndCulture()">Select all</button>
+      <button class="btn btn-secondary btn-sm" onclick="deselectAllEndCulture()">Deselect all</button>
+    </div>
+  `;
 }
 
-function addEndCultureRow(clone_key) {
-  // Add a pre-filled row for an active culture
-  freezeRowCount++;
-  const id = `fr-${freezeRowCount}`;
-  const el = document.createElement('div');
-  el.className = 'batch-row';
-  el.id = id;
-  el.style.gridTemplateColumns = '130px 90px 80px 80px 1fr 32px';
-  el.innerHTML = `
-    <div style="font-family:var(--mono);font-size:13px;font-weight:600;color:var(--text-bright);align-self:center;">${clone_key}</div>
-    <div class="form-group">
-      ${freezeRowCount === 1 ? '<label>Action</label>' : ''}
-      <select class="fr-action" onchange="updateEndCultureRow(this)">
-        <option value="freeze">❄️ Freeze</option>
-        <option value="discard">🗑️ Discard</option>
-      </select>
-    </div>
-    <div class="fr-count-wrap form-group">
-      ${freezeRowCount === 1 ? '<label>Vials</label>' : ''}
-      <input class="fr-count" type="number" min="1" value="1">
-    </div>
-    <div class="fr-passage-wrap form-group">
-      ${freezeRowCount === 1 ? '<label>Passage #</label>' : ''}
-      <input class="fr-passage" type="number" min="0" placeholder="optional">
-    </div>
-    <div class="form-group">
-      ${freezeRowCount === 1 ? '<label>Notes</label>' : ''}
-      <input class="fr-notes" type="text" placeholder="optional notes">
-    </div>
-    <button class="batch-remove" onclick="removeBatchRow('${id}')" title="Remove">×</button>
-    <input type="hidden" class="fr-clone" value="${clone_key}">
-  `;
-  document.getElementById('freeze-rows').appendChild(el);
+function toggleEndCultureExpand(safeKey) {
+  const detail = document.getElementById(`ec-detail-${safeKey}`);
+  const cb = document.querySelector(`#ecrow-${safeKey} .ec-check`);
+  const isOpen = detail.style.display !== 'none';
+  detail.style.display = isOpen ? 'none' : 'block';
+  if (!isOpen && cb && !cb.checked) { cb.checked = true; toggleEndCultureRow(safeKey); }
 }
+
+function toggleEndCultureRow(safeKey) {
+  const cb = document.querySelector(`#ecrow-${safeKey} .ec-check`);
+  const detail = document.getElementById(`ec-detail-${safeKey}`);
+  if (cb.checked) { detail.style.display = 'block'; } else { detail.style.display = 'none'; }
+}
+
+function updateEndCultureRowVisibility(safeKey) {
+  const action = document.querySelector(`#ecrow-${safeKey} .ec-action`)?.value;
+  const isDiscard = action === 'discard';
+  document.querySelector(`.ec-count-wrap-${safeKey}`).style.display = isDiscard ? 'none' : '';
+  document.querySelector(`.ec-passage-wrap-${safeKey}`).style.display = isDiscard ? 'none' : '';
+}
+
+function selectAllEndCulture() {
+  document.querySelectorAll('.ec-check').forEach(cb => {
+    const safeKey = cb.dataset.key.replace(/[^a-zA-Z0-9_-]/g, '_');
+    cb.checked = true; toggleEndCultureRow(safeKey);
+  });
+}
+
+function deselectAllEndCulture() {
+  document.querySelectorAll('.ec-check').forEach(cb => {
+    const safeKey = cb.dataset.key.replace(/[^a-zA-Z0-9_-]/g, '_');
+    cb.checked = false; toggleEndCultureRow(safeKey);
+  });
+}
+
+function addEndCultureRow(clone_key) { initFreezeRows(); } // compat stub
 
 function addFreezeRow() {
   // Manual add — shows donor/clone inputs (for cultures not auto-detected)
@@ -1742,33 +1853,40 @@ function initPassageRows() {
   passageRowCount = 0;
   const container = document.getElementById('passage-rows');
   container.innerHTML = '';
-  const active = getActiveCultures();
-  if (!active.length) {
-    container.innerHTML = '<div class="empty" style="padding:12px 0;">No active cultures. Thaw a vial first.</div>';
+
+  const activeFlasks = getActiveFlasks();
+  const legacyCultures = getActiveCultures();
+
+  if (!activeFlasks.length && !legacyCultures.length) {
+    container.innerHTML = '<div class="empty" style="padding:12px 0;">No active cultures or flasks. Thaw a vial first.</div>';
     return;
   }
-  // Show checkboxes for each active culture — none selected by default
-  container.innerHTML = `
-    <div style="font-family:var(--mono);font-size:11px;color:var(--text-dim);margin-bottom:8px;">
-      Select clones to passage, then optionally override the jassage/passage number per clone.
-    </div>
-    ${active.map(c => {
+
+  const items = [
+    ...activeFlasks.map(f => ({ type: 'flask', key: f.id, label: flaskShortLabel(f), currentJ: getJassageForFlask(f), isJassageEra: true })),
+    ...legacyCultures.map(c => {
       const J0_DATE = '2026-05-07';
       const isJassageEra = c.thaw_date && c.thaw_date >= J0_DATE;
-      const cloneVials = state.vials.filter(v => v.clone_key === c.clone_key);
-      const sourceVial = c.source_freeze_date ? cloneVials.find(v => v.freeze_date === c.source_freeze_date) : null;
-      const currentJ = getJassageForCulture(c.clone_key, c.thaw_date);
-      const currentP = sourceVial?.passage ?? (cloneVials.map(v=>v.passage).filter(p=>p!=null).reduce((a,b)=>Math.max(a,b), null));
-      const hint = isJassageEra ? `J${currentJ} → J${currentJ+1}` : currentP != null ? `P${currentP} → P${currentP+1}` : '→ P1';
-      return `<div class="batch-row" style="grid-template-columns:24px 130px 120px 1fr;align-items:center;margin-bottom:6px;" id="prow-${c.clone_key}">
-        <input type="checkbox" class="pr-check" data-clone="${c.clone_key}"
+      const currentJ = isJassageEra ? getJassageForCulture(c.clone_key, c.thaw_date) : null;
+      return { type: 'legacy', key: c.clone_key, label: c.clone_key, currentJ, isJassageEra };
+    }),
+  ];
+
+  container.innerHTML = `
+    <div style="font-family:var(--mono);font-size:11px;color:var(--text-dim);margin-bottom:8px;">
+      Select flasks/cultures to passage.
+    </div>
+    ${items.map(item => {
+      const hint = item.isJassageEra && item.currentJ != null ? `J${item.currentJ} → J${item.currentJ+1}` : '→ P+1';
+      const safeKey = item.key.replace(/[^a-zA-Z0-9_-]/g, '_');
+      return `<div class="batch-row" style="grid-template-columns:24px 1fr 110px 100px;align-items:center;margin-bottom:6px;" id="prow-${safeKey}">
+        <input type="checkbox" class="pr-check" data-key="${item.key}" data-type="${item.type}"
           style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer;"
-          onchange="togglePassageRow('${c.clone_key}')">
-        <span style="font-family:var(--mono);font-size:13px;font-weight:600;color:var(--text-bright);">${c.clone_key}</span>
+          onchange="togglePassageRow('${safeKey}')">
+        <span style="font-family:var(--mono);font-size:12px;font-weight:600;color:var(--text-bright);">${item.label}</span>
         <span style="font-family:var(--mono);font-size:11px;color:var(--text-dim);">${hint}</span>
         <input class="pr-num" type="number" min="0" placeholder="override #"
-          style="opacity:0.3;pointer-events:none;" disabled
-          data-clone="${c.clone_key}">
+          style="opacity:0.3;pointer-events:none;" disabled data-key="${item.key}">
       </div>`;
     }).join('')}
     <div style="margin-top:8px;display:flex;gap:8px;">
@@ -1778,8 +1896,9 @@ function initPassageRows() {
   `;
 }
 
-function togglePassageRow(cloneKey) {
-  const row = document.getElementById(`prow-${cloneKey}`);
+function togglePassageRow(safeKey) {
+  const row = document.getElementById(`prow-${safeKey}`);
+  if (!row) return;
   const checked = row.querySelector('.pr-check').checked;
   const numInput = row.querySelector('.pr-num');
   numInput.disabled = !checked;
@@ -1789,15 +1908,17 @@ function togglePassageRow(cloneKey) {
 
 function selectAllPassageRows() {
   document.querySelectorAll('.pr-check').forEach(cb => {
+    const safeKey = cb.dataset.key.replace(/[^a-zA-Z0-9_-]/g, '_');
     cb.checked = true;
-    togglePassageRow(cb.dataset.clone);
+    togglePassageRow(safeKey);
   });
 }
 
 function deselectAllPassageRows() {
   document.querySelectorAll('.pr-check').forEach(cb => {
+    const safeKey = cb.dataset.key.replace(/[^a-zA-Z0-9_-]/g, '_');
     cb.checked = false;
-    togglePassageRow(cb.dataset.clone);
+    togglePassageRow(safeKey);
   });
 }
 
@@ -1857,7 +1978,7 @@ function updatePassageHint(el) {
   const sourceVial = sourceFreezeDate ? cloneVials.find(v => v.freeze_date === sourceFreezeDate) : null;
   const numInput = row.querySelector('.pr-num');
   if (isJassageEra) {
-    const currentJ = getJassageForCulture(key, thawDate);
+    const currentJ = sourceVial?.jassage ?? getJassageForCulture(key, thawDate);
     numInput.placeholder = `auto → J${currentJ + 1}`;
   } else {
     const passages = cloneVials.map(v => v.passage).filter(p => p != null);
@@ -1871,63 +1992,80 @@ async function logEndCulture() {
   const date = parseDMY(document.getElementById('freeze-date').value.trim());
   if (!date) return toast('Enter a valid date, e.g. 13Jun25.', 'error');
 
-  const rows = document.querySelectorAll('#freeze-rows .batch-row');
-  if (rows.length === 0) return toast('Add at least one row.', 'error');
-
-  const entries = [];
-  for (const row of rows) {
-    const action = row.querySelector('.fr-action')?.value || 'freeze';
-    // Clone key: either from hidden input (auto-populated) or donor+clone inputs (manual)
-    let key;
-    const hiddenClone = row.querySelector('input.fr-clone');
-    if (hiddenClone) {
-      key = hiddenClone.value;
-    } else {
-      const donor = row.querySelector('.fr-donor')?.value;
-      const cloneInput = row.querySelector('.fr-clone-input')?.value.trim();
-      if (!donor || !cloneInput) return toast('Fill in donor and clone # for every row.', 'error');
-      key = cloneKey(donor, cloneInput);
-    }
-    const count = action === 'freeze' ? parseInt(row.querySelector('.fr-count')?.value || '1') : 0;
-    const passage = row.querySelector('.fr-passage')?.value;
-    const notes = row.querySelector('.fr-notes')?.value.trim() || '';
-    if (action === 'freeze' && (!count || count < 1)) return toast('Fill in vial count for freeze rows.', 'error');
-    entries.push({ key, action, count, passage, notes });
-  }
+  const checked = [...document.querySelectorAll('.ec-check:checked')];
+  // Also handle manually-added rows
+  const manualRows = [...document.querySelectorAll('#freeze-rows .batch-row')];
 
   const J0_DATE = '2026-05-07';
   let freezeCount = 0, discardCount = 0;
-  for (const { key, action, count, passage, notes } of entries) {
-    const donor = donorFromKey(key);
-    const normClone = normaliseClone(cloneNumFromKey(key));
 
-    // Is this culture in the jassage era?
-    const activeCulture = getActiveCultures().find(c => c.clone_key === key);
-    const thawDate = activeCulture?.thaw_date || null;
-    const isJassageEra = thawDate && thawDate >= J0_DATE;
+  const processEntry = (clone_key, action, count, passage, notes, flaskId) => {
+    const donor = donorFromKey(clone_key);
+    const normClone = normaliseClone(cloneNumFromKey(clone_key));
+
+    const flask = flaskId ? state.flasks.find(f => f.id === flaskId) : null;
+    const isJassageEra = flask ? true : (() => {
+      const ac = getActiveCultures().find(c => c.clone_key === clone_key);
+      return ac?.thaw_date && ac.thaw_date >= J0_DATE;
+    })();
+
+    const currentJ = flask ? getJassageForFlask(flask)
+      : isJassageEra ? getJassageForCulture(clone_key, getActiveCultures().find(c=>c.clone_key===clone_key)?.thaw_date) : null;
+    const newJ = isJassageEra && currentJ != null ? currentJ + 1 : null;
+    const newP = !isJassageEra && passage ? parseInt(passage) : null;
 
     if (action === 'freeze') {
-      // Jassage: freeze = +1 from current jassage
-      const currentJ = isJassageEra ? getJassageForCulture(key, thawDate) : null;
-      const newJ = isJassageEra ? (currentJ + 1) : null;
-      const newP = !isJassageEra && passage ? parseInt(passage) : null;
-
-      state.events.push({ id: uid(), type: 'freeze', date, clone_key: key, donor, clone_num: normClone, count,
-        passage_num: newP, jassage_num: newJ, notes });
-      const existing = state.vials.find(v => v.clone_key === key && v.freeze_date === date);
+      state.events.push({ id: uid(), type: 'freeze', date, clone_key, donor, clone_num: normClone, count,
+        passage_num: newP, jassage_num: newJ, notes, flask_id: flaskId || null });
+      const existing = state.vials.find(v => v.clone_key === clone_key && v.freeze_date === date);
       if (existing) {
         existing.count += count;
         if (newJ != null) existing.jassage = newJ;
         if (newP != null) existing.passage = newP;
       } else {
-        state.vials.push({ clone_key: key, donor, clone_num: normClone, freeze_date: date, count,
+        state.vials.push({ clone_key, donor, clone_num: normClone, freeze_date: date, count,
           passage: newP, jassage: newJ, pre_jassage: null, notes });
       }
+      if (flask) { flask.status = 'frozen'; flask.ended_date = date; }
       freezeCount++;
     } else {
-      state.events.push({ id: uid(), type: 'discard', date, clone_key: key, donor, clone_num: normClone, notes });
+      state.events.push({ id: uid(), type: 'discard', date, clone_key, donor, clone_num: normClone, notes, flask_id: flaskId || null });
+      if (flask) { flask.status = 'discarded'; flask.ended_date = date; }
       discardCount++;
     }
+  };
+
+  if (checked.length === 0 && manualRows.length === 0) return toast('Select at least one flask or add a row.', 'error');
+
+  for (const cb of checked) {
+    const itemKey = cb.dataset.key;
+    const itemType = cb.dataset.type;
+    const safeKey = itemKey.replace(/[^a-zA-Z0-9_-]/g, '_');
+    const action = document.querySelector(`#ecrow-${safeKey} .ec-action`)?.value || 'freeze';
+    const count = parseInt(document.querySelector(`#ecrow-${safeKey} .ec-count`)?.value || '1');
+    const passage = document.querySelector(`#ecrow-${safeKey} .ec-passage`)?.value || '';
+    const notes = document.querySelector(`#ecrow-${safeKey} .ec-notes`)?.value.trim() || '';
+    if (action === 'freeze' && (!count || count < 1)) return toast(`Fill in vial count.`, 'error');
+
+    if (itemType === 'flask') {
+      const flask = state.flasks.find(f => f.id === itemKey);
+      if (flask) processEntry(flask.clone_key, action, count, passage, notes, flask.id);
+    } else {
+      processEntry(itemKey, action, count, passage, notes, null);
+    }
+  }
+
+  for (const row of manualRows) {
+    const action = row.querySelector('.fr-action')?.value || 'freeze';
+    const donor = row.querySelector('.fr-donor')?.value;
+    const cloneInput = row.querySelector('.fr-clone-input')?.value.trim();
+    if (!donor || !cloneInput) continue;
+    const key = cloneKey(donor, cloneInput);
+    const count = parseInt(row.querySelector('.fr-count')?.value || '1');
+    const passage = row.querySelector('.fr-passage')?.value || '';
+    const notes = row.querySelector('.fr-notes')?.value.trim() || '';
+    if (action === 'freeze' && (!count || count < 1)) return toast('Fill in vial count.', 'error');
+    processEntry(key, action, count, passage, notes, null);
   }
 
   await saveData();
@@ -1955,8 +2093,7 @@ function addThawRow() {
   const el = document.createElement('div');
   el.className = 'batch-row';
   el.id = id;
-  el.style.gridTemplateColumns = '160px 130px 80px 1fr 32px';
-  // Build clone options grouped so it's easy to pick
+  el.style.cssText = 'grid-template-columns:160px 130px 80px 1fr 32px;margin-bottom:4px;';
   const keys = allCloneKeys();
   const cloneOpts = keys.length ? keys.map(k => `<option value="${k}">${k}</option>`).join('') : '<option value="">— none —</option>';
   el.innerHTML = `
@@ -1974,13 +2111,14 @@ function addThawRow() {
     </div>
     <div class="form-group">
       ${thawRowCount === 1 ? '<label>Notes</label>' : ''}
-      <input class="tw-notes" type="text" placeholder="recovery viability, purpose…">
+      <input class="tw-notes" type="text" placeholder="recovery viability…">
     </div>
     <button class="batch-remove" onclick="removeBatchRow('${id}')" title="Remove">×</button>
   `;
   document.getElementById('thaw-rows').appendChild(el);
   updateThawVialDates(el.querySelector('.tw-clone'));
 }
+
 
 function updateThawVialDates(selectEl) {
   const key = selectEl.value;
@@ -2004,13 +2142,32 @@ async function logThaw() {
     const freezeDate = row.querySelector('.tw-freeze-date').value || null;
     const count = parseInt(row.querySelector('.tw-count').value);
     const notes = row.querySelector('.tw-notes').value.trim();
+    const seedFlask = true; // every thaw seeds a flask
     if (!key || !count) return toast('Fill in clone and count for every row.', 'error');
-    entries.push({ key, freezeDate, count, notes });
+    entries.push({ key, freezeDate, count, notes, seedFlask });
   }
 
-  for (const { key, freezeDate, count, notes } of entries) {
-    state.events.push({ id: uid(), type: 'thaw', date, clone_key: key, count, vial_freeze_date: freezeDate, notes });
-    // Decrement vials — from specific batch if selected, otherwise oldest first (FIFO)
+  for (const { key, freezeDate, count, notes, seedFlask } of entries) {
+    const evtId = uid();
+    state.events.push({ id: evtId, type: 'thaw', date, clone_key: key, count, vial_freeze_date: freezeDate, notes });
+
+    // Create flask if requested
+    if (seedFlask) {
+      const sourceVial = freezeDate ? state.vials.find(v => v.clone_key === key && v.freeze_date === freezeDate) : null;
+      const startingJ = sourceVial?.jassage ?? 0;
+      state.flasks.push({
+        id: uid(),
+        clone_key: key,
+        seeded_date: date,
+        sources: [{ freeze_date: freezeDate, count }],
+        starting_jassage: startingJ,
+        status: 'active',
+        ended_date: null,
+        notes,
+      });
+    }
+
+    // Decrement vials
     let remaining = count;
     const cloneVials = state.vials.filter(v => v.clone_key === key).sort((a, b) => a.freeze_date.localeCompare(b.freeze_date));
     if (freezeDate) {
@@ -2025,7 +2182,6 @@ async function logThaw() {
       }
     }
   }
-  // Remove zero-count vials
   state.vials = state.vials.filter(v => v.count > 0);
 
   await saveData();
@@ -2038,47 +2194,55 @@ async function logPassage() {
   if (!date) return toast('Enter a valid date, e.g. 13Jun25.', 'error');
 
   const checked = [...document.querySelectorAll('.pr-check:checked')];
-  if (checked.length === 0) return toast('Select at least one clone to passage.', 'error');
+  if (checked.length === 0) return toast('Select at least one flask/culture to passage.', 'error');
 
   const J0_DATE = '2026-05-07';
-  const entries = [];
+  const events = [];
 
   for (const cb of checked) {
-    const key = cb.dataset.clone;
-    const row = document.getElementById(`prow-${key}`);
+    const itemKey = cb.dataset.key;
+    const itemType = cb.dataset.type;
+    const safeKey = itemKey.replace(/[^a-zA-Z0-9_-]/g, '_');
+    const row = document.getElementById(`prow-${safeKey}`);
     const pNumVal = row?.querySelector('.pr-num')?.value || '';
 
-    const activeCulture = getActiveCultures().find(c => c.clone_key === key);
-    const thawDate = activeCulture?.thaw_date || null;
-    const sourceFreezeDate = activeCulture?.source_freeze_date || null;
-    const isJassageEra = thawDate && thawDate >= J0_DATE;
-    const cloneVials = state.vials.filter(v => v.clone_key === key);
-    const sourceVial = sourceFreezeDate ? cloneVials.find(v => v.freeze_date === sourceFreezeDate) : null;
-
-    if (isJassageEra) {
-      const currentJ = getJassageForCulture(key, thawDate);
+    if (itemType === 'flask') {
+      const flask = state.flasks.find(f => f.id === itemKey);
+      if (!flask) continue;
+      const currentJ = getJassageForFlask(flask);
       const newJ = pNumVal ? parseInt(pNumVal) : currentJ + 1;
-      // Don't mutate sourceVial.jassage — jassage on frozen vials is set only at freeze time
-      entries.push({ key, sourceFreezeDate, newJ, isJassageEra: true, notes: '' });
+      events.push({ id: uid(), type: 'passage', date, clone_key: flask.clone_key,
+        flask_id: flask.id, jassage_num: newJ, passage_num: null, notes: '' });
     } else {
-      const passages = cloneVials.map(v => v.passage).filter(p => p != null);
-      const currentP = sourceVial?.passage ?? (passages.length ? Math.max(...passages) : null);
-      const newP = pNumVal ? parseInt(pNumVal) : (currentP != null ? currentP + 1 : 1);
-      if (sourceVial) sourceVial.passage = newP;
-      entries.push({ key, sourceFreezeDate, newP, isJassageEra: false, notes: '' });
+      // Legacy culture (pre-flask)
+      const clone_key = itemKey;
+      const activeCulture = getActiveCultures().find(c => c.clone_key === clone_key);
+      const thawDate = activeCulture?.thaw_date || null;
+      const sourceFreezeDate = activeCulture?.source_freeze_date || null;
+      const isJassageEra = thawDate && thawDate >= J0_DATE;
+      const cloneVials = state.vials.filter(v => v.clone_key === clone_key);
+      const sourceVial = sourceFreezeDate ? cloneVials.find(v => v.freeze_date === sourceFreezeDate) : null;
+
+      if (isJassageEra) {
+        const currentJ = getJassageForCulture(clone_key, thawDate);
+        const newJ = pNumVal ? parseInt(pNumVal) : currentJ + 1;
+        events.push({ id: uid(), type: 'passage', date, clone_key,
+          freeze_date: sourceFreezeDate, jassage_num: newJ, passage_num: null, notes: '' });
+      } else {
+        const passages = cloneVials.map(v => v.passage).filter(p => p != null);
+        const currentP = sourceVial?.passage ?? (passages.length ? Math.max(...passages) : null);
+        const newP = pNumVal ? parseInt(pNumVal) : (currentP != null ? currentP + 1 : 1);
+        if (sourceVial) sourceVial.passage = newP;
+        events.push({ id: uid(), type: 'passage', date, clone_key,
+          freeze_date: sourceFreezeDate, passage_num: newP, jassage_num: null, notes: '' });
+      }
     }
   }
 
-  for (const e of entries) {
-    state.events.push({ id: uid(), type: 'passage', date, clone_key: e.key,
-      freeze_date: e.sourceFreezeDate,
-      passage_num: e.isJassageEra ? null : e.newP,
-      jassage_num: e.isJassageEra ? e.newJ : null,
-      notes: e.notes });
-  }
+  for (const e of events) state.events.push(e);
 
   await saveData();
-  toast(`Logged ${entries.length} passage event${entries.length > 1 ? 's' : ''} for ${fmtDMY(date)}`, 'success');
+  toast(`Logged ${events.length} passage event${events.length > 1 ? 's' : ''} for ${fmtDMY(date)}`, 'success');
   document.getElementById('passage-date').value = fmtDMY(today());
   initPassageRows();
 }
@@ -2256,7 +2420,7 @@ function openCloneModal(key) {
   const donor = donorFromKey(key);
   const cloneNum = cloneNumFromKey(key);
   const vials = state.vials.filter(v => v.clone_key === key);
-  const allEvents = state.events.filter(e => e.clone_key === key).sort((a, b) => a.date.localeCompare(b.date));
+  const allEvents = state.events.filter(e => e.clone_key === key).sort((a, b) => b.date.localeCompare(a.date));
   const events = allEvents.filter(e => !e.superseded_by);
   const evCount = events.length;
   const totalVials = vials.reduce((s, v) => s + v.count, 0);
@@ -2266,12 +2430,32 @@ function openCloneModal(key) {
     : `P${Math.min(...passages)}–P${Math.max(...passages)}`;
 
   document.getElementById('clone-modal-title').textContent = `Clone ${key}`;
+  const activeFlasksForClone = getActiveFlasks().filter(f => f.clone_key === key);
+  const flaskSection = activeFlasksForClone.length ? `
+    <h3>Active Flasks 🧫</h3>
+    <div style="margin-bottom:16px;">
+      ${activeFlasksForClone.map(f => {
+        const j = getJassageForFlask(f);
+        const passages = state.events.filter(e => e.flask_id === f.id && e.type === 'passage' && !e.superseded_by).length;
+        return `<div style="padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:6px;font-family:var(--mono);font-size:12px;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+            <span style="font-weight:600;color:var(--text-bright);">Seeded ${fmtDMY(f.seeded_date)}</span>
+            <span class="badge ${jassageCls(j)}">J${j}</span>
+          </div>
+          <span style="color:var(--text-dim);">Starting J${f.starting_jassage ?? 0} · ${passages} passage${passages !== 1 ? 's' : ''} since seeding</span>
+          ${f.notes ? `<br><span style="color:var(--text-dim);">${f.notes}</span>` : ''}
+        </div>`;
+      }).join('')}
+    </div>
+  ` : '';
+
   document.getElementById('clone-modal-body').innerHTML = `
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px;">
       <div class="stat-box"><div class="stat-val" style="font-size:20px;">${totalVials}</div><div class="stat-label">Vials in tank</div></div>
       <div class="stat-box"><div class="stat-val" style="font-size:20px;color:var(--warn);">${passageDisplay}</div><div class="stat-label">Current passage</div></div>
       <div class="stat-box"><div class="stat-val" style="font-size:20px;color:var(--accent2);">${evCount}</div><div class="stat-label">Events</div></div>
     </div>
+    ${flaskSection}
     <h3>Vials in Tank</h3>
     <table style="margin-bottom:16px;">
       <thead><tr><th>Freeze Date</th><th>Count</th><th>Passage</th><th>Jassage</th><th>Location (rack.box)</th><th>Notes</th></tr></thead>
@@ -3181,6 +3365,91 @@ async function executeDeleteEvent() {
   await saveData();
   toast('Event deleted', 'success');
   closeDeleteConfirm();
+}
+
+// ── Flask rendering ──────────────────────────────────────────────────────────
+// ── Create Flask Modal ───────────────────────────────────────────────────────
+let cfSourceCount = 0;
+
+function openCreateFlaskModal() {
+  cfSourceCount = 0;
+  const cloneSel = document.getElementById('cf-clone');
+  cloneSel.innerHTML = allCloneKeys().map(k => `<option value="${k}">${k}</option>`).join('');
+  document.getElementById('cf-date').value = fmtDMY(today());
+  document.getElementById('cf-notes').value = '';
+  document.getElementById('cf-sources').innerHTML = '';
+  addFlaskSource();
+  document.getElementById('create-flask-modal').classList.add('open');
+  updateFlaskSourceOptions();
+}
+
+function closeCreateFlaskModal() {
+  document.getElementById('create-flask-modal').classList.remove('open');
+}
+
+function updateFlaskSourceOptions() {
+  const clone_key = document.getElementById('cf-clone').value;
+  const vials = state.vials.filter(v => v.clone_key === clone_key);
+  document.querySelectorAll('.cfs-freeze-date').forEach(sel => {
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">— any batch —</option>' +
+      vials.map(v => `<option value="${v.freeze_date}" ${v.freeze_date===cur?'selected':''}>${fmtDMY(v.freeze_date)} (${v.count}v, J${v.jassage ?? 0})</option>`).join('');
+  });
+}
+
+function addFlaskSource() {
+  cfSourceCount++;
+  const id = `cfs-${cfSourceCount}`;
+  const el = document.createElement('div');
+  el.id = id;
+  el.style.cssText = 'display:grid;grid-template-columns:1fr 70px 28px;gap:8px;margin-bottom:6px;align-items:end;';
+  el.innerHTML = `
+    <div class="form-group">
+      ${cfSourceCount === 1 ? '<label>Freeze batch</label>' : ''}
+      <select class="cfs-freeze-date" onchange="updateFlaskSourceOptions()"><option value="">— any batch —</option></select>
+    </div>
+    <div class="form-group">
+      ${cfSourceCount === 1 ? '<label>Vials</label>' : ''}
+      <input class="cfs-count" type="number" min="1" value="1">
+    </div>
+    <button class="batch-remove" onclick="document.getElementById('${id}').remove()" title="Remove" style="align-self:end;margin-bottom:0;">×</button>
+  `;
+  document.getElementById('cf-sources').appendChild(el);
+  updateFlaskSourceOptions();
+}
+
+async function saveCreateFlask() {
+  const clone_key = document.getElementById('cf-clone').value;
+  const rawDate = document.getElementById('cf-date').value.trim();
+  const seeded_date = parseDMY(rawDate);
+  if (!seeded_date) return toast('Enter a valid seeded date.', 'error');
+  const notes = document.getElementById('cf-notes').value.trim();
+
+  const sources = [];
+  let startingJassage = 0;
+  for (const row of document.querySelectorAll('#cf-sources > div')) {
+    const freeze_date = row.querySelector('.cfs-freeze-date')?.value || null;
+    const count = parseInt(row.querySelector('.cfs-count')?.value || '1');
+    sources.push({ freeze_date, count });
+    // Starting jassage = max jassage of source vials
+    const vial = freeze_date ? state.vials.find(v => v.clone_key === clone_key && v.freeze_date === freeze_date) : null;
+    if (vial && (vial.jassage ?? 0) > startingJassage) startingJassage = vial.jassage ?? 0;
+  }
+
+  state.flasks.push({
+    id: uid(),
+    clone_key,
+    seeded_date,
+    sources,
+    starting_jassage: startingJassage,
+    status: 'active',
+    ended_date: null,
+    notes,
+  });
+
+  await saveData();
+  toast(`Flask created for ${clone_key}`, 'success');
+  closeCreateFlaskModal();
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
