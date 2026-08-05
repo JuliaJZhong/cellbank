@@ -1200,6 +1200,26 @@
       "count": 2,
       "vial_freeze_date": "2025-02-17",
       "notes": "cdw notebook says each ~2e6 vc/mL, so i thawed both into 1xT75 together"
+    },
+    {
+      "id": "msgkz6med75a",
+      "type": "passage",
+      "date": "2026-07-23",
+      "clone_key": "F2-09",
+      "freeze_date": "2025-02-17",
+      "passage_num": null,
+      "jassage_num": 1,
+      "notes": ""
+    },
+    {
+      "id": "msgkzqi642gv",
+      "type": "passage",
+      "date": "2026-08-05",
+      "clone_key": "F2-09",
+      "freeze_date": "2025-02-17",
+      "passage_num": null,
+      "jassage_num": 2,
+      "notes": "NL"
     }
   ]
 }

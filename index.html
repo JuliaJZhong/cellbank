@@ -1373,34 +1373,82 @@ function jassageTag(v) {
 }
 
 // Get current jassage for an active culture by walking events since its thaw
-function getJassageForCulture(clone_key, thaw_date) {
-  // Count passage events that belong to the specific culture opened by thaw_date.
-  // Walk events chronologically; start counting at the matching thaw, stop at the next freeze/discard.
+function getJassageForCulture(clone_key, thaw_date, thaw_event_id) {
+  // Count passage events for the specific culture, using FIFO queue
+  // so that a freeze/discard of a different simultaneous culture doesn't stop counting.
   const relevant = state.events
     .filter(e => e.clone_key === clone_key && !e.superseded_by)
     .sort((a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id));
 
+  // queue of open culture slots: [{id: thaw_event_id}]
+  const queue = [];
+  let targetSlotIndex = -1; // which queue position is our target culture
   let j = 0;
-  let inCulture = false;
-  let thawsSeen = 0;
 
   for (const e of relevant) {
     if (e.type === 'thaw') {
-      if (e.date === thaw_date && !inCulture) {
-        // Match: start counting. If multiple thaws on same date, we'll match the first unused.
-        inCulture = true;
-        continue;
+      queue.push({ id: e.id });
+      // Check if this is our target thaw
+      if (targetSlotIndex === -1) {
+        const isMatch = thaw_event_id ? e.id === thaw_event_id : e.date === thaw_date;
+        if (isMatch) targetSlotIndex = queue.length - 1;
       }
-      if (inCulture) {
-        // A new thaw while in culture — not our window, skip
-        continue;
+    } else if (e.type === 'freeze' || e.type === 'discard') {
+      if (queue.length > 0) {
+        // FIFO: close the oldest culture
+        if (targetSlotIndex === 0) return j; // our culture was closed
+        queue.shift();
+        if (targetSlotIndex > 0) targetSlotIndex--;
       }
+    } else if (e.type === 'passage') {
+      // Attribute to oldest open culture (index 0)
+      if (targetSlotIndex === 0) j++; // this passage belongs to our culture
     }
-    if (!inCulture) continue;
-    if (e.type === 'passage') j++;
-    if (e.type === 'freeze' || e.type === 'discard') break;
   }
   return j;
+}
+
+// Compute jassage before/after for a passage event by counting preceding passages in same culture window
+function passageJassageDisplay(e) {
+  if (e.jassage_num == null && e.passage_num == null) return '';
+  if (e.jassage_num == null) return e.passage_num != null ? ` · → P${e.passage_num}` : '';
+
+  // Walk events up to (not including) this one, tracking culture windows with FIFO queue
+  const sorted = state.events
+    .filter(ev => ev.clone_key === e.clone_key && !ev.superseded_by)
+    .sort((a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id));
+
+  // queue: [{startingJ, passageCount}] — one slot per open culture, FIFO
+  const queue = [];
+  // passage counts per queue slot tracked separately
+  // We track which queue slot is "active" (most recently opened still open)
+  // Since passages go to the most recently opened culture (last in), we track last-in-first-out
+  // Actually: passages go to the oldest open culture? No — to the specific one.
+  // We don't know which culture a passage belongs to unless it has a thaw_event_id link.
+  // Best approximation: passage goes to oldest open culture (FIFO), same as end-culture.
+  const openCultures = []; // [{startingJ, passages, thaw_event_id}]
+
+  for (const ev of sorted) {
+    if (ev.id === e.id) break;
+
+    if (ev.type === 'thaw') {
+      const sourceVial = ev.vial_freeze_date
+        ? state.vials.find(v => v.clone_key === e.clone_key && v.freeze_date === ev.vial_freeze_date)
+        : null;
+      openCultures.push({ startingJ: sourceVial?.jassage ?? 0, passages: 0, id: ev.id });
+    } else if (ev.type === 'freeze' || ev.type === 'discard') {
+      if (openCultures.length > 0) openCultures.shift(); // close oldest
+    } else if (ev.type === 'passage' && openCultures.length > 0) {
+      // Attribute to oldest open culture (FIFO)
+      openCultures[0].passages++;
+    }
+  }
+
+  // The current event belongs to the oldest open culture
+  const culture = openCultures[0];
+  if (!culture) return ` · J? → J?`;
+  const jBefore = culture.startingJ + culture.passages;
+  return ` · J${jBefore} → J${jBefore + 1}`;
 }
 
 function donorBadge(donor) {
@@ -1548,7 +1596,7 @@ function renderLog() {
       detail += ` · −${e.count} vial${e.count !== 1 ? 's' : ''}`;
       if (e.vial_freeze_date) detail += ` <span style="color:var(--text-dim);font-size:10px;">from ${fmtDMY(e.vial_freeze_date)}</span>`;
     }
-    if (e.type === 'passage') detail += e.passage_num != null ? ` → P${e.passage_num}` : '';
+    if (e.type === 'passage') detail += passageJassageDisplay(e);
     if (e.type === 'discard') detail += ' · culture discarded';
     const supStyle = e.superseded_by ? 'opacity:0.4;text-decoration:line-through;' : '';
     const corrTag = e.is_correction ? `<span style="font-size:10px;color:var(--warn);background:var(--warn-dim);border-radius:99px;padding:1px 7px;margin-left:6px;">correction</span>` : '';
@@ -1812,22 +1860,27 @@ function initPassageRows() {
     ${active.map(c => {
       const J0_DATE = '2026-05-07';
       const isJassageEra = c.thaw_date && c.thaw_date >= J0_DATE;
-      const currentJ = getJassageForCulture(c.clone_key, c.thaw_date);
+      const currentJ = getJassageForCulture(c.clone_key, c.thaw_date, c.thaw_event_id);
       const cloneVials = state.vials.filter(v => v.clone_key === c.clone_key);
       const sourceVial = c.source_freeze_date ? cloneVials.find(v => v.freeze_date === c.source_freeze_date) : null;
       const currentP = sourceVial?.passage ?? (cloneVials.map(v=>v.passage).filter(p=>p!=null).reduce((a,b)=>Math.max(a,b), null));
       const hint = isJassageEra ? `J${currentJ} → J${currentJ+1}` : currentP != null ? `P${currentP} → P${currentP+1}` : '→ P1';
       const rowId = `prow-${c.thaw_event_id}`;
       const label = `${c.clone_key} <span style="color:var(--text-dim);font-size:10px;">thawed ${fmtDMY(c.thaw_date)}</span>`;
-      return `<div class="batch-row" style="grid-template-columns:24px 1fr 120px 80px;align-items:center;margin-bottom:6px;" id="${rowId}">
-        <input type="checkbox" class="pr-check" data-thaw-id="${c.thaw_event_id}"
-          style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer;"
-          onchange="togglePassageRow('${c.thaw_event_id}')">
-        <span style="font-family:var(--mono);font-size:12px;font-weight:600;color:var(--text-bright);">${label}</span>
-        <span style="font-family:var(--mono);font-size:11px;color:var(--text-dim);">${hint}</span>
-        <input class="pr-num" type="number" min="0" placeholder="override #"
-          style="opacity:0.3;pointer-events:none;" disabled
-          data-thaw-id="${c.thaw_event_id}">
+      return `<div style="margin-bottom:6px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;" id="${rowId}">
+        <div style="display:grid;grid-template-columns:24px 1fr 120px 80px;align-items:center;gap:8px;padding:8px 10px;background:var(--surface2);">
+          <input type="checkbox" class="pr-check" data-thaw-id="${c.thaw_event_id}"
+            style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer;"
+            onchange="togglePassageRow('${c.thaw_event_id}')">
+          <span style="font-family:var(--mono);font-size:12px;font-weight:600;color:var(--text-bright);">${label}</span>
+          <span style="font-family:var(--mono);font-size:11px;color:var(--text-dim);">${hint}</span>
+          <input class="pr-num" type="number" min="0" placeholder="override #"
+            style="opacity:0.3;pointer-events:none;" disabled data-thaw-id="${c.thaw_event_id}">
+        </div>
+        <div class="pr-notes-wrap" style="display:none;padding:6px 10px;background:var(--bg);border-top:1px solid var(--border);">
+          <textarea class="pr-notes" rows="2" placeholder="split ratio, observations…"
+            style="width:100%;resize:vertical;font-family:var(--mono);font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text);padding:5px 8px;"></textarea>
+        </div>
       </div>`;
     }).join('')}
     <div style="margin-top:8px;display:flex;gap:8px;">
@@ -1842,9 +1895,11 @@ function togglePassageRow(thawId) {
   if (!row) return;
   const checked = row.querySelector('.pr-check').checked;
   const numInput = row.querySelector('.pr-num');
+  const notesWrap = row.querySelector('.pr-notes-wrap');
   numInput.disabled = !checked;
   numInput.style.opacity = checked ? '1' : '0.3';
   numInput.style.pointerEvents = checked ? '' : 'none';
+  if (notesWrap) notesWrap.style.display = checked ? 'block' : 'none';
 }
 
 function selectAllPassageRows() {
@@ -1943,11 +1998,11 @@ async function logEndCulture() {
 
   if (checked.length === 0 && manualRows.length === 0) return toast('Select at least one culture to end.', 'error');
 
-  const processFreeze = (clone_key, thawDate, action, count, passage, notes) => {
+  const processFreeze = (clone_key, thawDate, thawEventId, action, count, passage, notes) => {
     const donor = donorFromKey(clone_key);
     const normClone = normaliseClone(cloneNumFromKey(clone_key));
     const isJassageEra = thawDate && thawDate >= J0_DATE;
-    const currentJ = isJassageEra ? getJassageForCulture(clone_key, thawDate) : null;
+    const currentJ = isJassageEra ? getJassageForCulture(clone_key, thawDate, thawEventId) : null;
     const newJ = isJassageEra && currentJ != null ? currentJ + 1 : null;
     const newP = !isJassageEra && passage ? parseInt(passage) : null;
 
@@ -1979,7 +2034,7 @@ async function logEndCulture() {
     const passage = document.querySelector(`#ecrow-${thawId} .ec-passage`)?.value || '';
     const notes = document.querySelector(`#ecrow-${thawId} .ec-notes`)?.value.trim() || '';
     if (action === 'freeze' && (!count || count < 1)) return toast(`Fill in vial count for ${culture.clone_key}.`, 'error');
-    processFreeze(culture.clone_key, culture.thaw_date, action, count, passage, notes);
+    processFreeze(culture.clone_key, culture.thaw_date, culture.thaw_event_id, action, count, passage, notes);
   }
 
   for (const row of manualRows) {
@@ -1993,7 +2048,7 @@ async function logEndCulture() {
     const notes = row.querySelector('.fr-notes')?.value.trim() || '';
     // Manual rows: look up thaw date from most recent active culture for this clone
     const manualCulture = active.find(c => c.clone_key === key);
-    processFreeze(key, manualCulture?.thaw_date || null, action, count, passage, notes);
+    processFreeze(key, manualCulture?.thaw_date || null, manualCulture?.thaw_event_id || null, action, count, passage, notes);
   }
 
   await saveData();
@@ -2114,6 +2169,7 @@ async function logPassage() {
     const thawId = cb.dataset.thawId;
     const row = document.getElementById(`prow-${thawId}`);
     const pNumVal = row?.querySelector('.pr-num')?.value || '';
+    const notes = row?.querySelector('.pr-notes')?.value.trim() || '';
 
     const culture = active.find(c => c.thaw_event_id === thawId);
     if (!culture) continue;
@@ -2121,19 +2177,19 @@ async function logPassage() {
     const thawDate = culture.thaw_date;
     const sourceFreezeDate = culture.source_freeze_date;
     const isJassageEra = thawDate && thawDate >= J0_DATE;
-    const currentJ = getJassageForCulture(culture.clone_key, thawDate);
+    const currentJ = getJassageForCulture(culture.clone_key, thawDate, culture.thaw_event_id);
     const cloneVials = state.vials.filter(v => v.clone_key === culture.clone_key);
     const sourceVial = sourceFreezeDate ? cloneVials.find(v => v.freeze_date === sourceFreezeDate) : null;
 
     if (isJassageEra) {
       const newJ = pNumVal ? parseInt(pNumVal) : currentJ + 1;
-      entries.push({ clone_key: culture.clone_key, sourceFreezeDate, thawDate, newJ, isJassageEra: true });
+      entries.push({ clone_key: culture.clone_key, sourceFreezeDate, thawDate, newJ, isJassageEra: true, notes });
     } else {
       const passages = cloneVials.map(v => v.passage).filter(p => p != null);
       const currentP = sourceVial?.passage ?? (passages.length ? Math.max(...passages) : null);
       const newP = pNumVal ? parseInt(pNumVal) : (currentP != null ? currentP + 1 : 1);
       if (sourceVial) sourceVial.passage = newP;
-      entries.push({ clone_key: culture.clone_key, sourceFreezeDate, thawDate, newP, isJassageEra: false });
+      entries.push({ clone_key: culture.clone_key, sourceFreezeDate, thawDate, newP, isJassageEra: false, notes });
     }
   }
 
@@ -2143,7 +2199,7 @@ async function logPassage() {
       freeze_date: e.sourceFreezeDate,
       passage_num: e.isJassageEra ? null : e.newP,
       jassage_num: e.isJassageEra ? e.newJ : null,
-      notes: '' });
+      notes: e.notes });
   }
 
   await saveData();
@@ -2263,7 +2319,7 @@ function renderEventRows(events) {
     let detail = '';
     if (e.type === 'freeze') detail = `+${e.count} vials`;
     if (e.type === 'thaw') detail = `−${e.count} vials`;
-    if (e.type === 'passage') detail = e.jassage_num != null ? `→ J${e.jassage_num}` : e.passage_num != null ? `→ P${e.passage_num}` : '';
+    if (e.type === 'passage') detail = passageJassageDisplay(e);
     if (e.type === 'discard') detail = 'discarded';
     const corrTag = e.is_correction ? `<span style="font-size:10px;color:var(--warn);background:var(--warn-dim);border-radius:99px;padding:1px 7px;margin-left:6px;">correction</span>` : '';
     return `<div class="event-item" style="grid-template-columns:90px 80px 1fr 1fr;">
