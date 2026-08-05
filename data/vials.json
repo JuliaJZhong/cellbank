@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-08-03T21:25:07.793Z",
+  "last_updated": "2026-08-05T20:47:56.272Z",
   "vials": [
     {
       "clone_key": "F2-02",
@@ -376,7 +376,7 @@
     {
       "clone_key": "F5-07",
       "donor": "F5",
-      "clone_num": "7",
+      "clone_num": "07",
       "freeze_date": "2025-03-25",
       "count": 3,
       "jassage": 0,
@@ -400,7 +400,7 @@
     {
       "clone_key": "F5-09",
       "donor": "F5",
-      "clone_num": "9",
+      "clone_num": "09",
       "freeze_date": "2024-03-29",
       "count": 2,
       "jassage": 0,
