@@ -1230,6 +1230,16 @@
       "passage_num": null,
       "jassage_num": 3,
       "notes": "SP split 1 T75 into 2"
+    },
+    {
+      "id": "mt1ps4g241rf",
+      "type": "passage",
+      "date": "2026-08-18",
+      "clone_key": "F2-09",
+      "freeze_date": "2025-02-17",
+      "passage_num": null,
+      "jassage_num": 3,
+      "notes": "~ 13e6 vc after lifting and filtering with 70um filter. 1xT75 -> 1xT75"
     }
   ]
 }
