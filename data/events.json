@@ -1240,6 +1240,18 @@
       "passage_num": null,
       "jassage_num": 3,
       "notes": "~ 13e6 vc after lifting and filtering with 70um filter. 1xT75 -> 1xT75"
+    },
+    {
+      "id": "mtey1kri22e8",
+      "type": "freeze",
+      "date": "2026-08-23",
+      "clone_key": "F2-29",
+      "donor": "F2",
+      "clone_num": "29",
+      "count": 7,
+      "passage_num": null,
+      "jassage_num": 4,
+      "notes": "4e6 vc/mL pink"
     }
   ]
 }
