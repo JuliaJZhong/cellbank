@@ -638,6 +638,7 @@
               <th>Vials</th>
               <th>Passage</th>
               <th>Jassage</th>
+              <th>Parent Batch</th>
               <th>Location (rack.box)</th>
               <th>Notes</th>
             </tr>
@@ -1305,6 +1306,29 @@ function normaliseState() {
     if (!('pre_jassage' in v)) v.pre_jassage = null;
     // Assign J0 to any freeze batch with null jassage
     if (v.jassage == null) v.jassage = 0;
+    // Ensure parent_freeze_date field exists
+    if (!('parent_freeze_date' in v)) v.parent_freeze_date = null;
+  }
+
+  // Backfill parent_freeze_date: for each vial with jassage > 0 and no parent set,
+  // find the thaw event that preceded the freeze event for that clone on that date
+  const freezeEvents = state.events.filter(e => e.type === 'freeze' && !e.superseded_by);
+  for (const v of state.vials) {
+    if (v.parent_freeze_date !== null) continue; // already set
+    if (v.jassage === 0) continue; // original vials have no parent
+
+    // Find the freeze event that created this vial
+    const freezeEvt = freezeEvents.find(e => e.clone_key === v.clone_key && e.date === v.freeze_date);
+    if (!freezeEvt) continue;
+
+    // Find the most recent thaw for this clone before this freeze date
+    const precedingThaws = state.events
+      .filter(e => e.clone_key === v.clone_key && e.type === 'thaw' && !e.superseded_by && e.date <= v.freeze_date)
+      .sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id));
+
+    if (precedingThaws.length > 0 && precedingThaws[0].vial_freeze_date) {
+      v.parent_freeze_date = precedingThaws[0].vial_freeze_date;
+    }
   }
 }
 
@@ -1533,6 +1557,7 @@ function renderTank() {
         <td style="color:var(--accent);font-weight:600">${v.count}</td>
         <td>${pCell}</td>
         <td>${jCell}</td>
+        <td style="font-family:var(--mono);font-size:11px;color:var(--text-dim)">${v.parent_freeze_date ? fmtDMY(v.parent_freeze_date) : '—'}</td>
         <td style="font-family:var(--mono);font-size:11px;color:var(--text-dim)">${v.location || '—'}</td>
         <td style="color:var(--text-dim);font-size:11px">${v.notes || ''}</td>
       </tr>`;
@@ -2006,6 +2031,10 @@ async function logEndCulture() {
     const newJ = isJassageEra && currentJ != null ? currentJ + 1 : null;
     const newP = !isJassageEra && passage ? parseInt(passage) : null;
 
+    // Find the source vial this culture was thawed from
+    const thawEvt = state.events.find(e => e.id === thawEventId);
+    const parentFreezeDate = thawEvt?.vial_freeze_date || null;
+
     if (action === 'freeze') {
       state.events.push({ id: uid(), type: 'freeze', date, clone_key, donor, clone_num: normClone, count,
         passage_num: newP, jassage_num: newJ, notes });
@@ -2014,9 +2043,10 @@ async function logEndCulture() {
         existing.count += count;
         if (newJ != null) existing.jassage = newJ;
         if (newP != null) existing.passage = newP;
+        if (!existing.parent_freeze_date && parentFreezeDate) existing.parent_freeze_date = parentFreezeDate;
       } else {
         state.vials.push({ clone_key, donor, clone_num: normClone, freeze_date: date, count,
-          passage: newP, jassage: newJ, pre_jassage: null, notes });
+          passage: newP, jassage: newJ, pre_jassage: null, parent_freeze_date: parentFreezeDate, notes });
       }
       freezeCount++;
     } else {
@@ -2399,20 +2429,21 @@ function openCloneModal(key) {
     </div>
     <h3>Vials in Tank</h3>
     <table style="margin-bottom:16px;">
-      <thead><tr><th>Freeze Date</th><th>Count</th><th>Passage</th><th>Jassage</th><th>Location (rack.box)</th><th>Notes</th></tr></thead>
+      <thead><tr><th>Freeze Date</th><th>Count</th><th>Passage</th><th>Jassage</th><th>Parent Batch</th><th>Location (rack.box)</th><th>Notes</th></tr></thead>
       <tbody>${vials.length ? vials.sort((a,b) => a.freeze_date.localeCompare(b.freeze_date)).map(v => `<tr>
         <td>${fmtDMY(v.freeze_date)}</td>
         <td style="color:var(--accent);font-weight:600">${v.count}</td>
         <td>${v.passage != null ? '<span class="passage-tag">P'+v.passage+'</span>' : passageTag(v)}</td>
         <td>${jassageTag(v)}</td>
+        <td style="font-family:var(--mono);font-size:11px;color:var(--text-dim)">${v.parent_freeze_date ? fmtDMY(v.parent_freeze_date) : '—'}</td>
         <td style="font-family:var(--mono);font-size:11px;color:var(--text-dim)">${v.location || '—'}</td>
         <td style="color:var(--text-dim);font-size:11px">${v.notes || ''}</td>
       </tr>`).join('') + (vials.length > 1 ? `<tr style="border-top:1px solid var(--border-bright)">
         <td style="color:var(--text-dim);font-size:11px">TOTAL</td>
         <td style="color:var(--accent);font-weight:700">${totalVials}</td>
-        <td colspan="4"></td>
+        <td colspan="5"></td>
       </tr>` : '')
-      : '<tr><td colspan="6" style="color:var(--text-dim)">None in tank</td></tr>'}</tbody>
+      : '<tr><td colspan="7" style="color:var(--text-dim)">None in tank</td></tr>'}</tbody>
     </table>
     <div class="btn-row" style="margin-bottom:16px;">
       <button class="btn btn-sm btn-secondary" onclick="openEditModal('${key}')">✏️ Edit batches</button>
