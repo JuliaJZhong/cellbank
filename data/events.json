@@ -1252,6 +1252,16 @@
       "passage_num": null,
       "jassage_num": 4,
       "notes": "4e6 vc/mL pink"
+    },
+    {
+      "id": "mton0z8vdp1j",
+      "type": "passage",
+      "date": "2026-09-02",
+      "clone_key": "F2-09",
+      "freeze_date": "2025-02-17",
+      "passage_num": null,
+      "jassage_num": 4,
+      "notes": "1xT75 -> 2 x T25s... about 4e6 vc into each"
     }
   ]
 }

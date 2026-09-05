@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-08-29T22:21:37.948Z",
+  "last_updated": "2026-09-05T17:09:22.927Z",
   "vials": [
     {
       "clone_key": "F2-02",
@@ -11,7 +11,8 @@
       "pre_jassage": null,
       "passage": null,
       "location": null,
-      "notes": "[imported] "
+      "notes": "[imported] ",
+      "parent_freeze_date": null
     },
     {
       "clone_key": "F2-02",
@@ -23,7 +24,8 @@
       "pre_jassage": null,
       "passage": null,
       "location": null,
-      "notes": "[imported] "
+      "notes": "[imported] ",
+      "parent_freeze_date": null
     },
     {
       "clone_key": "F2-10",
@@ -35,7 +37,8 @@
       "pre_jassage": null,
       "passage": null,
       "location": null,
-      "notes": "[imported] "
+      "notes": "[imported] ",
+      "parent_freeze_date": null
     },
     {
       "clone_key": "F2-10",
@@ -47,7 +50,8 @@
       "pre_jassage": null,
       "passage": null,
       "location": null,
-      "notes": "[imported] "
+      "notes": "[imported] ",
+      "parent_freeze_date": null
     },
     {
       "clone_key": "F2-10",
@@ -59,7 +63,8 @@
       "pre_jassage": null,
       "passage": null,
       "location": null,
-      "notes": "3.9e6 vc/mL"
+      "notes": "3.9e6 vc/mL",
+      "parent_freeze_date": "2025-03-24"
     },
     {
       "clone_key": "F2-13",
@@ -71,7 +76,8 @@
       "pre_jassage": null,
       "passage": null,
       "location": null,
-      "notes": "[imported] "
+      "notes": "[imported] ",
+      "parent_freeze_date": null
     },
     {
       "clone_key": "F2-17",
@@ -83,7 +89,8 @@
       "pre_jassage": null,
       "passage": null,
       "location": null,
-      "notes": "[imported] "
+      "notes": "[imported] ",
+      "parent_freeze_date": null
     },
     {
       "clone_key": "F2-20",
@@ -95,7 +102,8 @@
       "pre_jassage": null,
       "passage": null,
       "location": null,
-      "notes": "[imported] frozen down by RO"
+      "notes": "[imported] frozen down by RO",
+      "parent_freeze_date": null
     },
     {
       "clone_key": "F2-20",
@@ -107,7 +115,8 @@
       "pre_jassage": null,
       "passage": null,
       "location": null,
-      "notes": ""
+      "notes": "",
+      "parent_freeze_date": "2025-03-25"
     },
     {
       "clone_key": "F2-21",
@@ -119,7 +128,8 @@
       "pre_jassage": null,
       "passage": null,
       "location": null,
-      "notes": "[imported] "
+      "notes": "[imported] ",
+      "parent_freeze_date": null
     },
     {
       "clone_key": "F2-22",
@@ -131,7 +141,8 @@
       "pre_jassage": null,
       "passage": null,
       "location": null,
-      "notes": "frozen down by RO"
+      "notes": "frozen down by RO",
+      "parent_freeze_date": null
     },
     {
       "clone_key": "F2-22",
@@ -143,7 +154,8 @@
       "pre_jassage": null,
       "passage": null,
       "location": null,
-      "notes": "4.1e6 vc/mL"
+      "notes": "4.1e6 vc/mL",
+      "parent_freeze_date": "2024-05-03"
     },
     {
       "clone_key": "F2-23",
@@ -155,7 +167,8 @@
       "pre_jassage": null,
       "passage": null,
       "location": null,
-      "notes": "[imported] frozen down by RO"
+      "notes": "[imported] frozen down by RO",
+      "parent_freeze_date": null
     },
     {
       "clone_key": "F2-23",
@@ -167,7 +180,8 @@
       "pre_jassage": null,
       "passage": null,
       "location": null,
-      "notes": "4.1e6 vc/mL"
+      "notes": "4.1e6 vc/mL",
+      "parent_freeze_date": "2024-03-29"
     },
     {
       "clone_key": "F2-24",
@@ -179,7 +193,8 @@
       "pre_jassage": null,
       "passage": null,
       "location": null,
-      "notes": "[imported] frozen down by RO"
+      "notes": "[imported] frozen down by RO",
+      "parent_freeze_date": null
     },
     {
       "clone_key": "F2-24",
@@ -191,7 +206,8 @@
       "pre_jassage": null,
       "passage": null,
       "location": null,
-      "notes": "4e6 vc/mL\na little bit scared that i used a non-sterile 50mL conical to collect..."
+      "notes": "4e6 vc/mL\na little bit scared that i used a non-sterile 50mL conical to collect...",
+      "parent_freeze_date": "2024-03-29"
     },
     {
       "clone_key": "F2-25",
@@ -203,7 +219,8 @@
       "pre_jassage": null,
       "passage": null,
       "location": null,
-      "notes": "[imported] "
+      "notes": "[imported] ",
+      "parent_freeze_date": null
     },
     {
       "clone_key": "F2-25",
@@ -215,7 +232,8 @@
       "pre_jassage": null,
       "passage": null,
       "location": null,
-      "notes": "4e6 vc/mL\nyellow"
+      "notes": "4e6 vc/mL\nyellow",
+      "parent_freeze_date": "2025-04-19"
     },
     {
       "clone_key": "F2-27",
@@ -227,7 +245,8 @@
       "pre_jassage": null,
       "passage": null,
       "location": null,
-      "notes": "[imported] "
+      "notes": "[imported] ",
+      "parent_freeze_date": null
     },
     {
       "clone_key": "F2-29",
@@ -239,7 +258,8 @@
       "pre_jassage": null,
       "passage": null,
       "location": null,
-      "notes": "[imported] "
+      "notes": "[imported] ",
+      "parent_freeze_date": null
     },
     {
       "clone_key": "F2-30",
@@ -251,7 +271,8 @@
       "pre_jassage": null,
       "passage": null,
       "location": null,
-      "notes": "[imported] "
+      "notes": "[imported] ",
+      "parent_freeze_date": null
     },
     {
       "clone_key": "F2-30",
@@ -263,7 +284,8 @@
       "pre_jassage": null,
       "passage": null,
       "location": null,
-      "notes": "[imported] "
+      "notes": "[imported] ",
+      "parent_freeze_date": null
     },
     {
       "clone_key": "F2-30",
@@ -275,7 +297,8 @@
       "pre_jassage": null,
       "passage": null,
       "location": null,
-      "notes": "4.1e6 vc/mL\nbrown"
+      "notes": "4.1e6 vc/mL\nbrown",
+      "parent_freeze_date": "2025-02-17"
     },
     {
       "clone_key": "F2-36",
@@ -287,7 +310,8 @@
       "pre_jassage": null,
       "passage": null,
       "location": null,
-      "notes": "[imported] "
+      "notes": "[imported] ",
+      "parent_freeze_date": null
     },
     {
       "clone_key": "F2-42",
@@ -299,7 +323,8 @@
       "pre_jassage": null,
       "passage": null,
       "location": null,
-      "notes": "[imported] "
+      "notes": "[imported] ",
+      "parent_freeze_date": null
     },
     {
       "clone_key": "F5-02",
@@ -311,7 +336,8 @@
       "pre_jassage": null,
       "passage": null,
       "location": null,
-      "notes": "[imported] "
+      "notes": "[imported] ",
+      "parent_freeze_date": null
     },
     {
       "clone_key": "F5-02",
@@ -323,7 +349,8 @@
       "pre_jassage": null,
       "passage": null,
       "location": null,
-      "notes": "4.1e6 vc/mL"
+      "notes": "4.1e6 vc/mL",
+      "parent_freeze_date": "2025-04-19"
     },
     {
       "clone_key": "F5-04",
@@ -335,7 +362,8 @@
       "pre_jassage": null,
       "passage": null,
       "location": null,
-      "notes": "[imported] "
+      "notes": "[imported] ",
+      "parent_freeze_date": null
     },
     {
       "clone_key": "F5-04",
@@ -347,7 +375,8 @@
       "pre_jassage": null,
       "passage": null,
       "location": null,
-      "notes": "4.1e6 vc/mL\nred"
+      "notes": "4.1e6 vc/mL\nred",
+      "parent_freeze_date": "2025-02-28"
     },
     {
       "clone_key": "F5-06",
@@ -359,7 +388,8 @@
       "pre_jassage": null,
       "passage": null,
       "location": null,
-      "notes": "[imported] "
+      "notes": "[imported] ",
+      "parent_freeze_date": null
     },
     {
       "clone_key": "F5-06",
@@ -371,7 +401,8 @@
       "pre_jassage": null,
       "passage": null,
       "location": null,
-      "notes": "4e6 vc/mL"
+      "notes": "4e6 vc/mL",
+      "parent_freeze_date": "2025-03-03"
     },
     {
       "clone_key": "F5-07",
@@ -383,7 +414,8 @@
       "pre_jassage": null,
       "passage": null,
       "location": null,
-      "notes": "[imported] "
+      "notes": "[imported] ",
+      "parent_freeze_date": null
     },
     {
       "clone_key": "F5-07",
@@ -395,7 +427,8 @@
       "pre_jassage": null,
       "passage": null,
       "location": null,
-      "notes": "4.2e6 vc/mL\npurple"
+      "notes": "4.2e6 vc/mL\npurple",
+      "parent_freeze_date": "2024-03-15"
     },
     {
       "clone_key": "F5-09",
@@ -407,7 +440,8 @@
       "pre_jassage": null,
       "passage": null,
       "location": null,
-      "notes": "[imported] frozen down by RO"
+      "notes": "[imported] frozen down by RO",
+      "parent_freeze_date": null
     },
     {
       "clone_key": "F5-09",
@@ -419,7 +453,8 @@
       "pre_jassage": null,
       "passage": null,
       "location": null,
-      "notes": "4.1e6 vc/mL\nwhite"
+      "notes": "4.1e6 vc/mL\nwhite",
+      "parent_freeze_date": "2024-03-29"
     },
     {
       "clone_key": "F5-12",
@@ -431,7 +466,8 @@
       "pre_jassage": null,
       "passage": null,
       "location": null,
-      "notes": "[imported] "
+      "notes": "[imported] ",
+      "parent_freeze_date": null
     },
     {
       "clone_key": "F5-12",
@@ -443,7 +479,8 @@
       "pre_jassage": null,
       "passage": null,
       "location": null,
-      "notes": "[imported] "
+      "notes": "[imported] ",
+      "parent_freeze_date": null
     },
     {
       "clone_key": "F5-12",
@@ -455,7 +492,8 @@
       "pre_jassage": null,
       "passage": null,
       "location": null,
-      "notes": "4e6 vc/mL\na little bit scared that i used a non-sterile 50mL conical to collect..."
+      "notes": "4e6 vc/mL\na little bit scared that i used a non-sterile 50mL conical to collect...",
+      "parent_freeze_date": "2024-03-05"
     },
     {
       "clone_key": "F5-16a",
@@ -467,7 +505,8 @@
       "pre_jassage": null,
       "passage": null,
       "location": null,
-      "notes": "not sure if this is 16a, 16c?"
+      "notes": "not sure if this is 16a, 16c?",
+      "parent_freeze_date": null
     },
     {
       "clone_key": "F5-16c",
@@ -479,7 +518,8 @@
       "pre_jassage": null,
       "passage": null,
       "location": null,
-      "notes": "[imported] "
+      "notes": "[imported] ",
+      "parent_freeze_date": null
     },
     {
       "clone_key": "F5-16c",
@@ -491,7 +531,8 @@
       "pre_jassage": null,
       "passage": null,
       "location": null,
-      "notes": ""
+      "notes": "",
+      "parent_freeze_date": "2025-02-28"
     },
     {
       "clone_key": "F5-17",
@@ -503,7 +544,8 @@
       "pre_jassage": null,
       "passage": null,
       "location": null,
-      "notes": "[imported] "
+      "notes": "[imported] ",
+      "parent_freeze_date": null
     },
     {
       "clone_key": "F5-17",
@@ -515,7 +557,8 @@
       "pre_jassage": null,
       "passage": null,
       "location": null,
-      "notes": "[imported] "
+      "notes": "[imported] ",
+      "parent_freeze_date": null
     },
     {
       "clone_key": "F5-17",
@@ -527,7 +570,8 @@
       "pre_jassage": null,
       "passage": null,
       "location": null,
-      "notes": "4.0e6 vc/mL\nblue"
+      "notes": "4.0e6 vc/mL\nblue",
+      "parent_freeze_date": "2024-03-26"
     },
     {
       "clone_key": "F5-1B",
@@ -539,7 +583,8 @@
       "pre_jassage": null,
       "passage": null,
       "location": null,
-      "notes": ""
+      "notes": "",
+      "parent_freeze_date": "2025-06-13"
     },
     {
       "clone_key": "F5-25",
@@ -551,7 +596,8 @@
       "pre_jassage": null,
       "passage": null,
       "location": null,
-      "notes": ""
+      "notes": "",
+      "parent_freeze_date": "2025-10-26"
     },
     {
       "clone_key": "F2-29",
@@ -562,7 +608,8 @@
       "passage": null,
       "jassage": 4,
       "pre_jassage": null,
-      "notes": "29.29e6 vc in 27mL"
+      "notes": "29.29e6 vc in 27mL",
+      "parent_freeze_date": "2025-06-21"
     }
   ]
 }
