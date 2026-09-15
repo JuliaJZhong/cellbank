@@ -211,7 +211,7 @@
     border-color: var(--accent);
   }
   select option { background: var(--surface2); }
-  textarea { resize: vertical; min-height: 60px; }
+  textarea { resize: none; min-height: 60px; overflow: hidden; field-sizing: content; }
 
   .btn {
     font-family: var(--mono);
@@ -1198,6 +1198,10 @@ function normaliseState() {
     if (v.clone_key !== norm) v.clone_key = norm;
     v.clone_num = normaliseClone(v.clone_num || cloneNumFromKey(v.clone_key));
   }
+  // Fix any 'initial' sentinel dates in events
+  for (const e of state.events) {
+    if (e.date === 'initial') e.date = '-';
+  }
   for (const e of state.events) {
     if (!e.clone_key) continue;
     const parts = e.clone_key.split('-');
@@ -1306,6 +1310,8 @@ function normaliseState() {
     if (!('pre_jassage' in v)) v.pre_jassage = null;
     // Assign J0 to any freeze batch with null jassage
     if (v.jassage == null) v.jassage = 0;
+    // Fix any 'initial' sentinel dates from old bulk imports
+    if (v.freeze_date === 'initial') v.freeze_date = '-';
     // Ensure parent_freeze_date field exists
     if (!('parent_freeze_date' in v)) v.parent_freeze_date = null;
   }
@@ -1336,36 +1342,55 @@ function donorFromKey(key) { return key.split('-')[0]; }
 function cloneNumFromKey(key) { return key.split('-').slice(1).join('-'); }
 
 function fmt(dateStr) {
-  if (!dateStr) return '—';
-  const d = new Date(dateStr + 'T12:00:00');
-  return d.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+  return fmtDMY(dateStr);
 }
 
 function today() {
   return new Date().toISOString().slice(0, 10);
 }
 
-// Parse "13Jun25" or "13Jun2025" → "2025-06-13" (ISO). Returns null if unrecognised.
+// Parse "'26Sep11" or "13Jun25" or "13Jun2025" → "2026-09-11" (ISO). Returns null if unrecognised.
 const MONTHS = { jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11 };
 function parseDMY(str) {
-  const m = str.trim().match(/^(\d{1,2})([A-Za-z]{3})(\d{2,4})$/);
-  if (!m) return null;
-  const day = parseInt(m[1]);
-  const mon = MONTHS[m[2].toLowerCase()];
-  if (mon === undefined) return null;
-  let year = parseInt(m[3]);
-  if (year < 100) year += 2000;
-  const d = new Date(year, mon, day);
-  if (isNaN(d)) return null;
-  return `${year}-${String(mon+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+  str = str.trim();
+  const hasApostrophe = str.startsWith("'");
+  str = str.replace(/^'/, '');
+
+  // New format: 'YYMonDD — only when apostrophe was present e.g. '26Sep11
+  if (hasApostrophe) {
+    const m = str.match(/^(\d{2})([A-Za-z]{3})(\d{2})$/);
+    if (m) {
+      const year = 2000 + parseInt(m[1]);
+      const mon = MONTHS[m[2].toLowerCase()];
+      if (mon !== undefined) {
+        const day = parseInt(m[3]);
+        return `${year}-${String(mon+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      }
+    }
+  }
+
+  // Old format: DDMonYY or DDMonYYYY e.g. 18Oct23 or 13Jun2025
+  const m = str.match(/^(\d{1,2})([A-Za-z]{3})(\d{2,4})$/);
+  if (m) {
+    const day = parseInt(m[1]);
+    const mon = MONTHS[m[2].toLowerCase()];
+    if (mon === undefined) return null;
+    let year = parseInt(m[3]);
+    if (year < 100) year += 2000;
+    return `${year}-${String(mon+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+  }
+  return null;
 }
 
-// Format ISO "2025-06-13" → "13Jun25"
+// Format ISO "2025-06-13" → "'25Jun13"
 function fmtDMY(isoStr) {
-  if (!isoStr) return '';
+  if (!isoStr || isoStr === '-') return '—';
   const d = new Date(isoStr + 'T12:00:00');
+  if (isNaN(d)) return isoStr;
   const mon = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()];
-  return `${String(d.getDate()).padStart(2,'0')}${mon}${String(d.getFullYear()).slice(2)}`;
+  const yy = String(d.getFullYear()).slice(2);
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `'${yy}${mon}${dd}`;
 }
 
 // Format passage display for a vial
@@ -2263,9 +2288,9 @@ function addImportRow() {
       ${importRowCount === 1 ? '<label>Clone #</label>' : ''}
       <input class="ir-clone" type="text" placeholder="e.g. 17">
     </div>
-    <div class="form-group">
+    <div class="form-group ir-date-wrap-${id}">
       ${importRowCount === 1 ? '<label>Freeze Date</label>' : ''}
-      <input class="ir-date" type="text" placeholder="e.g. 13Jun25" value="${fmtDMY(today())}" style="width:100%">
+      <input class="ir-date" type="text" placeholder="e.g. '26Sep11" value="${fmtDMY(today())}" style="width:100%">
     </div>
     <div class="form-group">
       ${importRowCount === 1 ? '<label>Vials</label>' : ''}
@@ -2279,9 +2304,30 @@ function addImportRow() {
       ${importRowCount === 1 ? '<label>Notes</label>' : ''}
       <input class="ir-notes" type="text" placeholder="any notes from notebook…">
     </div>
+    <div class="form-group" style="display:flex;align-items:center;gap:5px;padding-bottom:6px;">
+      <input type="checkbox" id="${id}-initial" onchange="toggleInitialVial('${id}')"
+        style="width:14px;height:14px;accent-color:var(--accent);cursor:pointer;">
+      <label for="${id}-initial" style="font-family:var(--mono);font-size:10px;color:var(--text-dim);cursor:pointer;white-space:nowrap;">initial?</label>
+    </div>
     <button class="batch-remove" onclick="removeBatchRow('${id}')" title="Remove">×</button>
   `;
   document.getElementById('import-rows').appendChild(el);
+}
+
+function toggleInitialVial(id) {
+  const row = document.getElementById(id);
+  const isInitial = row.querySelector(`#${id}-initial`).checked;
+  const dateWrap = row.querySelector(`.ir-date-wrap-${id}`);
+  const dateInput = row.querySelector('.ir-date');
+  if (isInitial) {
+    dateInput.value = '';
+    dateInput.placeholder = 'optional — acquisition date';
+    dateWrap.style.opacity = '0.5';
+  } else {
+    dateInput.value = fmtDMY(today());
+    dateInput.placeholder = `e.g. '26Sep11`;
+    dateWrap.style.opacity = '1';
+  }
 }
 
 async function importVials() {
@@ -2293,25 +2339,35 @@ async function importVials() {
     const donor = row.querySelector('.ir-donor').value;
     const clone = row.querySelector('.ir-clone').value.trim();
     const rawDate = row.querySelector('.ir-date').value.trim();
-    const date = parseDMY(rawDate);
+    const isInitial = row.querySelector('[id$="-initial"]')?.checked || false;
+    const date = rawDate ? parseDMY(rawDate) : null;
     const count = parseInt(row.querySelector('.ir-count').value);
     const passage = row.querySelector('.ir-passage').value;
     const notes = row.querySelector('.ir-notes').value.trim();
-    if (!clone || !date || !count) return toast(`Row with clone "${clone || '?'}": fill in clone #, a valid date (e.g. 13Jun25), and count.`, 'error');
-    entries.push({ donor, clone, date, count, passage, notes });
+    if (!clone || !count) return toast(`Row with clone "${clone || '?'}": fill in clone # and count.`, 'error');
+    if (!isInitial && !date) return toast(`Row with clone "${clone}": fill in a valid date, or check "initial?".`, 'error');
+    entries.push({ donor, clone, date, count, passage, notes, isInitial });
   }
 
-  for (const { donor, clone, date, count, passage, notes } of entries) {
+  for (const { donor, clone, date, count, passage, notes, isInitial } of entries) {
     const key = cloneKey(donor, clone);
     const normClone = normaliseClone(clone);
-    const existing = state.vials.find(v => v.clone_key === key && v.freeze_date === date);
+    const freezeDate = date || '-';
+    const existing = state.vials.find(v => v.clone_key === key && v.freeze_date === freezeDate);
     if (existing) {
       existing.count += count;
       if (passage) existing.passage = parseInt(passage);
     } else {
-      state.vials.push({ clone_key: key, donor, clone_num: normClone, freeze_date: date, count, passage: passage ? parseInt(passage) : null, notes });
+      state.vials.push({
+        clone_key: key, donor, clone_num: normClone,
+        freeze_date: freezeDate, count,
+        passage: passage ? parseInt(passage) : null,
+        jassage: 0, pre_jassage: null, parent_freeze_date: null,
+        notes: isInitial ? `[initial vial] ${notes}`.trim() : notes
+      });
     }
-    state.events.push({ id: uid(), type: 'freeze', date, clone_key: key, donor, clone_num: normClone, count, passage_num: passage ? parseInt(passage) : null, notes: `[imported] ${notes}` });
+    const eventNotes = `[imported${isInitial ? ' — initial vial' : ''}] ${notes}`.trim();
+    state.events.push({ id: uid(), type: 'freeze', date: freezeDate, clone_key: key, donor, clone_num: normClone, count, passage_num: passage ? parseInt(passage) : null, notes: eventNotes });
   }
 
   await saveData();
@@ -2326,14 +2382,27 @@ async function bulkImport() {
   if (!Array.isArray(arr)) return toast('JSON must be an array', 'error');
 
   for (const item of arr) {
-    const { donor, clone, freeze_date, count, passage, notes } = item;
-    if (!donor || !clone || !freeze_date || !count) continue;
-    const key = cloneKey(donor, clone);
-    const existing = state.vials.find(v => v.clone_key === key && v.freeze_date === freeze_date);
-    if (existing) { existing.count += count; } else {
-      state.vials.push({ clone_key: key, donor, clone_num: String(clone), freeze_date, count, passage: passage ?? null, notes: notes || '' });
+    const { donor, clone, count, passage, notes } = item;
+    if (!donor || !clone || !count) continue;
+
+    const isInitial = !item.freeze_date || item.freeze_date === 'initial';
+    const freezeDate = isInitial ? '-' : (parseDMY(item.freeze_date) || item.freeze_date);
+    const key = cloneKey(donor, String(clone));
+    const normClone = normaliseClone(String(clone));
+
+    const existing = state.vials.find(v => v.clone_key === key && v.freeze_date === freezeDate);
+    if (existing) {
+      existing.count += count;
+    } else {
+      state.vials.push({
+        clone_key: key, donor, clone_num: normClone,
+        freeze_date: freezeDate, count,
+        passage: passage ?? null, jassage: 0, pre_jassage: null, parent_freeze_date: null,
+        notes: isInitial ? `[initial vial] ${notes || ''}`.trim() : (notes || '')
+      });
     }
-    state.events.push({ id: uid(), type: 'freeze', date: freeze_date, clone_key: key, donor, clone_num: String(clone), count, passage_num: passage ?? null, notes: `[bulk import] ${notes || ''}` });
+    const eventNotes = `[bulk import${isInitial ? ' — initial vial' : ''}] ${notes || ''}`.trim();
+    state.events.push({ id: uid(), type: 'freeze', date: freezeDate, clone_key: key, donor, clone_num: normClone, count, passage_num: passage ?? null, notes: eventNotes });
   }
 
   await saveData();
@@ -3340,6 +3409,13 @@ async function executeDeleteEvent() {
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
+// Auto-expanding textareas fallback (for browsers without field-sizing: content)
+document.addEventListener('input', e => {
+  if (e.target.tagName === 'TEXTAREA') {
+    e.target.style.height = 'auto';
+    e.target.style.height = e.target.scrollHeight + 'px';
+  }
+});
 loadData();
 </script>
 </body>
