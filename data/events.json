@@ -1262,6 +1262,69 @@
       "passage_num": null,
       "jassage_num": 4,
       "notes": "1xT75 -> 2 x T25s... about 4e6 vc into each"
+    },
+    {
+      "id": "mu22r4i2g4nw",
+      "type": "thaw",
+      "date": "2026-09-09",
+      "clone_key": "F2-22",
+      "count": 1,
+      "vial_freeze_date": "2026-07-28",
+      "notes": "NL into 1xT25"
+    },
+    {
+      "id": "mu22r4i3u6jw",
+      "type": "thaw",
+      "date": "2026-09-09",
+      "clone_key": "F2-23",
+      "count": 1,
+      "vial_freeze_date": "2026-07-27",
+      "notes": "NL into 1xT25"
+    },
+    {
+      "id": "mu22r4i3a7od",
+      "type": "thaw",
+      "date": "2026-09-09",
+      "clone_key": "F2-24",
+      "count": 1,
+      "vial_freeze_date": "2026-07-28",
+      "notes": "NL into 1xT25"
+    },
+    {
+      "id": "mu22r4i3m1et",
+      "type": "thaw",
+      "date": "2026-09-09",
+      "clone_key": "F5-02",
+      "count": 1,
+      "vial_freeze_date": "2026-07-25",
+      "notes": "JZ into 1xT25"
+    },
+    {
+      "id": "mu22r4i34fiv",
+      "type": "thaw",
+      "date": "2026-09-09",
+      "clone_key": "F5-07",
+      "count": 1,
+      "vial_freeze_date": "2026-07-29",
+      "notes": "JZ into 1xT25"
+    },
+    {
+      "id": "mu22rlaejaoh",
+      "type": "thaw",
+      "date": "2026-09-08",
+      "clone_key": "F2-24",
+      "count": 1,
+      "vial_freeze_date": "2026-07-28",
+      "notes": "JZ into 1xT25 to check for contamination. we are fine!"
+    },
+    {
+      "id": "mu22tpkly7z4",
+      "type": "thaw",
+      "date": "2026-09-12",
+      "clone_key": "F2-22",
+      "count": 1,
+      "vial_freeze_date": "2026-07-28",
+      "notes": "JZ into 1xT25. because cap of the one from '26Sep09 exploded into the flask a bit... old. avoid using super old ones from now on"
     }
   ]
 }
