@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-15T02:52:37.941Z",
+  "last_updated": "2026-09-15T03:14:03.670Z",
   "vials": [
     {
       "clone_key": "F2-02",
@@ -610,6 +610,357 @@
       "pre_jassage": null,
       "notes": "29.29e6 vc in 27mL",
       "parent_freeze_date": "2025-06-21"
+    },
+    {
+      "clone_key": "F5-17",
+      "donor": "F5",
+      "clone_num": "17",
+      "freeze_date": "2023-10-18",
+      "count": 1,
+      "passage": null,
+      "notes": ""
+    },
+    {
+      "clone_key": "F5-24",
+      "donor": "F5",
+      "clone_num": "24",
+      "freeze_date": "2023-10-11",
+      "count": 8,
+      "passage": null,
+      "notes": "we thought this was a ghost!"
+    },
+    {
+      "clone_key": "F5-24",
+      "donor": "F5",
+      "clone_num": "24",
+      "freeze_date": "2023-10-09",
+      "count": 1,
+      "passage": null,
+      "notes": ""
+    },
+    {
+      "clone_key": "F5-24",
+      "donor": "F5",
+      "clone_num": "24",
+      "freeze_date": "2023-10-05",
+      "count": 1,
+      "passage": null,
+      "notes": ""
+    },
+    {
+      "clone_key": "F5-16a",
+      "donor": "F5",
+      "clone_num": "16a",
+      "freeze_date": "2024-04-04",
+      "count": 2,
+      "passage": null,
+      "notes": ""
+    },
+    {
+      "clone_key": "F2-11",
+      "donor": "F2",
+      "clone_num": "11",
+      "freeze_date": "2023-10-09",
+      "count": 2,
+      "passage": null,
+      "notes": "we thought this was a ghost!"
+    },
+    {
+      "clone_key": "F5-23B",
+      "donor": "F5",
+      "clone_num": "23B",
+      "freeze_date": "initial",
+      "count": 1,
+      "passage": null,
+      "notes": "initial vial"
+    },
+    {
+      "clone_key": "F2-02",
+      "donor": "F2",
+      "clone_num": "2",
+      "freeze_date": "11Oct23",
+      "count": 1,
+      "passage": null,
+      "notes": ""
+    },
+    {
+      "clone_key": "F2-02",
+      "donor": "F2",
+      "clone_num": "2",
+      "freeze_date": "18Oct23",
+      "count": 1,
+      "passage": null,
+      "notes": ""
+    },
+    {
+      "clone_key": "F5-3A",
+      "donor": "F5",
+      "clone_num": "3A",
+      "freeze_date": "initial",
+      "count": 1,
+      "passage": null,
+      "notes": "initial vial"
+    },
+    {
+      "clone_key": "F5-3B",
+      "donor": "F5",
+      "clone_num": "3B",
+      "freeze_date": "initial",
+      "count": 1,
+      "passage": null,
+      "notes": "initial vial"
+    },
+    {
+      "clone_key": "F5-19",
+      "donor": "F5",
+      "clone_num": "19",
+      "freeze_date": "initial",
+      "count": 1,
+      "passage": null,
+      "notes": "initial vial"
+    },
+    {
+      "clone_key": "F2-34",
+      "donor": "F2",
+      "clone_num": "34",
+      "freeze_date": "initial",
+      "count": 1,
+      "passage": null,
+      "notes": "initial vial"
+    },
+    {
+      "clone_key": "F2-35",
+      "donor": "F2",
+      "clone_num": "35",
+      "freeze_date": "initial",
+      "count": 1,
+      "passage": null,
+      "notes": "initial vial"
+    },
+    {
+      "clone_key": "F2-37",
+      "donor": "F2",
+      "clone_num": "37",
+      "freeze_date": "initial",
+      "count": 1,
+      "passage": null,
+      "notes": "initial vial"
+    },
+    {
+      "clone_key": "F2-39",
+      "donor": "F2",
+      "clone_num": "39",
+      "freeze_date": "initial",
+      "count": 1,
+      "passage": null,
+      "notes": "initial vial"
+    },
+    {
+      "clone_key": "F2-40",
+      "donor": "F2",
+      "clone_num": "40",
+      "freeze_date": "initial",
+      "count": 1,
+      "passage": null,
+      "notes": "initial vial"
+    },
+    {
+      "clone_key": "F2-41",
+      "donor": "F2",
+      "clone_num": "41",
+      "freeze_date": "initial",
+      "count": 1,
+      "passage": null,
+      "notes": "initial vial"
+    },
+    {
+      "clone_key": "F5-1A",
+      "donor": "F5",
+      "clone_num": "1A",
+      "freeze_date": "initial",
+      "count": 1,
+      "passage": null,
+      "notes": "initial vial"
+    },
+    {
+      "clone_key": "F5-22",
+      "donor": "F5",
+      "clone_num": "22",
+      "freeze_date": "initial",
+      "count": 1,
+      "passage": null,
+      "notes": "initial vial"
+    },
+    {
+      "clone_key": "F5-23A",
+      "donor": "F5",
+      "clone_num": "23A",
+      "freeze_date": "initial",
+      "count": 1,
+      "passage": null,
+      "notes": "initial vial"
+    },
+    {
+      "clone_key": "F5-14",
+      "donor": "F5",
+      "clone_num": "14",
+      "freeze_date": "initial",
+      "count": 1,
+      "passage": null,
+      "notes": "initial vial"
+    },
+    {
+      "clone_key": "F5-15",
+      "donor": "F5",
+      "clone_num": "15",
+      "freeze_date": "initial",
+      "count": 1,
+      "passage": null,
+      "notes": "initial vial"
+    },
+    {
+      "clone_key": "F2-28",
+      "donor": "F2",
+      "clone_num": "28",
+      "freeze_date": "initial",
+      "count": 1,
+      "passage": null,
+      "notes": "initial vial"
+    },
+    {
+      "clone_key": "F2-1A",
+      "donor": "F2",
+      "clone_num": "1A",
+      "freeze_date": "initial",
+      "count": 1,
+      "passage": null,
+      "notes": "initial vial"
+    },
+    {
+      "clone_key": "F2-16",
+      "donor": "F2",
+      "clone_num": "16",
+      "freeze_date": "initial",
+      "count": 1,
+      "passage": null,
+      "notes": "initial vial"
+    },
+    {
+      "clone_key": "F5-08",
+      "donor": "F5",
+      "clone_num": "8",
+      "freeze_date": "initial",
+      "count": 1,
+      "passage": null,
+      "notes": "initial vial"
+    },
+    {
+      "clone_key": "F2-12",
+      "donor": "F2",
+      "clone_num": "12",
+      "freeze_date": "initial",
+      "count": 1,
+      "passage": null,
+      "notes": "initial vial"
+    },
+    {
+      "clone_key": "F5-18",
+      "donor": "F5",
+      "clone_num": "18",
+      "freeze_date": "initial",
+      "count": 1,
+      "passage": null,
+      "notes": "initial vial"
+    },
+    {
+      "clone_key": "F2-14",
+      "donor": "F2",
+      "clone_num": "14",
+      "freeze_date": "initial",
+      "count": 1,
+      "passage": null,
+      "notes": "initial vial"
+    },
+    {
+      "clone_key": "F2-15",
+      "donor": "F2",
+      "clone_num": "15",
+      "freeze_date": "initial",
+      "count": 1,
+      "passage": null,
+      "notes": "initial vial"
+    },
+    {
+      "clone_key": "F2-32",
+      "donor": "F2",
+      "clone_num": "32",
+      "freeze_date": "initial",
+      "count": 1,
+      "passage": null,
+      "notes": "initial vial"
+    },
+    {
+      "clone_key": "F2-03",
+      "donor": "F2",
+      "clone_num": "3",
+      "freeze_date": "initial",
+      "count": 1,
+      "passage": null,
+      "notes": "initial vial"
+    },
+    {
+      "clone_key": "F2-04",
+      "donor": "F2",
+      "clone_num": "4",
+      "freeze_date": "initial",
+      "count": 1,
+      "passage": null,
+      "notes": "initial vial"
+    },
+    {
+      "clone_key": "F2-05",
+      "donor": "F2",
+      "clone_num": "5",
+      "freeze_date": "initial",
+      "count": 1,
+      "passage": null,
+      "notes": "initial vial"
+    },
+    {
+      "clone_key": "F5-a17T",
+      "donor": "F5",
+      "clone_num": "a17T",
+      "freeze_date": "30Aug23",
+      "count": 3,
+      "passage": null,
+      "notes": ""
+    },
+    {
+      "clone_key": "F2-06",
+      "donor": "F2",
+      "clone_num": "6",
+      "freeze_date": "initial",
+      "count": 1,
+      "passage": null,
+      "notes": "initial vial"
+    },
+    {
+      "clone_key": "F2-07",
+      "donor": "F2",
+      "clone_num": "7",
+      "freeze_date": "initial",
+      "count": 1,
+      "passage": null,
+      "notes": "initial vial"
+    },
+    {
+      "clone_key": "F2-08",
+      "donor": "F2",
+      "clone_num": "8",
+      "freeze_date": "initial",
+      "count": 1,
+      "passage": null,
+      "notes": "initial vial"
     }
   ]
 }
