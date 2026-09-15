@@ -1198,9 +1198,22 @@ function normaliseState() {
     if (v.clone_key !== norm) v.clone_key = norm;
     v.clone_num = normaliseClone(v.clone_num || cloneNumFromKey(v.clone_key));
   }
-  // Fix any 'initial' sentinel dates in events
+  // Fix any un-parsed freeze dates (old DDMonYY format stored as raw strings)
+  for (const v of state.vials) {
+    if (!v.freeze_date.startsWith('20') && v.freeze_date !== '-') {
+      const parsed = parseDMY(v.freeze_date);
+      if (parsed) v.freeze_date = parsed;
+    }
+  }
   for (const e of state.events) {
-    if (e.date === 'initial') e.date = '-';
+    if (e.date && !e.date.startsWith('20') && e.date !== '-') {
+      const parsed = parseDMY(e.date);
+      if (parsed) e.date = parsed;
+    }
+    if (e.vial_freeze_date && !e.vial_freeze_date.startsWith('20') && e.vial_freeze_date !== '-') {
+      const parsed = parseDMY(e.vial_freeze_date);
+      if (parsed) e.vial_freeze_date = parsed;
+    }
   }
   for (const e of state.events) {
     if (!e.clone_key) continue;
@@ -1638,8 +1651,8 @@ function renderLog() {
     return;
   }
   el.innerHTML = evs.map(e => {
-    const typeCls = { freeze: 'type-freeze', thaw: 'type-thaw', passage: 'type-passage', discard: 'type-thaw' }[e.type] || '';
-    const typeLabel = { freeze: '❄️ freeze', thaw: '🌡️ thaw', passage: '⬆️ passage', discard: '🗑️ discard' }[e.type] || e.type;
+    const typeCls = { freeze: 'type-freeze', thaw: 'type-thaw', passage: 'type-passage', discard: 'type-thaw', bulk_import: 'type-freeze' }[e.type] || '';
+    const typeLabel = { freeze: '❄️ freeze', thaw: '🌡️ thaw', passage: '⬆️ passage', discard: '🗑️ discard', bulk_import: '📦 bulk import' }[e.type] || e.type;
     let detail = e.clone_key || '';
     if (e.type === 'freeze') detail += ` · +${e.count} vials`;
     if (e.type === 'thaw') {
@@ -1648,6 +1661,17 @@ function renderLog() {
     }
     if (e.type === 'passage') detail += passageJassageDisplay(e);
     if (e.type === 'discard') detail += ' · culture discarded';
+    if (e.type === 'bulk_import' && e.clones) {
+      const groups = {};
+      for (const c of e.clones) {
+        const fd = c.freeze_date === '-' ? 'initial' : fmtDMY(c.freeze_date);
+        if (!groups[fd]) groups[fd] = [];
+        groups[fd].push(`${c.clone_key} ×${c.count}`);
+      }
+      detail = Object.entries(groups).map(([fd, clones]) =>
+        `<span style="color:var(--text-dim);font-size:10px;">${fd}:</span> ${clones.join(', ')}`
+      ).join(' &nbsp;·&nbsp; ');
+    }
     const supStyle = e.superseded_by ? 'opacity:0.4;text-decoration:line-through;' : '';
     const corrTag = e.is_correction ? `<span style="font-size:10px;color:var(--warn);background:var(--warn-dim);border-radius:99px;padding:1px 7px;margin-left:6px;">correction</span>` : '';
     const supTag = e.superseded_by ? `<span style="font-size:10px;color:var(--danger);background:#3a1a1a;border-radius:99px;padding:1px 7px;margin-left:6px;">superseded</span>` : '';
@@ -2381,6 +2405,7 @@ async function bulkImport() {
   try { arr = JSON.parse(raw); } catch(e) { return toast('Invalid JSON', 'error'); }
   if (!Array.isArray(arr)) return toast('JSON must be an array', 'error');
 
+  const imported = [];
   for (const item of arr) {
     const { donor, clone, count, passage, notes } = item;
     if (!donor || !clone || !count) continue;
@@ -2401,31 +2426,56 @@ async function bulkImport() {
         notes: isInitial ? `[initial vial] ${notes || ''}`.trim() : (notes || '')
       });
     }
-    const eventNotes = `[bulk import${isInitial ? ' — initial vial' : ''}] ${notes || ''}`.trim();
-    state.events.push({ id: uid(), type: 'freeze', date: freezeDate, clone_key: key, donor, clone_num: normClone, count, passage_num: passage ?? null, notes: eventNotes });
+    imported.push({ clone_key: key, freeze_date: freezeDate, count, isInitial, notes: notes || '' });
+  }
+
+  // One single bulk_import event listing all clones
+  if (imported.length) {
+    state.events.push({
+      id: uid(),
+      type: 'bulk_import',
+      date: today(),
+      clone_key: null,
+      clones: imported,
+      notes: `${imported.length} vials imported`
+    });
   }
 
   await saveData();
-  toast(`Imported ${arr.length} entries`, 'success');
+  toast(`Imported ${imported.length} entries`, 'success');
   document.getElementById('bulk-json').value = '';
 }
 
 // ── Clone modal ───────────────────────────────────────────────────────────────
 function renderEventRows(events) {
   return events.map(e => {
-    const typeCls = { freeze: 'type-freeze', thaw: 'type-thaw', passage: 'type-passage', discard: 'type-thaw' }[e.type] || '';
-    const typeLabel = { freeze: '❄️ freeze', thaw: '🌡️ thaw', passage: '⬆️ passage', discard: '🗑️ discard' }[e.type] || e.type;
+    const typeCls = { freeze: 'type-freeze', thaw: 'type-thaw', passage: 'type-passage', discard: 'type-thaw', bulk_import: 'type-freeze' }[e.type] || '';
+    const typeLabel = { freeze: '❄️ freeze', thaw: '🌡️ thaw', passage: '⬆️ passage', discard: '🗑️ discard', bulk_import: '📦 bulk import' }[e.type] || e.type;
     let detail = '';
     if (e.type === 'freeze') detail = `+${e.count} vials`;
     if (e.type === 'thaw') detail = `−${e.count} vials`;
     if (e.type === 'passage') detail = passageJassageDisplay(e);
     if (e.type === 'discard') detail = 'discarded';
+    if (e.type === 'bulk_import' && e.clones) {
+      const groups = {};
+      for (const c of e.clones) {
+        const fd = c.freeze_date === '-' ? 'initial' : fmtDMY(c.freeze_date);
+        if (!groups[fd]) groups[fd] = [];
+        groups[fd].push(`${c.clone_key} ×${c.count}`);
+      }
+      detail = Object.entries(groups).map(([fd, clones]) =>
+        `<span style="color:var(--text-dim);font-size:10px;">${fd}:</span> ${clones.join(', ')}`
+      ).join(' &nbsp;·&nbsp; ');
+    }
     const corrTag = e.is_correction ? `<span style="font-size:10px;color:var(--warn);background:var(--warn-dim);border-radius:99px;padding:1px 7px;margin-left:6px;">correction</span>` : '';
-    return `<div class="event-item" style="grid-template-columns:90px 80px 1fr 1fr;">
+    const isBulk = e.type === 'bulk_import';
+    return `<div class="event-item" style="grid-template-columns:${isBulk ? '90px 100px 1fr' : '90px 80px 1fr 1fr'};">
       <span class="event-date">${fmt(e.date)}</span>
       <span class="event-type-badge ${typeCls}">${typeLabel}</span>
-      <span style="font-family:var(--mono);font-size:12px;color:var(--text)">${detail}${corrTag}</span>
-      <span style="font-size:11px;color:var(--text-dim)">${e.is_correction ? `✏️ ${e.correction_reason}` : (e.notes || '')}</span>
+      ${isBulk
+        ? `<span style="font-family:var(--mono);font-size:11px;color:var(--text);line-height:1.7;">${detail}</span>`
+        : `<span style="font-family:var(--mono);font-size:12px;color:var(--text)">${detail}${corrTag}</span>
+      <span style="font-size:11px;color:var(--text-dim)">${e.is_correction ? `✏️ ${e.correction_reason}` : (e.notes || '')}</span>`}
     </div>`;
   }).join('') || '<div class="empty">No events yet.</div>';
 }
