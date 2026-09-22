@@ -1406,7 +1406,7 @@
     {
       "id": "mu23l9naxs97",
       "type": "freeze",
-      "date": "11Oct23",
+      "date": "2023-10-11",
       "clone_key": "F2-02",
       "donor": "F2",
       "clone_num": "2",
@@ -1417,7 +1417,7 @@
     {
       "id": "mu23l9nak1q3",
       "type": "freeze",
-      "date": "18Oct23",
+      "date": "2023-10-18",
       "clone_key": "F2-02",
       "donor": "F2",
       "clone_num": "2",
@@ -1714,7 +1714,7 @@
     {
       "id": "mu23l9naq7ct",
       "type": "freeze",
-      "date": "30Aug23",
+      "date": "2023-08-30",
       "clone_key": "F5-a17T",
       "donor": "F5",
       "clone_num": "a17T",
@@ -1763,6 +1763,100 @@
       "count": 1,
       "vial_freeze_date": "2023-10-11",
       "notes": "JZ into 1xT25"
+    },
+    {
+      "id": "mud5s4d69kbr",
+      "type": "passage",
+      "date": "2026-09-16",
+      "clone_key": "F2-09",
+      "freeze_date": "2025-02-17",
+      "passage_num": null,
+      "jassage_num": 5,
+      "notes": "did not filter out aggregates. turned out quite gross!"
+    },
+    {
+      "id": "mud5zivsfxoj",
+      "type": "freeze",
+      "date": "2026-09-22",
+      "clone_key": "F2-09",
+      "donor": "F2",
+      "clone_num": "09",
+      "count": 4,
+      "passage_num": null,
+      "jassage_num": 6,
+      "notes": "4e6 vc/mL, lilac"
+    },
+    {
+      "id": "mud64t1qd2e0",
+      "type": "discard",
+      "date": "2026-09-20",
+      "clone_key": "F5-07",
+      "donor": "F5",
+      "clone_num": "07",
+      "notes": ""
+    },
+    {
+      "id": "mud64t1tfglr",
+      "type": "discard",
+      "date": "2026-09-20",
+      "clone_key": "F2-22",
+      "donor": "F2",
+      "clone_num": "22",
+      "notes": ""
+    },
+    {
+      "id": "mud64t1tpqbp",
+      "type": "discard",
+      "date": "2026-09-20",
+      "clone_key": "F2-22",
+      "donor": "F2",
+      "clone_num": "22",
+      "notes": ""
+    },
+    {
+      "id": "mud64t1tywi0",
+      "type": "discard",
+      "date": "2026-09-20",
+      "clone_key": "F2-23",
+      "donor": "F2",
+      "clone_num": "23",
+      "notes": ""
+    },
+    {
+      "id": "mud64t1t9i0x",
+      "type": "discard",
+      "date": "2026-09-20",
+      "clone_key": "F5-02",
+      "donor": "F5",
+      "clone_num": "02",
+      "notes": ""
+    },
+    {
+      "id": "mud64t1tiq4q",
+      "type": "discard",
+      "date": "2026-09-20",
+      "clone_key": "F2-24",
+      "donor": "F2",
+      "clone_num": "24",
+      "notes": ""
+    },
+    {
+      "id": "mud64t1tt3th",
+      "type": "discard",
+      "date": "2026-09-20",
+      "clone_key": "F5-24",
+      "donor": "F5",
+      "clone_num": "24",
+      "notes": ""
+    },
+    {
+      "id": "mud6767anhoh",
+      "type": "discard",
+      "date": "2026-09-22",
+      "clone_key": "F2-24",
+      "donor": "F2",
+      "clone_num": "24",
+      "notes": "i don't remember when i tossed this :) but def not today!"
     }
   ]
 }
