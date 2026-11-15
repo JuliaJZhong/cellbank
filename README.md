@@ -120,7 +120,7 @@ Nothing needs to be installed beyond Python 3. The app is a single `index.html` 
 
 ## Date format
 
-Dates display as `'YYMMMdd`, e.g. `'26Sep11` = September 11th, 2026 (apostrophe, 2-digit year, 3-letter month, 2-digit day). The older `DDMonYY` / `DDMonYYYY` forms (e.g. `23Apr25`) are still accepted on input. Internally everything is stored as ISO `YYYY-MM-DD`.
+Dates display as `'YYMMMdd`, e.g. `'26Sep11` = September 11th, 2026 (apostrophe, 2-digit year, 3-letter month, 2-digit day). The leading apostrophe is required when typing a date; input without it is rejected. Internally everything is stored as ISO `YYYY-MM-DD`.
 
 ## Data files
 
@@ -153,7 +153,7 @@ Paste into **Import Vials → Bulk JSON Import**:
 ]
 ```
 
-- `freeze_date`: ISO `YYYY-MM-DD`, the old `DDMonYY` form, or `"initial"` for an unexpanded initial vial (stored as `-`).
+- `freeze_date`: `'YYMMMdd` (e.g. `'26Sep11`), ISO `YYYY-MM-DD`, or `"initial"` for an unexpanded initial vial (stored as `-`). Any other value cancels the import with an error.
 - Optional: `passage`, `location`, `notes`.
 - The whole import is recorded as one `bulk_import` event.
 

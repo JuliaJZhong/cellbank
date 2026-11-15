@@ -961,7 +961,7 @@
     <div class="modal-title">↑ Commit to Git</div>
     <div class="form-group" style="margin-bottom:16px;">
       <label>Commit Message</label>
-      <input type="text" id="commit-msg" placeholder="e.g. Log freeze F5-17 23Apr2025">
+      <input type="text" id="commit-msg" placeholder="e.g. Log freeze F5-17 '25Apr23">
     </div>
     <div class="btn-row">
       <button class="btn btn-primary" onclick="doCommit()">Commit</button>
@@ -1198,7 +1198,7 @@ function normaliseState() {
     if (v.clone_key !== norm) v.clone_key = norm;
     v.clone_num = normaliseClone(v.clone_num || cloneNumFromKey(v.clone_key));
   }
-  // Fix any un-parsed freeze dates (old DDMonYY format stored as raw strings)
+  // Fix any un-parsed freeze dates (raw strings in the 'YYMMMdd format)
   for (const v of state.vials) {
     if (!v.freeze_date.startsWith('20') && v.freeze_date !== '-') {
       const parsed = parseDMY(v.freeze_date);
@@ -1362,7 +1362,7 @@ function today() {
   return new Date().toISOString().slice(0, 10);
 }
 
-// Parse "'26Sep11" or "13Jun25" or "13Jun2025" → "2026-09-11" (ISO). Returns null if unrecognised.
+// Parse "'26Sep11" (apostrophe + YY + Mon + DD) → "2026-09-11" (ISO). Returns null if unrecognised.
 const MONTHS = { jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11 };
 function parseDMY(str) {
   str = str.trim();
@@ -1382,16 +1382,6 @@ function parseDMY(str) {
     }
   }
 
-  // Old format: DDMonYY or DDMonYYYY e.g. 18Oct23 or 13Jun2025
-  const m = str.match(/^(\d{1,2})([A-Za-z]{3})(\d{2,4})$/);
-  if (m) {
-    const day = parseInt(m[1]);
-    const mon = MONTHS[m[2].toLowerCase()];
-    if (mon === undefined) return null;
-    let year = parseInt(m[3]);
-    if (year < 100) year += 2000;
-    return `${year}-${String(mon+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-  }
   return null;
 }
 
@@ -2405,13 +2395,22 @@ async function bulkImport() {
   try { arr = JSON.parse(raw); } catch(e) { return toast('Invalid JSON', 'error'); }
   if (!Array.isArray(arr)) return toast('JSON must be an array', 'error');
 
+  // Validate dates up front so a bad row doesn't leave a partial import
+  for (const item of arr) {
+    if (!item.freeze_date || item.freeze_date === 'initial') continue;
+    const fd = String(item.freeze_date).trim();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(fd) && !parseDMY(fd)) {
+      return toast(`Unrecognised date "${item.freeze_date}". Use 'YYMMMdd (e.g. '26Sep11), YYYY-MM-DD, or "initial".`, 'error');
+    }
+  }
+
   const imported = [];
   for (const item of arr) {
     const { donor, clone, count, passage, notes } = item;
     if (!donor || !clone || !count) continue;
 
     const isInitial = !item.freeze_date || item.freeze_date === 'initial';
-    const freezeDate = isInitial ? '-' : (parseDMY(item.freeze_date) || item.freeze_date);
+    const freezeDate = isInitial ? '-' : (parseDMY(String(item.freeze_date).trim()) || String(item.freeze_date).trim());
     const key = cloneKey(donor, String(clone));
     const normClone = normaliseClone(String(clone));
 
